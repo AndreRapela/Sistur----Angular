@@ -1,0 +1,66 @@
+<div class="min-h-screen bg-slate-50">
+  @if (auth && auth.isAuthenticated()) {
+    <app-navbar></app-navbar>
+  }
+  
+  <main class="pt-0 md:pt-20 pb-20 md:pb-0">
+    <router-outlet></router-outlet>
+  </main>
+
+  @if (auth && auth.isAuthenticated()) {
+    <app-bottom-nav></app-bottom-nav>
+  }
+  
+  <!-- Floating Action Button: Dica do Sabat -->
+  <button (click)="toggleSabat()" 
+          class="fixed bottom-24 right-6 md:bottom-10 md:right-10 w-16 h-16 bg-cta text-white rounded-2xl shadow-premium flex items-center justify-center group hover:scale-110 active:scale-95 transition-all z-50 border-none cursor-pointer">
+    <i [class]="showSabat ? 'pi pi-times rotate-90' : 'pi pi-sparkles'" class="text-2xl group-hover:rotate-12 transition-transform"></i>
+    <span class="absolute right-full mr-4 px-4 py-2 bg-white/95 backdrop-blur-md border border-slate-100 rounded-xl text-slate-800 font-bold text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all shadow-premium pointer-events-none">
+      Dica do Sabat ✨
+    </span>
+  </button>
+
+  <!-- Dica do Sabat Drawer -->
+  <p-drawer [(visible)]="showSabat" position="right" styleClass="w-full md:w-[400px]" [baseZIndex]="10000">
+    <ng-template pTemplate="header">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-cta rounded-2xl flex items-center justify-center text-white text-xl shadow-lg shadow-cta/20">
+          <i class="pi pi-sparkles"></i>
+        </div>
+        <div>
+          <h3 class="text-xl font-black text-slate-800 m-0 tracking-tight">Sabat</h3>
+          <p class="text-slate-500 font-bold text-[10px] uppercase tracking-widest m-0">Guia de IA Local</p>
+        </div>
+      </div>
+    </ng-template>
+
+    <div class="flex flex-col h-full">
+      <div class="flex-1 py-4">
+        <div class="bg-blue-50/50 rounded-3xl p-6 min-h-[160px] relative mb-6 border border-blue-100">
+          @if (isTyping) {
+            <div class="flex gap-2 p-3">
+              <div class="w-2 h-2 bg-cta rounded-full animate-bounce"></div>
+              <div class="w-2 h-2 bg-cta rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+              <div class="w-2 h-2 bg-cta rounded-full animate-bounce [animation-delay:-0.5s]"></div>
+            </div>
+          } @else {
+            <p class="text-slate-700 font-medium leading-relaxed italic m-0">"{{sabatMessage()}}"</p>
+          }
+        </div>
+        
+        <p class="text-[11px] text-slate-400 px-2 font-medium">Sabat analisa o clima, eventos locais e tendências para te dar a melhor dica de Noronha em tempo real.</p>
+      </div>
+
+      <div class="mt-auto space-y-3 pb-4">
+        <button (click)="generateSabatTip()" class="w-full py-4 bg-primary text-white rounded-2xl font-bold hover:bg-primary/90 transition-all active:scale-95 shadow-lg shadow-primary/20 border-none cursor-pointer flex items-center justify-center gap-2">
+          <i class="pi pi-refresh"></i> Mais uma dica!
+        </button>
+        <button (click)="toggleSabat()" class="w-full py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all active:scale-95 border-none cursor-pointer">
+          Obrigado, Sabat
+        </button>
+      </div>
+    </div>
+  </p-drawer>
+
+  <p-toast position="top-right"></p-toast>
+</div>

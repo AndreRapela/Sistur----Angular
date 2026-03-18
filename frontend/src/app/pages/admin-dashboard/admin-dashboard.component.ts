@@ -1,0 +1,99 @@
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { AuthService } from '../../services/auth.service';
+import { RouterModule } from '@angular/router';
+
+@Component({
+  selector: 'app-admin-dashboard',
+  standalone: true,
+  imports: [CommonModule, RouterModule],
+  template: `
+    <div class="min-h-screen bg-slate-50 p-6 md:p-10">
+      <header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <span class="text-primary font-black text-[10px] uppercase tracking-[0.2em]">Painel Administrativo</span>
+          <h1 class="text-4xl font-black text-slate-800 tracking-tight mt-2">Visão Geral</h1>
+        </div>
+        <div class="flex gap-3">
+          <button class="px-6 py-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50 transition-all shadow-sm">
+            <i class="pi pi-download mr-2"></i> Relatórios
+          </button>
+          <button class="px-6 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
+            <i class="pi pi-plus mr-2"></i> Novo Registro
+          </button>
+        </div>
+      </header>
+
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+        @for (stat of stats; track stat.label) {
+          <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 hover:shadow-xl transition-all group">
+            <div class="flex items-center justify-between mb-4">
+              <div [class]="'w-12 h-12 rounded-2xl flex items-center justify-center ' + stat.bgColor">
+                <i [class]="'pi ' + stat.icon + ' ' + stat.iconColor"></i>
+              </div>
+              <span class="text-[10px] font-black text-emerald-500 bg-emerald-50 px-2 py-1 rounded-lg">+{{stat.trend}}%</span>
+            </div>
+            <h3 class="text-slate-400 font-bold text-xs uppercase tracking-widest">{{stat.label}}</h3>
+            <p class="text-3xl font-black text-slate-800 mt-1 tracking-tight">{{stat.value}}</p>
+          </div>
+        }
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Recent Activity -->
+        <div class="lg:col-span-2 bg-white rounded-[2.5rem] p-8 shadow-premium">
+          <h3 class="text-xl font-black text-slate-800 mb-6 tracking-tight">Atividades Recentes</h3>
+          <div class="space-y-6">
+            @for (act of activities; track act.id) {
+              <div class="flex items-center gap-4 p-4 hover:bg-slate-50 rounded-2xl transition-colors group">
+                <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-black text-slate-400 group-hover:bg-primary group-hover:text-white transition-all">
+                  {{act.user.charAt(0)}}
+                </div>
+                <div class="flex-grow">
+                  <p class="text-sm font-bold text-slate-700">
+                    <span class="text-slate-900">{{act.user}}</span> {{act.action}} <span class="text-primary">{{act.target}}</span>
+                  </p>
+                  <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{act.time}}</span>
+                </div>
+                <button class="p-2 opacity-0 group-hover:opacity-100 transition-opacity"><i class="pi pi-ellipsis-h text-slate-400"></i></button>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-primary rounded-[2.5rem] p-8 text-white shadow-xl shadow-primary/20">
+          <h3 class="text-xl font-black mb-6 tracking-tight">Ações Rápidas</h3>
+          <div class="grid grid-cols-1 gap-3">
+            <button class="w-full p-4 bg-white/10 hover:bg-white/20 rounded-2xl font-bold flex items-center gap-3 transition-all">
+              <i class="pi pi-users"></i> Gerenciar Usuários
+            </button>
+            <button class="w-full p-4 bg-white/10 hover:bg-white/20 rounded-2xl font-bold flex items-center gap-3 transition-all">
+              <i class="pi pi-map-marker"></i> Aprovar Locais
+            </button>
+            <button class="w-full p-4 bg-white/10 hover:bg-white/20 rounded-2xl font-bold flex items-center gap-3 transition-all">
+              <i class="pi pi-cog"></i> Configurações
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `
+})
+export class AdminDashboardComponent {
+  stats = [
+    { label: 'Turistas', value: '12,450', trend: 12, icon: 'pi-users', iconColor: 'text-primary', bgColor: 'bg-primary/10' },
+    { label: 'Estabelecimentos', value: '458', trend: 5, icon: 'pi-home', iconColor: 'text-secondary', bgColor: 'bg-secondary/10' },
+    { label: 'Eventos Ativos', value: '24', trend: 8, icon: 'pi-calendar', iconColor: 'text-cta', bgColor: 'bg-cta/10' },
+    { label: 'Visitantes/Dia', value: '1,200', trend: 15, icon: 'pi-chart-line', iconColor: 'text-nature', bgColor: 'bg-nature/10' }
+  ];
+
+  activities = [
+    { id: 1, user: 'João Silva', action: 'avaliou', target: 'Pousada Maravilha', time: 'Há 5 minutos' },
+    { id: 2, user: 'Maria Santos', action: 'adicionou', target: 'Trilha do Sancho', time: 'Há 12 minutos' },
+    { id: 3, user: 'Carlos Oliveira', action: 'reservou', target: 'Buggy Tour', time: 'Há 25 minutos' }
+  ];
+
+  constructor(public auth: AuthService) {}
+}

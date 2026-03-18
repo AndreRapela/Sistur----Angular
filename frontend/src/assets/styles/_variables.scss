@@ -1,0 +1,23 @@
+// SisTur Fernando de Noronha - Design System
+
+$primary-color: #0077B6; // Azul oceano
+$secondary-color: #2D6A4F; // Verde natureza
+$light-blue: #90E0EF;
+$sand-beige: #F4E1C1;
+$white: #FFFFFF;
+$dark-gray: #1F2933;
+$cta-color: #52B788; // Verde vibrante
+
+$gradient-ocean-nature: linear-gradient(135deg, $primary-color 0%, $secondary-color 100%);
+
+$font-family: 'Inter', sans-serif;
+
+$border-radius: 12px;
+$shadow-soft: 0 4px 15px rgba(0, 0, 0, 0.05);
+
+:root {
+  --primary: #{$primary-color};
+  --secondary: #{$secondary-color};
+  --cta: #{$cta-color};
+  --text-main: #{$dark-gray};
+}
