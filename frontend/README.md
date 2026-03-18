@@ -49,11 +49,11 @@
 
 ## 🌍 Deploy no Vercel
 
-O projeto está configurado para deploy automático no Vercel:
-1.  **Build Command**: `ng build`
-2.  **Output Directory**: `dist/frontend_v21/browser`
-3.  **Root Directory**: `/frontend` (configure no painel do Vercel)
-4.  **SPA Routing**: Gerenciado pelo `vercel.json` na raiz da pasta `/frontend`.
+O projeto está otimizado para deploy simples no Vercel:
+1.  **Framework Preset**: Selecione **Angular** no painel do Vercel.
+2.  **Root Directory**: Defina como `frontend`.
+3.  **Build Settings**: O Vercel detectará automaticamente o comando `npm run build` e o diretório de saída correspondente.
+4.  **SPA Routing**: O arquivo `frontend/vercel.json` já cuida do redirecionamento automático das rotas.
 
 ---
 
