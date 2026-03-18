@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "outputDirectory": "dist/sistur/browser",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
