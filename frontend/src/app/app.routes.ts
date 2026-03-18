@@ -13,17 +13,17 @@ import { roleGuard } from './guards/role.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
-  { path: 'home', component: HomeComponent, canActivate: [roleGuard(['USER', 'CLIENT', 'ADMIN'])] },
-  { path: 'login', component: LoginComponent },
-  { path: 'environmental', component: EnvironmentalComponent, canActivate: [roleGuard(['USER', 'CLIENT', 'ADMIN'])] },
-  { path: 'culture', component: CultureComponent, canActivate: [roleGuard(['USER', 'CLIENT', 'ADMIN'])] },
-  { path: 'contact', component: ContactComponent, canActivate: [roleGuard(['USER', 'CLIENT', 'ADMIN'])] },
-  { path: 'events', component: EventListComponent, canActivate: [roleGuard(['USER', 'CLIENT', 'ADMIN'])] },
-  { path: 'tours', component: TourListComponent, canActivate: [roleGuard(['USER', 'CLIENT', 'ADMIN'])] },
-  { path: 'restaurants', component: EstablishmentListComponent, canActivate: [roleGuard(['USER', 'CLIENT', 'ADMIN'])] },
-  { path: 'hotels', component: EstablishmentListComponent, canActivate: [roleGuard(['USER', 'CLIENT', 'ADMIN'])] },
-  { path: 'map', component: MapPageComponent, canActivate: [roleGuard(['USER', 'CLIENT', 'ADMIN'])] },
-  { path: 'itinerary', component: ItineraryPageComponent, canActivate: [roleGuard(['USER', 'CLIENT', 'ADMIN'])] },
+  { path: 'home', loadComponent: () => import('./pages/home/home').then(m => m.HomeComponent), canActivate: [roleGuard(['USER', 'CLIENT', 'ADMIN'])] },
+  { path: 'login', loadComponent: () => import('./pages/login/login').then(m => m.LoginComponent) },
+  { path: 'environmental', loadComponent: () => import('./pages/environmental/environmental').then(m => m.EnvironmentalComponent), canActivate: [roleGuard(['USER', 'CLIENT', 'ADMIN'])] },
+  { path: 'culture', loadComponent: () => import('./pages/culture/culture').then(m => m.CultureComponent), canActivate: [roleGuard(['USER', 'CLIENT', 'ADMIN'])] },
+  { path: 'contact', loadComponent: () => import('./pages/contact/contact').then(m => m.ContactComponent), canActivate: [roleGuard(['USER', 'CLIENT', 'ADMIN'])] },
+  { path: 'events', loadComponent: () => import('./pages/event-list/event-list').then(m => m.EventListComponent), canActivate: [roleGuard(['USER', 'CLIENT', 'ADMIN'])] },
+  { path: 'tours', loadComponent: () => import('./pages/tour-list/tour-list').then(m => m.TourListComponent), canActivate: [roleGuard(['USER', 'CLIENT', 'ADMIN'])] },
+  { path: 'restaurants', loadComponent: () => import('./pages/establishment-list/establishment-list').then(m => m.EstablishmentListComponent), canActivate: [roleGuard(['USER', 'CLIENT', 'ADMIN'])] },
+  { path: 'hotels', loadComponent: () => import('./pages/establishment-list/establishment-list').then(m => m.EstablishmentListComponent), canActivate: [roleGuard(['USER', 'CLIENT', 'ADMIN'])] },
+  { path: 'map', loadComponent: () => import('./pages/map-page/map-page').then(m => m.MapPageComponent), canActivate: [roleGuard(['USER', 'CLIENT', 'ADMIN'])] },
+  { path: 'itinerary', loadComponent: () => import('./pages/itinerary/itinerary').then(m => m.ItineraryPageComponent), canActivate: [roleGuard(['USER', 'CLIENT', 'ADMIN'])] },
   { path: 'profile', loadComponent: () => import('./pages/profile/profile').then(m => m.ProfilePageComponent), canActivate: [roleGuard(['USER', 'CLIENT', 'ADMIN'])] },
   
   // Rotas Protegidas - Admin

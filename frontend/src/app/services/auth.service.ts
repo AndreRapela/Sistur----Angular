@@ -2,6 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { ApiResponse } from '../models/tourism.models';
+import { environment } from '../../environments/environment';
 
 export type UserRole = 'ADMIN' | 'CLIENT' | 'USER';
 
@@ -17,7 +18,7 @@ export interface LoginResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:8080/api/auth';
+  private apiUrl = `${environment.apiUrl}/auth`;
   
   // Usando Signals do Angular 21 para performance e reatividade
   currentUser = signal<LoginResponse | null>(null);

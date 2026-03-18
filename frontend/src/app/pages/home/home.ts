@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { CarouselModule } from 'primeng/carousel';
@@ -11,6 +11,7 @@ import { ItineraryService } from '../../services/itinerary.service';
   selector: 'app-home',
   standalone: true,
   imports: [CommonModule, RouterModule, CarouselModule, ButtonModule, CardModule, InputTextModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="home-container max-w-[1400px] mx-auto">
       
@@ -49,7 +50,7 @@ import { ItineraryService } from '../../services/itinerary.service';
           <ng-template let-event pTemplate="item">
             <div class="px-2">
               <div class="relative h-48 rounded-2xl overflow-hidden group cursor-pointer" [routerLink]="['/events']">
-                <img [src]="event.image" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                <img [src]="event.image" loading="lazy" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                 <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                 <div class="absolute bottom-4 left-4 text-white">
                   <span class="text-[10px] uppercase font-black bg-cta px-2 py-0.5 rounded-md mb-2 inline-block">Hoje</span>
@@ -100,7 +101,7 @@ import { ItineraryService } from '../../services/itinerary.service';
             @for (item of highlights; track item.title) {
               <div class="bg-white p-4 rounded-[32px] shadow-premium border border-slate-50 group hover:-translate-y-2 transition-all duration-300 cursor-pointer">
                 <div class="relative h-64 rounded-[24px] overflow-hidden mb-5">
-                  <img [src]="item.image" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                  <img [src]="item.image" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
                   <div class="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl font-black text-slate-800 text-xs shadow-xl flex items-center gap-1.5">
                     <i class="pi pi-star-fill text-yellow-400"></i> {{item.rating}}
                   </div>
@@ -167,7 +168,7 @@ import { ItineraryService } from '../../services/itinerary.service';
     .hero-bg {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background-image: url('https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?auto=format&fit=crop&q=80&w=2000');
+      background-image: url('https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?auto=format&fit=crop&q=60&w=1200');
       background-size: cover;
       background-position: center;
     }
