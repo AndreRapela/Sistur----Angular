@@ -19,7 +19,8 @@ import { Signal, computed } from '@angular/core';
       <div class="nav-links">
         <a routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Explore</a>
         <a routerLink="/events" routerLinkActive="active">Eventos</a>
-        <a routerLink="/itinerary" routerLinkActive="active">Roteiro</a>
+        <a routerLink="/roteiros" routerLinkActive="active" class="flex items-center gap-1"><i class="pi pi-users text-xs"></i> Roteiros</a>
+        <a routerLink="/itinerary" routerLinkActive="active">Meu Plano</a>
         <a routerLink="/map" routerLinkActive="active">Mapa</a>
         
         <div class="dropdown-wrapper">

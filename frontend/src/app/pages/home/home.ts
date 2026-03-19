@@ -168,7 +168,7 @@ import { ItineraryService } from '../../services/itinerary.service';
     .hero-bg {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background-image: url('https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?auto=format&fit=crop&q=60&w=1200');
+      background-image: url('https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?auto=format&fit=crop&q=80&w=1200');
       background-size: cover;
       background-position: center;
     }
@@ -389,9 +389,9 @@ export class HomeComponent {
   ];
 
   eventHighlights = [
-    { title: 'Festival Gastronômico', image: 'https://images.unsplash.com/photo-1514525253361-bee8718a300c' },
-    { title: 'Luau na Praia do Meio', image: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3' },
-    { title: 'Pôr do Sol Musical', image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745' }
+    { title: 'Festival Gastronômico', image: 'https://images.unsplash.com/photo-1514525253361-bee8718a300c?w=600&q=80' },
+    { title: 'Luau na Praia do Meio', image: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&q=80' },
+    { title: 'Pôr do Sol Musical', image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&q=80' }
   ];
 
   responsiveOptions = [
@@ -404,7 +404,7 @@ export class HomeComponent {
     { 
       title: 'Baía do Sancho', 
       description: 'Eleita diversas vezes a melhor praia do mundo, com águas cristalinas e vida marinha abundante.', 
-      image: 'https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f', 
+      image: 'https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=600&q=80', 
       rating: 5.0, 
       category: 'Praia', 
       location: 'Parque Nacional' 
@@ -412,7 +412,7 @@ export class HomeComponent {
     { 
       title: 'Restaurante Varanda', 
       description: 'O melhor da culinária local com uma vista privilegiada para o pôr do sol mais famoso do Brasil.', 
-      image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4', 
+      image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80', 
       rating: 4.8, 
       category: 'Gastronomia', 
       location: 'Vila dos Remédios' 
@@ -420,7 +420,7 @@ export class HomeComponent {
     { 
       title: 'Ilha Tour Completo', 
       description: 'Conheça os principais pontos turísticos da ilha em um dia inteiro de aventura e descobertas.', 
-      image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5', 
+      image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&q=80', 
       rating: 4.9, 
       category: 'Passeio', 
       location: 'Toda a Ilha' 

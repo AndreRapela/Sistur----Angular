@@ -1,5 +1,8 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { MessageService } from 'primeng/api';
+import { HttpClient } from '@angular/common/http';
+import { AuthService } from './auth.service';
+import { environment } from '../../environments/environment';
 
 export interface ItineraryItem {
   id: number | string;
@@ -23,7 +26,7 @@ export class ItineraryService {
   // Agrupamento por dia computado
   itemsByDay = computed(() => {
     const grouped: { [key: number]: ItineraryItem[] } = {};
-    this._items().forEach(item => {
+    this._items().forEach((item: ItineraryItem) => {
       const day = item.day || 0;
       if (!grouped[day]) grouped[day] = [];
       grouped[day].push(item);
@@ -32,6 +35,8 @@ export class ItineraryService {
   });
 
   private messageService = inject(MessageService);
+  private auth = inject(AuthService);
+  private http = inject(HttpClient);
 
   constructor() {}
 
@@ -52,6 +57,10 @@ export class ItineraryService {
     if (index > -1) {
       this._items.set(current.filter((_, i) => i !== index));
       this.messageService.add({ severity: 'info', summary: 'Removido', detail: `${item.name} removido do roteiro` });
+      
+      if (this.auth.isAuthenticated()) {
+        // Opcional: Implementar DELETE no backend
+      }
     } else {
       const newItem: ItineraryItem = {
         id: item.id,
@@ -87,6 +96,29 @@ export class ItineraryService {
   clear() {
     this._items.set([]);
     localStorage.removeItem('sistur_itinerary');
+  }
+
+  saveToServer(name: string, isPublic: boolean = false) {
+    if (!this.auth.isAuthenticated()) {
+      this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Faça login para salvar seu roteiro na nuvem' });
+      return;
+    }
+
+    const payload = {
+      name: name,
+      isPublic: isPublic,
+      items: this._items().map(i => ({
+        referenceId: i.id,
+        type: i.type,
+        name: i.name,
+        image: i.image,
+        location: i.location,
+        day: i.day || 0,
+        notes: i.notes
+      }))
+    };
+
+    return this.http.post(`${environment.apiUrl}/itineraries`, payload);
   }
 
   private save() {

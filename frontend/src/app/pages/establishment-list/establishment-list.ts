@@ -43,7 +43,7 @@ import { ButtonModule } from 'primeng/button';
                   </div>
                 </div>
                 
-                <div class="p-4">
+                <div class="p-4 cursor-pointer" (click)="viewDetails(est)">
                    <div class="d-flex justify-content-between align-items-start">
                       <h3 class="est-name">{{est.name}}</h3>
                       <span class="price-label">R$ {{est.averagePrice}}</span>
@@ -52,7 +52,7 @@ import { ButtonModule } from 'primeng/button';
                    <p class="description-text">{{est.description}}</p>
                    
                    <div class="mt-4 d-flex gap-2">
-                      <button class="btn-primary-gradient flex-grow-1">Reservar agora</button>
+                      <button class="btn-primary-gradient flex-grow-1" (click)="viewDetails(est); $event.stopPropagation()">Ver Detalhes</button>
                       
                       <button class="btn-icon-light" 
                               [class.btn-added]="itinerary.isAdded(est.id, est.type)"
@@ -179,5 +179,9 @@ export class EstablishmentListComponent implements OnInit {
       location: est.location,
       addedAt: new Date()
     });
+  }
+
+  viewDetails(est: Establishment) {
+    this.router.navigate(['/establishments', est.id]);
   }
 }

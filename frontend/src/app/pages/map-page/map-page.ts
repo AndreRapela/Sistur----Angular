@@ -65,7 +65,7 @@ import 'leaflet-routing-machine';
     
     .map-overlay-top { 
       position: absolute; top: 20px; left: 20px; right: 20px; 
-      z-index: 1000; pointer-events: none; 
+      z-index: 990; pointer-events: none; 
     }
     .search-bar, .category-filters-scroll { pointer-events: auto; }
     

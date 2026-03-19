@@ -19,6 +19,11 @@ import { AuthService } from '../../services/auth.service';
         <span>Eventos</span>
       </a>
 
+      <a routerLink="/roteiros" routerLinkActive="active" class="nav-item">
+        <div class="icon-box"><i class="pi pi-users text-xl"></i></div>
+        <span>Roteiros</span>
+      </a>
+
       <a routerLink="/itinerary" routerLinkActive="active" class="nav-item">
         <div class="icon-box"><i class="pi pi-map-marker text-xl"></i></div>
         <span>Roteiro</span>

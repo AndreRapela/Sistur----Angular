@@ -172,7 +172,7 @@ export class EventListComponent implements OnInit {
   }
 
   viewDetails(event: Event) {
-    // Implementação futura de detalhes
+    this.router.navigate(['/events', event.id]);
   }
 
   toggleLike(event: Event) {

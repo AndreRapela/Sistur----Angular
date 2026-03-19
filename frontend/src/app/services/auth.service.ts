@@ -12,6 +12,7 @@ export interface LoginResponse {
   email: string;
   role: UserRole;
   photoUrl?: string;
+  bio?: string;
 }
 
 @Injectable({
@@ -33,6 +34,43 @@ export class AuthService {
         if (res.data) {
           this.saveStorage(res.data);
           this.currentUser.set(res.data);
+        }
+      })
+    );
+  }
+
+  register(userData: { name: string, email: string, password: string }): Observable<ApiResponse<LoginResponse>> {
+    return this.http.post<ApiResponse<LoginResponse>>(`${this.apiUrl}/register`, userData).pipe(
+      tap(res => {
+        if (res.data) {
+          this.saveStorage(res.data);
+          this.currentUser.set(res.data);
+        }
+      })
+    );
+  }
+
+  googleLogin(idToken: string): Observable<ApiResponse<LoginResponse>> {
+    return this.http.post<ApiResponse<LoginResponse>>(`${this.apiUrl}/google`, idToken).pipe(
+      tap(res => {
+        if (res.data) {
+          this.saveStorage(res.data);
+          this.currentUser.set(res.data);
+        }
+      })
+    );
+  }
+
+  updateProfile(profileData: { name: string, bio: string, photoUrl: string }): Observable<ApiResponse<LoginResponse>> {
+    return this.http.put<ApiResponse<LoginResponse>>(`${environment.apiUrl}/users/profile`, profileData).pipe(
+      tap(res => {
+        if (res.data) {
+          const current = this.currentUser();
+          if (current) {
+            const updated = { ...current, ...res.data };
+            this.saveStorage(updated);
+            this.currentUser.set(updated);
+          }
         }
       })
     );

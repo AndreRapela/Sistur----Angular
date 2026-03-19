@@ -41,7 +41,7 @@ import { ButtonModule } from 'primeng/button';
                   <div class="price-badge shadow-md">R$ {{tour.price}}</div>
                 </div>
                 
-                <div class="p-4">
+                <div class="p-4 cursor-pointer" (click)="viewDetails(tour)">
                    <div class="d-flex justify-content-between align-items-start">
                       <h3 class="tour-name">{{tour.name}}</h3>
                       <div class="d-flex flex-column align-items-end gap-1">
@@ -52,7 +52,7 @@ import { ButtonModule } from 'primeng/button';
                    <p class="description-text mt-3">{{tour.description}}</p>
                    
                    <div class="mt-4 d-flex gap-2">
-                       <button class="btn-primary-gradient flex-grow-1">Reservar Agora</button>
+                       <button class="btn-primary-gradient flex-grow-1" (click)="viewDetails(tour); $event.stopPropagation()">Ver Detalhes</button>
                        
                        <button class="btn-icon-light" 
                                [class.added]="itinerary.isAdded(tour.id, 'TOUR')"
@@ -141,5 +141,9 @@ export class TourListComponent implements OnInit {
       image: tour.photoUrl,
       addedAt: new Date()
     });
+  }
+
+  viewDetails(tour: Tour) {
+    this.router.navigate(['/tours', tour.id]);
   }
 }
