@@ -1,1 +1,2 @@
-/backend
+# Maven build output
+/backend/target/
