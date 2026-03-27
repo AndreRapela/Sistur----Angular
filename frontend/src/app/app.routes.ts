@@ -1,14 +1,4 @@
 import { Routes } from '@angular/router';
-import { HomeComponent } from './pages/home/home';
-import { LoginComponent } from './pages/login/login';
-import { EnvironmentalComponent } from './pages/environmental/environmental';
-import { CultureComponent } from './pages/culture/culture';
-import { ContactComponent } from './pages/contact/contact';
-import { EventListComponent } from './pages/event-list/event-list';
-import { TourListComponent } from './pages/tour-list/tour-list';
-import { EstablishmentListComponent } from './pages/establishment-list/establishment-list';
-import { MapPageComponent } from './pages/map-page/map-page';
-import { ItineraryPageComponent } from './pages/itinerary/itinerary';
 import { roleGuard } from './guards/role.guard';
 
 export const routes: Routes = [

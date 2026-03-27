@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { ItineraryService } from '../../services/itinerary.service';
 
 @Component({
   selector: 'app-bottom-nav',
@@ -24,9 +25,16 @@ import { AuthService } from '../../services/auth.service';
         <span>Roteiros</span>
       </a>
 
-      <a routerLink="/itinerary" routerLinkActive="active" class="nav-item">
-        <div class="icon-box"><i class="pi pi-map-marker text-xl"></i></div>
-        <span>Roteiro</span>
+      <a routerLink="/itinerary" routerLinkActive="active" class="nav-item relative">
+        <div class="icon-box relative">
+          <i class="pi pi-map-marker text-xl"></i>
+          @if (itinerary.items().length > 0) {
+            <span class="absolute -top-1 -right-2 bg-primary text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold shadow-sm">
+              {{ itinerary.items().length }}
+            </span>
+          }
+        </div>
+        <span>Meu Plano</span>
       </a>
 
       @if (auth.isAuthenticated()) {
@@ -56,7 +64,7 @@ import { AuthService } from '../../services/auth.service';
       z-index: 1000;
       box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
     }
-    
+
     .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
 
     .nav-item {
@@ -92,5 +100,6 @@ import { AuthService } from '../../services/auth.service';
   `]
 })
 export class BottomNavComponent {
-  constructor(public auth: AuthService) {}
+  public auth = inject(AuthService);
+  public itinerary = inject(ItineraryService);
 }

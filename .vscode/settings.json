@@ -1,0 +1,10 @@
+{"github.copilot.chat.mcpServers": {
+    "supabase": {
+        "command": "npx",
+        "args": ["-y", "@supabase/mcp"],
+        "env": {
+            "SUPABASE_ACCESS_TOKEN": "sbp_387c26650c5ac42605c4d7d53a33ea65de22d254"
+        }
+    }
+}
+}

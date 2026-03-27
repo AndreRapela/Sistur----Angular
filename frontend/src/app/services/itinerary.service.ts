@@ -1,4 +1,4 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
+﻿import { Injectable, signal, computed, inject } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from './auth.service';
@@ -12,8 +12,8 @@ export interface ItineraryItem {
   location?: string;
   addedAt: Date;
   day?: number; // 0 = Não definido, 1 = Dia 1, etc.
-  notes?: string;
-}
+  time?: string;
+  notes?: string;  estimatedCost?: number;}
 
 @Injectable({
   providedIn: 'root'
@@ -22,7 +22,7 @@ export class ItineraryService {
   private _items = signal<ItineraryItem[]>(this.loadItems());
 
   items = this._items.asReadonly();
-  
+
   // Agrupamento por dia computado
   itemsByDay = computed(() => {
     const grouped: { [key: number]: ItineraryItem[] } = {};
@@ -32,6 +32,11 @@ export class ItineraryService {
       grouped[day].push(item);
     });
     return grouped;
+  });
+
+  // Custo total computado
+  totalCost = computed(() => {
+    return this._items().reduce((sum, item) => sum + (item.estimatedCost || 0), 0);
   });
 
   private messageService = inject(MessageService);
@@ -53,11 +58,11 @@ export class ItineraryService {
   toggleItem(item: Partial<ItineraryItem> & { id: number | string, type: any }) {
     const current = this._items();
     const index = current.findIndex(i => String(i.id) === String(item.id) && i.type === item.type);
-    
+
     if (index > -1) {
       this._items.set(current.filter((_, i) => i !== index));
       this.messageService.add({ severity: 'info', summary: 'Removido', detail: `${item.name} removido do roteiro` });
-      
+
       if (this.auth.isAuthenticated()) {
         // Opcional: Implementar DELETE no backend
       }
@@ -70,7 +75,9 @@ export class ItineraryService {
         location: item.location,
         addedAt: new Date(),
         day: 0,
-        notes: ''
+        time: '',
+        notes: '',
+        estimatedCost: 0
       };
       this._items.set([...current, newItem]);
       this.messageService.add({ severity: 'success', summary: 'Adicionado', detail: `${item.name} adicionado ao seu roteiro!` });
@@ -100,7 +107,7 @@ export class ItineraryService {
 
   saveToServer(name: string, isPublic: boolean = false) {
     if (!this.auth.isAuthenticated()) {
-      this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Faça login para salvar seu roteiro na nuvem' });
+      this.messageService.add({ severity: 'warn', summary: 'AtenÃ§Ã£o', detail: 'FaÃ§a login para salvar seu roteiro na nuvem' });
       return;
     }
 
@@ -114,6 +121,7 @@ export class ItineraryService {
         image: i.image,
         location: i.location,
         day: i.day || 0,
+        time: i.time,
         notes: i.notes
       }))
     };
@@ -121,7 +129,13 @@ export class ItineraryService {
     return this.http.post(`${environment.apiUrl}/itineraries`, payload);
   }
 
+  getSharedItinerary(token: string) {
+    return this.http.get<any>(`${environment.apiUrl}/itineraries/share/${token}`);
+  }
+
   private save() {
     localStorage.setItem('sistur_itinerary', JSON.stringify(this._items()));
   }
 }
+
+

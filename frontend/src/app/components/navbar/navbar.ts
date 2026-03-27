@@ -19,10 +19,18 @@ import { Signal, computed } from '@angular/core';
       <div class="nav-links">
         <a routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Explore</a>
         <a routerLink="/events" routerLinkActive="active">Eventos</a>
-        <a routerLink="/roteiros" routerLinkActive="active" class="flex items-center gap-1"><i class="pi pi-users text-xs"></i> Roteiros</a>
-        <a routerLink="/itinerary" routerLinkActive="active">Meu Plano</a>
+        <a routerLink="/roteiros" routerLinkActive="active" class="flex items-center gap-1"><i class="pi pi-users text-xs"></i> Roteiros Compartilhados</a>
+
+        <a routerLink="/itinerary" routerLinkActive="active" class="relative flex items-center gap-1">
+          <i class="pi pi-map-marker text-xs"></i> Meu Plano
+          @if (itinerary.items().length > 0) {
+            <span class="absolute -top-2 -right-3 bg-primary text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold shadow-sm animate-pulse-short">
+              {{ itinerary.items().length }}
+            </span>
+          }
+        </a>
         <a routerLink="/map" routerLinkActive="active">Mapa</a>
-        
+
         <div class="dropdown-wrapper">
           <span class="nav-label">Descubra <i class="pi pi-chevron-down text-xs"></i></span>
           <div class="dropdown-content">
@@ -55,7 +63,7 @@ import { Signal, computed } from '@angular/core';
                 <div class="font-bold text-gray-800">{{auth.currentUser()?.name}}</div>
                 <div class="text-primary text-xs font-bold mt-1">{{auth.currentUser()?.role}}</div>
               </div>
-              
+
               @if (auth.hasRole('ADMIN')) {
                 <a routerLink="/admin/dashboard" class="logout-btn p-2 block text-gray-700 text-sm no-underline"><i class="pi pi-shield mr-2"></i> Painel Admin</a>
               }
@@ -63,7 +71,7 @@ import { Signal, computed } from '@angular/core';
                 <a routerLink="/client/dashboard" class="logout-btn p-2 block text-gray-700 text-sm no-underline"><i class="pi pi-briefcase mr-2"></i> Meu Negócio</a>
               }
               <a routerLink="/profile" class="logout-btn p-2 block text-gray-700 text-sm no-underline"><i class="pi pi-user mr-2"></i> Meu Perfil</a>
-              
+
               <button (click)="auth.logout()" class="logout-btn p-2 block w-full text-left text-red-500 font-bold border-none bg-transparent cursor-pointer mt-1">
                 <i class="pi pi-sign-out mr-2"></i> Sair
               </button>
@@ -145,9 +153,9 @@ import { Signal, computed } from '@angular/core';
     .user-menu {
         position: absolute; right: 0; top: 100%; min-width: 200px;
         background: white; border-radius: 16px; display: none; padding: 5px;
-        z-index: 1001; 
+        z-index: 1001;
         box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        
+
         /* Ponte para manter o hover */
         &::before {
           content: '';

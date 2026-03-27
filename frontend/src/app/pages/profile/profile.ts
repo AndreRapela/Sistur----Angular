@@ -14,11 +14,11 @@ import { environment } from '../../../environments/environment';
   selector: 'app-profile',
   standalone: true,
   imports: [
-    CommonModule, 
-    RouterModule, 
-    ButtonModule, 
-    FormsModule, 
-    InputTextModule, 
+    CommonModule,
+    RouterModule,
+    ButtonModule,
+    FormsModule,
+    InputTextModule,
     TextareaModule
   ],
   template: `
@@ -29,7 +29,7 @@ import { environment } from '../../../environments/environment';
           <!-- Avatar -->
           <div class="relative group">
             <div class="w-24 h-24 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-slate-100 p-1 bg-white shadow-sm">
-              <img [src]="auth.currentUser()?.photoUrl || 'assets/default-avatar.png'" 
+              <img [src]="auth.currentUser()?.photoUrl || 'assets/default-avatar.png'"
                    class="w-full h-full object-cover rounded-full">
             </div>
             @if (editMode) {
@@ -76,40 +76,77 @@ import { environment } from '../../../environments/environment';
       <!-- Tabs e Grid -->
       <div class="max-w-5xl mx-auto border-t border-slate-200">
         <div class="flex justify-center gap-12 -mt-px">
-          <button class="flex items-center gap-2 py-4 border-t border-slate-800 text-xs font-bold uppercase tracking-widest text-slate-800">
+          <button (click)="currentTab.set('roteiros')"
+                  [class.border-slate-800]="currentTab() === 'roteiros'"
+                  [class.text-slate-800]="currentTab() === 'roteiros'"
+                  [class.border-transparent]="currentTab() !== 'roteiros'"
+                  [class.text-slate-400]="currentTab() !== 'roteiros'"
+                  class="flex items-center gap-2 py-4 border-t-2 text-xs font-bold uppercase tracking-widest hover:text-slate-600 transition-colors">
             <i class="pi pi-th-large"></i> Roteiros
           </button>
-          <button class="flex items-center gap-2 py-4 border-none bg-transparent text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-slate-600 cursor-pointer">
-            <i class="pi pi-bookmark"></i> Salvos
+          <button (click)="currentTab.set('conquistas')"
+                  [class.border-slate-800]="currentTab() === 'conquistas'"
+                  [class.text-slate-800]="currentTab() === 'conquistas'"
+                  [class.border-transparent]="currentTab() !== 'conquistas'"
+                  [class.text-slate-400]="currentTab() !== 'conquistas'"
+                  class="flex items-center gap-2 py-4 border-t-2 text-xs font-bold uppercase tracking-widest hover:text-slate-600 transition-colors">
+            <i class="pi pi-star-fill"></i> Conquistas
           </button>
         </div>
 
         <div class="p-4">
-          @if (itineraries().length === 0) {
-            <div class="py-20 text-center">
-              <div class="w-16 h-16 rounded-full border-2 border-slate-800 flex items-center justify-center mx-auto mb-4">
-                <i class="pi pi-camera text-2xl"></i>
-              </div>
-              <h3 class="text-xl font-bold mb-2">Ainda não há roteiros</h3>
-              <p class="text-slate-500 mb-6">Comece a planejar sua viagem agora mesmo!</p>
-              <p-button label="Criar meu primeiro roteiro" routerLink="/itinerary" styleClass="p-button-rounded p-button-sm"></p-button>
-            </div>
-          } @else {
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-1 md:gap-8">
-              @for (itin of itineraries(); track itin.id) {
-                <div class="aspect-square relative group cursor-pointer overflow-hidden rounded-lg md:rounded-2xl shadow-sm border border-slate-100">
-                  <img [src]="itin.photoUrl || 'https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?w=600&h=600&fit=crop'" 
-                       class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-                  <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white gap-6 transition-opacity font-bold">
-                    <div class="flex items-center gap-1"><i class="pi pi-heart-fill"></i> 12</div>
-                    <div class="flex items-center gap-1"><i class="pi pi-comment"></i> 3</div>
-                  </div>
-                  <div class="absolute bottom-4 left-4 right-4 text-white text-sm font-black truncate drop-shadow-md">
-                     {{ itin.title }}
-                  </div>
+          @if (currentTab() === 'roteiros') {
+            @if (itineraries().length === 0) {
+              <div class="py-20 text-center">
+                <div class="w-16 h-16 rounded-full border-2 border-slate-800 flex items-center justify-center mx-auto mb-4">
+                  <i class="pi pi-camera text-2xl"></i>
                 </div>
-              }
-            </div>
+                <h3 class="text-xl font-bold mb-2">Ainda não há roteiros</h3>
+                <p class="text-slate-500 mb-6">Comece a planejar sua viagem agora mesmo!</p>
+                <p-button label="Criar meu primeiro roteiro" routerLink="/itinerary" styleClass="p-button-rounded p-button-sm"></p-button>
+              </div>
+            } @else {
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-1 md:gap-8">
+                @for (itin of itineraries(); track itin.id) {
+                  <div class="aspect-square relative group cursor-pointer overflow-hidden rounded-lg md:rounded-2xl shadow-sm border border-slate-100">
+                    <img [src]="itin.photoUrl || 'https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?w=600&h=600&fit=crop'"
+                         class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white gap-6 transition-opacity font-bold">
+                      <div class="flex items-center gap-1"><i class="pi pi-heart-fill"></i> 12</div>
+                      <div class="flex items-center gap-1"><i class="pi pi-comment"></i> 3</div>
+                    </div>
+                    <div class="absolute bottom-4 left-4 right-4 text-white text-sm font-black truncate drop-shadow-md">
+                       {{ itin.title }}
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          } @else if (currentTab() === 'conquistas') {
+            @if (badges().length === 0) {
+              <div class="py-20 text-center">
+                <div class="w-16 h-16 rounded-full border-2 border-slate-800 flex items-center justify-center mx-auto mb-4">
+                  <i class="pi pi-star text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Nenhuma conquista ainda</h3>
+                <p class="text-slate-500 mb-6">Complete roteiros e avalie pontos turísticos para ganhar selos!</p>
+              </div>
+            } @else {
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+                @for (badge of badges(); track badge.id) {
+                  <div class="flex flex-col items-center p-6 bg-slate-50 rounded-2xl border border-slate-100 text-center transition-transform hover:-translate-y-1">
+                    <div class="w-20 h-20 mb-4 drop-shadow-md rounded-full bg-white flex items-center justify-center text-3xl">
+                       <i [class]="badge.iconUrl" [style.color]="'#fbbf24'"></i>
+                    </div>
+                    <h4 class="font-bold text-slate-800 mb-1">{{ badge.name }}</h4>
+                    <p class="text-xs text-slate-500">{{ badge.description }}</p>
+                    <span class="text-[10px] text-slate-400 mt-3 font-semibold uppercase tracking-wider">
+                      Desbloqueado
+                    </span>
+                  </div>
+                }
+              </div>
+            }
           }
         </div>
       </div>
@@ -123,13 +160,22 @@ export class ProfilePageComponent {
   public auth = inject(AuthService);
   private http = inject(HttpClient);
   private messageService = inject(MessageService);
-  
+
   editMode = false;
   tempUser: any = {};
   itineraries = signal<any[]>([]);
+  badges = signal<any[]>([]);
+  currentTab = signal<'roteiros' | 'conquistas'>('roteiros');
 
   constructor() {
     this.loadMyItineraries();
+    this.loadMyBadges();
+  }
+
+  loadMyBadges() {
+    this.http.get<{data: any[]}>(`${environment.apiUrl}/gamification/badges`).subscribe({
+      next: (res) => this.badges.set(res.data || []),
+    });
   }
 
   loadMyItineraries() {
