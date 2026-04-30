@@ -1,0 +1,130 @@
+@if (point()) {
+  <div class="min-h-screen bg-slate-50">
+    <section class="relative overflow-hidden bg-slate-950 text-white">
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.2),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.16),transparent_34%)]"></div>
+      <div class="relative z-10 max-w-7xl mx-auto px-4 md:px-8 py-10 md:py-16 grid lg:grid-cols-[1.2fr_.8fr] gap-10 items-end">
+        <div>
+          <a routerLink="/pontos-turisticos" class="inline-flex items-center gap-2 text-emerald-300 font-black uppercase tracking-[0.3em] text-[11px] no-underline mb-6">
+            <i class="pi pi-arrow-left"></i> Voltar para os pontos
+          </a>
+          <div class="flex flex-wrap gap-2 mb-4">
+            <span class="px-3 py-1.5 rounded-full bg-white/10 border border-white/10 text-[11px] font-black uppercase tracking-widest">{{ point()!.category }}</span>
+            <span class="px-3 py-1.5 rounded-full bg-emerald-400 text-slate-950 text-[11px] font-black uppercase tracking-widest">{{ point()!.accessType || 'Visita livre' }}</span>
+            @if (point()!.requiresTicket) {
+              <span class="px-3 py-1.5 rounded-full bg-amber-400 text-slate-950 text-[11px] font-black uppercase tracking-widest">Ingresso</span>
+            }
+            @if (point()!.requiresGuide) {
+              <span class="px-3 py-1.5 rounded-full bg-sky-400 text-slate-950 text-[11px] font-black uppercase tracking-widest">Condutor</span>
+            }
+          </div>
+          <h1 class="text-4xl md:text-6xl font-black leading-[0.95] tracking-tight max-w-4xl">{{ point()!.name }}</h1>
+          <p class="mt-6 text-white/75 text-lg md:text-xl leading-relaxed max-w-3xl">{{ point()!.description }}</p>
+
+          <div class="mt-8 flex flex-wrap gap-3">
+            <button (click)="toggleItinerary()" class="px-5 py-3 rounded-2xl bg-white text-slate-950 font-black shadow-xl hover:scale-[1.02] transition-transform">
+              {{ itinerary.isInItinerary(point()!.id, 'HIGHLIGHT') ? 'Remover da rota' : 'Adicionar à rota' }}
+            </button>
+            <button (click)="openMap()" class="px-5 py-3 rounded-2xl bg-emerald-400 text-slate-950 font-black shadow-xl shadow-emerald-500/20 hover:scale-[1.02] transition-transform border-none">
+              Encontrar no mapa
+            </button>
+          </div>
+        </div>
+
+        <div class="relative">
+          <div class="rounded-[32px] overflow-hidden border border-white/10 shadow-2xl shadow-black/30 aspect-[4/5] bg-white/5">
+            <img [src]="point()!.photoUrl" class="absolute inset-0 w-full h-full object-cover" alt="{{ point()!.name }}" title="{{ point()!.name }}" loading="eager">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
+            <div class="absolute bottom-4 left-4 right-4">
+              <div class="backdrop-blur-xl bg-black/30 border border-white/10 rounded-3xl p-4">
+                <p class="text-[10px] uppercase tracking-[0.3em] text-emerald-200 font-black">Melhor hora</p>
+                <p class="text-white font-black text-lg mt-1">{{ point()!.bestTime || 'Qualquer momento do dia' }}</p>
+                <p class="text-white/70 text-sm mt-2">{{ point()!.bestSeason || 'Ano todo' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
+      <div class="grid lg:grid-cols-[1.1fr_.9fr] gap-8">
+        <div class="space-y-8">
+          <article class="bg-white rounded-[32px] p-7 md:p-8 border border-slate-100 shadow-sm">
+            <p class="text-[11px] uppercase tracking-[0.3em] text-emerald-600 font-black mb-3">Informações gerais</p>
+            <div class="grid md:grid-cols-3 gap-4">
+              <div class="rounded-2xl bg-slate-50 p-4 border border-slate-100">
+                <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Melhor época do ano</span>
+                <p class="mt-2 text-slate-800 font-black">{{ point()!.bestSeason || 'Ano todo' }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4 border border-slate-100">
+                <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Melhor clima</span>
+                <p class="mt-2 text-slate-800 font-black">{{ point()!.idealWeather || 'Céu limpo e mar estável' }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4 border border-slate-100">
+                <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Tempo médio de visita</span>
+                <p class="mt-2 text-slate-800 font-black">{{ point()!.visitDuration }}</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="bg-white rounded-[32px] p-7 md:p-8 border border-slate-100 shadow-sm">
+            <p class="text-[11px] uppercase tracking-[0.3em] text-sky-600 font-black mb-3">Informações locais</p>
+            <p class="text-slate-600 leading-relaxed text-[16px]">{{ point()!.localContext }}</p>
+          </article>
+
+          <article class="bg-white rounded-[32px] p-7 md:p-8 border border-slate-100 shadow-sm">
+            <p class="text-[11px] uppercase tracking-[0.3em] text-amber-600 font-black mb-3">História e contexto</p>
+            <p class="text-slate-600 leading-relaxed text-[16px]">{{ point()!.historicalContext }}</p>
+          </article>
+
+          <article class="bg-white rounded-[32px] p-7 md:p-8 border border-slate-100 shadow-sm">
+            <p class="text-[11px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">Galeria</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              @for (image of gallery(); track image) {
+                <div class="rounded-3xl overflow-hidden aspect-[4/3] border border-slate-100">
+                  <img [src]="image" class="absolute inset-0 w-full h-full object-cover" alt="{{ point()!.name }} imagem" title="{{ point()!.name }} imagem" loading="lazy">
+                </div>
+              }
+            </div>
+          </article>
+        </div>
+
+        <aside class="space-y-6 lg:sticky lg:top-24 self-start">
+          <div class="bg-slate-950 text-white rounded-[32px] p-6 md:p-8 shadow-2xl">
+            <p class="text-[10px] uppercase tracking-[0.35em] text-emerald-200 font-black">Ações rápidas</p>
+            <div class="mt-5 space-y-3">
+              <button (click)="toggleItinerary()" class="w-full bg-white text-slate-950 font-black px-5 py-4 rounded-2xl hover:scale-[1.01] transition-transform flex items-center justify-center gap-3">
+                <i class="pi pi-calendar-plus"></i>
+                {{ itinerary.isInItinerary(point()!.id, 'HIGHLIGHT') ? 'Remover da rota' : 'Adicionar à rota' }}
+              </button>
+              <button (click)="openMap()" class="w-full bg-emerald-400 text-slate-950 font-black px-5 py-4 rounded-2xl hover:scale-[1.01] transition-transform flex items-center justify-center gap-3">
+                <i class="pi pi-compass"></i>
+                Encontrar no mapa
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-[32px] p-6 md:p-8 border border-slate-100 shadow-sm">
+            <p class="text-[10px] uppercase tracking-[0.35em] text-slate-400 font-black">Resumo para roteiros</p>
+            <p class="mt-3 text-slate-600 leading-relaxed">{{ point()!.bestTime || 'Ajuste a visita conforme o clima do dia.' }}. Quando possível, combine com outros pontos próximos e use a página de roteiro para organizar por dia.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </div>
+} @else if (loading()) {
+  <div class="min-h-screen flex items-center justify-center bg-slate-50">
+    <div class="text-center">
+      <i class="pi pi-spin pi-spinner text-5xl text-emerald-600"></i>
+      <p class="mt-4 text-slate-500 font-medium">Buscando o ponto turístico...</p>
+    </div>
+  </div>
+} @else {
+  <div class="min-h-screen flex items-center justify-center bg-slate-50">
+    <div class="text-center bg-white rounded-[32px] border border-slate-100 shadow-sm p-8">
+      <i class="pi pi-exclamation-triangle text-4xl text-amber-500"></i>
+      <p class="mt-4 text-slate-700 font-bold">Não encontramos esse ponto turístico.</p>
+      <a routerLink="/pontos-turisticos" class="inline-block mt-5 px-5 py-3 rounded-2xl bg-slate-950 text-white font-black no-underline">Voltar para a lista</a>
+    </div>
+  </div>
+}

@@ -1,0 +1,171 @@
+<div class="feed-container min-h-screen bg-gray-50 p-4 md:p-8">
+  <div class="max-w-4xl mx-auto">
+    <header class="mb-10 text-center">
+      <span class="text-primary font-bold text-xs uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full mb-3 inline-block">Comunidade SisTur</span>
+      <h1 class="text-4xl md:text-5xl font-black text-gray-900 tracking-tight m-0">Roteiros Inspiradores</h1>
+      <p class="text-gray-500 font-medium mt-2">Veja como outros viajantes estão vivendo Noronha.</p>
+    </header>
+
+    @if (loading) {
+      <div class="flex flex-col gap-8">
+        @for (i of [1,2,3]; track i) {
+          <div class="bg-white rounded-[32px] p-6 shadow-sm border border-gray-100">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="animate-pulse bg-gray-200 h-4 w-full rounded"></div>
+              <div class="flex-1">
+                <div class="animate-pulse bg-gray-200 h-4 w-full rounded"></div>
+                <div class="animate-pulse bg-gray-200 h-4 w-full rounded"></div>
+              </div>
+            </div>
+            <div class="animate-pulse bg-gray-200 h-4 w-full rounded"></div>
+            <div class="animate-pulse bg-gray-200 h-4 w-full rounded"></div>
+            <div class="animate-pulse bg-gray-200 h-4 w-full rounded"></div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="flex flex-col gap-8">
+        @for (itin of itineraries; track itin.id) {
+          <div class="bg-white rounded-[32px] shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow duration-300">
+            <!-- User Info Header -->
+            <div class="p-6 flex items-center justify-between border-b border-gray-50">
+              <div class="flex items-center gap-3">
+                <img [ngSrc]="itin.userPhoto || 'assets/default-avatar.png'"
+                     width="32"
+                     height="32"
+                     sizes="32px"
+                     loading="lazy"
+                     decoding="async"
+                     class="w-8 h-8 rounded-full"
+                     [alt]="itin.userName"
+                     title="{{itin.userName}}">
+                <div>
+                  <h3 class="font-bold text-gray-900 leading-none">{{ itin.userName }}</h3>
+                  <span class="text-xs text-gray-400 capitalize">Viajante {{ itin.userRole }}</span>
+                </div>
+              </div>
+              <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">{{ itin.items?.length + ' paradas' }}</span>
+            </div>
+
+            <!-- Itinerary Content -->
+            <div class="p-6">
+              <h2 class="text-2xl font-extrabold text-gray-800 mb-2">{{ itin.title || 'Viagem dos Sonhos: Noronha' }}</h2>
+              <p class="text-gray-500 mb-6 line-clamp-2">{{ itin.description || 'Uma jornada inesquecível explorando os melhores picos e sabores da ilha!' }}</p>
+
+              <!-- Featured Image Preview -->
+              <div class="h-64 mb-6 rounded-2xl overflow-hidden relative group">
+                  <img [ngSrc]="itin.coverImage || 'assets/placeholder-itinerary.jpg'"
+                     fill
+                     sizes="(max-width: 768px) 100vw, 768px"
+                     loading="lazy"
+                     decoding="async"
+                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                     [alt]="itin.title"
+                     title="{{itin.title}}">
+                 <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
+                    <span class="text-white font-bold text-sm"><i class="pi pi-eye mr-2"></i> {{ itin.views }} visualizações</span>
+                 </div>
+              </div>
+            </div>
+
+            <!-- Action Footer -->
+            <div class="px-6 py-4 bg-gray-50 flex justify-between items-center">
+              <div class="flex items-center gap-4 text-gray-400">
+                <button (click)="toggleLike(itin)" [class.text-red-500]="itin.userLiked" title="Curtir" class="flex items-center gap-1 hover:text-red-500 transition-colors bg-transparent border-none cursor-pointer">
+                  <i [class]="itin.userLiked ? 'pi pi-heart-fill' : 'pi pi-heart'"></i> <span class="text-xs font-bold">{{ itin.likes }}</span>
+                </button>
+                <button (click)="openComments(itin)" title="Ver Comentários" class="flex items-center gap-1 hover:text-blue-500 transition-colors bg-transparent border-none cursor-pointer">
+                  <i class="pi pi-comment"></i> <span class="text-xs font-bold">{{ itin.commentsCount }}</span>
+                </button>
+                <button (click)="openShareDialog(itin)" title="Compartilhar" class="flex items-center gap-1 hover:text-green-500 transition-colors bg-transparent border-none cursor-pointer">
+                  <i class="pi pi-share-alt"></i>
+                </button>
+              </div>
+              <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-bold" (click)="viewDetails(itin)">Ver Detalhes</button>
+            </div>
+          </div>
+        }
+
+        @if (loadingMore) {
+          <div class="flex justify-center p-4 text-primary">
+            <i class="pi pi-spin pi-spinner text-2xl"></i>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Modal de Comentários -->
+<div *ngIf="showComments" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+  <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-xl font-bold text-gray-900">Comentários</h3>
+      <button (click)="showComments = false" title="Fechar" class="text-gray-400 hover:text-gray-600"><i class="pi pi-times"></i></button>
+    </div>
+    
+    <div class="flex flex-col h-[60vh]">
+      <!-- Lista de Comentários -->
+      <div class="flex-1 overflow-y-auto p-2 space-y-4">
+        @if (loadingComments) {
+          <div class="flex justify-center py-8">
+            <i class="pi pi-spin pi-spinner text-2xl text-primary"></i>
+          </div>
+        } @else if (currentComments.length === 0) {
+          <div class="text-center text-gray-500 py-8">
+            Nenhum comentário ainda. Seja o primeiro a comentar!
+          </div>
+        } @else {
+          @for (comment of currentComments; track comment.id) {
+            <div class="flex gap-3">
+              <img [ngSrc]="comment.userPhoto || 'assets/default-avatar.png'"
+                   width="32"
+                   height="32"
+                   sizes="32px"
+                   loading="lazy"
+                   decoding="async"
+                   class="w-8 h-8 rounded-full object-cover"
+                   [alt]="comment.userName"
+                   title="{{comment.userName}}">
+              <div class="flex-1 bg-gray-50 rounded-2xl p-3">
+                <div class="flex justify-between items-baseline mb-1">
+                  <span class="font-bold text-sm text-gray-900">{{ comment.userName }}</span>
+                </div>
+                <p class="text-gray-700 text-sm m-0">{{ comment.content }}</p>
+              </div>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Input de Novo Comentário -->
+      <div class="mt-4 pt-4 border-t flex gap-2 items-center">
+        <input type="text" class="flex-1 rounded-full px-4 py-2 text-sm border-gray-200 bg-gray-50 outline-none focus:bg-white focus:border-primary transition-all" [(ngModel)]="newCommentText" (keyup.enter)="postComment()" placeholder="Adicione um comentário..." [disabled]="postingComment">
+        <button class="bg-primary text-white w-10 h-10 rounded-full flex items-center justify-center disabled:opacity-50" title="Enviar Comentário" (click)="postComment()" [disabled]="!newCommentText.trim() || postingComment">
+          <i class="pi pi-send"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Compartilhamento -->
+<div *ngIf="showShare" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+  <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-xl font-bold text-gray-900">Compartilhar</h3>
+      <button (click)="showShare = false" title="Fechar" class="text-gray-400 hover:text-gray-600"><i class="pi pi-times"></i></button>
+    </div>
+    <div class="flex flex-col gap-3">
+        <button class="bg-green-500 text-white px-4 py-3 rounded-2xl flex items-center justify-center gap-2 hover:bg-green-600 transition font-bold" (click)="shareWhatsApp()">
+            <i class="pi pi-whatsapp text-xl"></i> WhatsApp
+        </button>
+        <button class="bg-gray-800 text-white px-4 py-3 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-900 transition font-bold" (click)="shareTwitter()">
+            <i class="pi pi-twitter text-xl"></i> X / Twitter
+        </button>
+        <button class="bg-blue-100 text-blue-800 px-4 py-3 rounded-2xl flex items-center justify-center gap-2 hover:bg-blue-200 transition font-bold" (click)="copyLink()">
+            <i class="pi pi-link text-xl"></i> Copiar Link
+        </button>
+    </div>
+  </div>
+</div>

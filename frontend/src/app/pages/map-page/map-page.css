@@ -1,0 +1,33 @@
+.map-container-wrapper { position: relative; width: 100%; height: calc(100vh - 65px); }
+.full-screen-map { width: 100%; height: 100%; z-index: 1; }
+
+.map-overlay-top {
+  position: absolute; top: 20px; left: 20px; right: 20px;
+  z-index: 990; pointer-events: none;
+}
+.search-bar, .category-filters-scroll { pointer-events: auto; }
+
+.search-bar {
+  background: rgba(255,255,255,0.95);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-radius: 20px; padding: 15px 25px;
+  display: flex; align-items: center; gap: 12px;
+  border: 1px solid rgba(255,255,255,0.3);
+}
+.search-bar input { border: none; outline: none; width: 100%; font-size: 16px; background: transparent; font-weight: 500; }
+
+.category-filters-scroll {
+  display: flex; gap: 10px; overflow-x: auto; padding: 5px 0;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scroll-hide::-webkit-scrollbar { display: none; }
+
+.filter-chip {
+  white-space: nowrap; background: white; border-radius: 14px;
+  padding: 10px 18px; border: 1px solid #e2e8f0;
+  font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.filter-chip.active { background: var(--primary); color: white; border-color: var(--primary); transform: translateY(-2px); }

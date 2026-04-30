@@ -1,12 +1,9 @@
+import { ToastService } from '../../services/toast.service';
 import { Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { RouterModule } from '@angular/router';
-import { ButtonModule } from 'primeng/button';
 import { FormsModule } from '@angular/forms';
-import { InputTextModule } from 'primeng/inputtext';
-import { TextareaModule } from 'primeng/textarea';
-import { MessageService } from 'primeng/api';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
@@ -16,150 +13,14 @@ import { environment } from '../../../environments/environment';
   imports: [
     CommonModule,
     RouterModule,
-    ButtonModule,
     FormsModule,
-    InputTextModule,
-    TextareaModule
-  ],
-  template: `
-    <div class="profile-container min-h-screen bg-white">
-      <!-- Header Estilo Instagram -->
-      <header class="max-w-4xl mx-auto px-4 pt-8 pb-12">
-        <div class="flex flex-col md:flex-row items-center md:items-start gap-8 md:gap-16">
-          <!-- Avatar -->
-          <div class="relative group">
-            <div class="w-24 h-24 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-slate-100 p-1 bg-white shadow-sm">
-              <img [src]="auth.currentUser()?.photoUrl || 'assets/default-avatar.png'"
-                   class="w-full h-full object-cover rounded-full">
-            </div>
-            @if (editMode) {
-              <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center text-white text-xs font-bold cursor-pointer" (click)="photoInput.click()">
-                 Alterar
-              </div>
-              <input #photoInput type="file" hidden (change)="onFileSelected($event)">
-            }
-          </div>
-
-          <!-- Info -->
-          <div class="flex-1 text-center md:text-left">
-            <div class="flex flex-col md:flex-row items-center gap-4 mb-6">
-              <h1 class="text-2xl font-light text-slate-800 m-0">{{ auth.currentUser()?.name }}</h1>
-              <div class="flex gap-2">
-                @if (!editMode) {
-                  <button (click)="toggleEdit()" class="bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg px-4 py-1.5 text-sm font-bold transition-colors">Editar perfil</button>
-                  <button class="bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg p-1.5 text-sm transition-colors"><i class="pi pi-cog"></i></button>
-                } @else {
-                  <button (click)="saveProfile()" class="bg-primary text-white rounded-lg px-4 py-1.5 text-sm font-bold shadow-md">Salvar</button>
-                  <button (click)="toggleEdit()" class="bg-slate-50 rounded-lg px-4 py-1.5 text-sm font-bold border border-slate-200">Cancelar</button>
-                }
-              </div>
-            </div>
-
-            <div class="flex justify-center md:justify-start gap-10 mb-6">
-              <div class="text-center md:text-left"><span class="font-bold">{{ itineraries().length }}</span> roteiros</div>
-              <div class="text-center md:text-left"><span class="font-bold">154</span> seguidores</div>
-              <div class="text-center md:text-left"><span class="font-bold">82</span> seguindo</div>
-            </div>
-
-            <div class="max-w-md">
-              <span class="block font-bold text-slate-800 mb-1">Explorador de Noronha 🏝️</span>
-              @if (!editMode) {
-                <p class="text-sm leading-relaxed whitespace-pre-wrap">{{ auth.currentUser()?.bio || 'Bem-vindo ao meu perfil! Aqui compartilho minhas aventuras em Fernando de Noronha.' }}</p>
-              } @else {
-                <textarea pInputTextarea [(ngModel)]="tempUser.bio" rows="2" class="w-full text-sm mt-2" placeholder="Sua biografia..."></textarea>
-              }
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <!-- Tabs e Grid -->
-      <div class="max-w-5xl mx-auto border-t border-slate-200">
-        <div class="flex justify-center gap-12 -mt-px">
-          <button (click)="currentTab.set('roteiros')"
-                  [class.border-slate-800]="currentTab() === 'roteiros'"
-                  [class.text-slate-800]="currentTab() === 'roteiros'"
-                  [class.border-transparent]="currentTab() !== 'roteiros'"
-                  [class.text-slate-400]="currentTab() !== 'roteiros'"
-                  class="flex items-center gap-2 py-4 border-t-2 text-xs font-bold uppercase tracking-widest hover:text-slate-600 transition-colors">
-            <i class="pi pi-th-large"></i> Roteiros
-          </button>
-          <button (click)="currentTab.set('conquistas')"
-                  [class.border-slate-800]="currentTab() === 'conquistas'"
-                  [class.text-slate-800]="currentTab() === 'conquistas'"
-                  [class.border-transparent]="currentTab() !== 'conquistas'"
-                  [class.text-slate-400]="currentTab() !== 'conquistas'"
-                  class="flex items-center gap-2 py-4 border-t-2 text-xs font-bold uppercase tracking-widest hover:text-slate-600 transition-colors">
-            <i class="pi pi-star-fill"></i> Conquistas
-          </button>
-        </div>
-
-        <div class="p-4">
-          @if (currentTab() === 'roteiros') {
-            @if (itineraries().length === 0) {
-              <div class="py-20 text-center">
-                <div class="w-16 h-16 rounded-full border-2 border-slate-800 flex items-center justify-center mx-auto mb-4">
-                  <i class="pi pi-camera text-2xl"></i>
-                </div>
-                <h3 class="text-xl font-bold mb-2">Ainda não há roteiros</h3>
-                <p class="text-slate-500 mb-6">Comece a planejar sua viagem agora mesmo!</p>
-                <p-button label="Criar meu primeiro roteiro" routerLink="/itinerary" styleClass="p-button-rounded p-button-sm"></p-button>
-              </div>
-            } @else {
-              <div class="grid grid-cols-2 md:grid-cols-3 gap-1 md:gap-8">
-                @for (itin of itineraries(); track itin.id) {
-                  <div class="aspect-square relative group cursor-pointer overflow-hidden rounded-lg md:rounded-2xl shadow-sm border border-slate-100">
-                    <img [src]="itin.photoUrl || 'https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?w=600&h=600&fit=crop'"
-                         class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white gap-6 transition-opacity font-bold">
-                      <div class="flex items-center gap-1"><i class="pi pi-heart-fill"></i> 12</div>
-                      <div class="flex items-center gap-1"><i class="pi pi-comment"></i> 3</div>
-                    </div>
-                    <div class="absolute bottom-4 left-4 right-4 text-white text-sm font-black truncate drop-shadow-md">
-                       {{ itin.title }}
-                    </div>
-                  </div>
-                }
-              </div>
-            }
-          } @else if (currentTab() === 'conquistas') {
-            @if (badges().length === 0) {
-              <div class="py-20 text-center">
-                <div class="w-16 h-16 rounded-full border-2 border-slate-800 flex items-center justify-center mx-auto mb-4">
-                  <i class="pi pi-star text-2xl"></i>
-                </div>
-                <h3 class="text-xl font-bold mb-2">Nenhuma conquista ainda</h3>
-                <p class="text-slate-500 mb-6">Complete roteiros e avalie pontos turísticos para ganhar selos!</p>
-              </div>
-            } @else {
-              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-                @for (badge of badges(); track badge.id) {
-                  <div class="flex flex-col items-center p-6 bg-slate-50 rounded-2xl border border-slate-100 text-center transition-transform hover:-translate-y-1">
-                    <div class="w-20 h-20 mb-4 drop-shadow-md rounded-full bg-white flex items-center justify-center text-3xl">
-                       <i [class]="badge.iconUrl" [style.color]="'#fbbf24'"></i>
-                    </div>
-                    <h4 class="font-bold text-slate-800 mb-1">{{ badge.name }}</h4>
-                    <p class="text-xs text-slate-500">{{ badge.description }}</p>
-                    <span class="text-[10px] text-slate-400 mt-3 font-semibold uppercase tracking-wider">
-                      Desbloqueado
-                    </span>
-                  </div>
-                }
-              </div>
-            }
-          }
-        </div>
-      </div>
-    </div>
-  `,
-  styles: [`
-    :host ::ng-deep .p-button.p-button-sm { padding: 0.5rem 1rem; font-size: 0.875rem; }
-  `]
+    NgOptimizedImage],
+  templateUrl: './profile.html'
 })
 export class ProfilePageComponent {
+  private toastService = inject(ToastService);
   public auth = inject(AuthService);
   private http = inject(HttpClient);
-  private messageService = inject(MessageService);
 
   editMode = false;
   tempUser: any = {};
@@ -167,9 +28,31 @@ export class ProfilePageComponent {
   badges = signal<any[]>([]);
   currentTab = signal<'roteiros' | 'conquistas'>('roteiros');
 
-  constructor() {
+  userTierLabel = signal('Free');
+  userTierDescription = signal('Explore o app com o plano gratuito.');
+
+    constructor() {
     this.loadMyItineraries();
     this.loadMyBadges();
+    this.updateTierCopy();
+  }
+
+  private updateTierCopy() {
+    const role = this.auth.currentUser()?.role;
+    if (role === 'PREMIUM_TOURIST') {
+      this.userTierLabel.set('Premium');
+      this.userTierDescription.set('Eventos em tempo real e ofertas exclusivas em estabelecimentos parceiros.');
+      return;
+    }
+
+    if (role === 'PRO_TOURIST') {
+      this.userTierLabel.set('Pro');
+      this.userTierDescription.set('Eventos em tempo real e acesso ampliado ao conteúdo da ilha.');
+      return;
+    }
+
+    this.userTierLabel.set('Free');
+    this.userTierDescription.set('Explore roteiros, restaurantes, hotéis e mapas com o plano gratuito.');
   }
 
   loadMyBadges() {
@@ -188,7 +71,7 @@ export class ProfilePageComponent {
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
-      this.messageService.add({ severity: 'info', summary: 'Upload', detail: 'Simulando upload de imagem...' });
+      this.toastService.add({ severity: 'info', summary: 'Upload', detail: 'Simulando upload de imagem...' });
     }
   }
 
@@ -204,14 +87,18 @@ export class ProfilePageComponent {
     }
   }
 
+  isFreeUser() {
+    return this.auth.isFreeTier();
+  }
+
   saveProfile() {
     this.auth.updateProfile(this.tempUser).subscribe({
       next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Perfil atualizado com sucesso!' });
+        this.toastService.add({ severity: 'success', summary: 'Sucesso', detail: 'Perfil atualizado com sucesso!' });
         this.editMode = false;
       },
       error: () => {
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao atualizar perfil' });
+        this.toastService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao atualizar perfil' });
       }
     });
   }

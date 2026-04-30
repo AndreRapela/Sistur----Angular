@@ -1,25 +1,48 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { NavbarComponent } from './components/navbar/navbar';
 import { BottomNavComponent } from './components/bottom-nav/bottom-nav';
-import { ToastModule } from 'primeng/toast';
+import { ToastComponent } from './components/toast/toast';
 import { CommonModule } from '@angular/common';
-import { signal } from '@angular/core';
+import { signal, computed } from '@angular/core';
 import { AuthService } from './services/auth.service';
-import { DrawerModule } from 'primeng/drawer';
-import { ButtonModule } from 'primeng/button';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, NavbarComponent, BottomNavComponent, ToastModule, CommonModule, DrawerModule, ButtonModule],
+  imports: [RouterOutlet, NavbarComponent, BottomNavComponent, ToastComponent, CommonModule],
   templateUrl: './app.html',
-  styleUrl: './app.scss'
+  styles: []
 })
 export class AppComponent {
   title = 'SisTur';
 
-  constructor(public auth: AuthService) {}
+  auth = inject(AuthService);
+  private router = inject(Router);
+
+  currentRoute = signal<string>('');
+
+  // Rotas onde navbar NÃO deve aparecer
+  private hiddenNavbarRoutes = ['/login', '/register'];
+
+  showNavbar = computed(() => {
+    const isAuth = this.auth.isAuthenticated();
+    const currentRoute = this.currentRoute();
+    const isHiddenRoute = this.hiddenNavbarRoutes.some(route => currentRoute.startsWith(route));
+
+    return isAuth && !isHiddenRoute;
+  });
+
+  constructor() {
+    // Atualizar a rota atual quando houver navegação
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe((event: any) => {
+        this.currentRoute.set(event.urlAfterRedirects || event.url);
+      });
+  }
+
   showSabat = false;
   sabatMessage = signal('');
   isTyping = false;
@@ -42,7 +65,7 @@ export class AppComponent {
   generateSabatTip() {
     this.isTyping = true;
     this.sabatMessage.set('');
-    
+
     // Simulating AI typing
     setTimeout(() => {
       const randomTip = this.tips[Math.floor(Math.random() * this.tips.length)];

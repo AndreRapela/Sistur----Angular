@@ -1,165 +1,28 @@
-import { Component, OnInit, inject, HostListener } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { ToastService } from '../../services/toast.service';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, OnInit, inject } from '@angular/core';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { RouterModule, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { CardModule } from 'primeng/card';
-import { ButtonModule } from 'primeng/button';
-import { AvatarModule } from 'primeng/avatar';
-import { TagModule } from 'primeng/tag';
 import { ItineraryService } from '../../services/itinerary.service';
-import { SkeletonModule } from 'primeng/skeleton';
-import { MessageService } from 'primeng/api';
-import { DialogModule } from 'primeng/dialog';
-import { InputTextModule } from 'primeng/inputtext';
 import { FormsModule } from '@angular/forms';
 import { ShareService } from '../../services/share.service';
 
 @Component({
   selector: 'app-itinerary-feed',
   standalone: true,
-  imports: [CommonModule, CardModule, ButtonModule, AvatarModule, TagModule, RouterModule, SkeletonModule, DialogModule, InputTextModule, FormsModule],
-  template: `
-    <div class="feed-container min-h-screen bg-gray-50 p-4 md:p-8">
-      <div class="max-w-4xl mx-auto">
-        <header class="mb-10 text-center">
-          <span class="text-primary font-bold text-xs uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full mb-3 inline-block">Comunidade SisTur</span>
-          <h1 class="text-4xl md:text-5xl font-black text-gray-900 tracking-tight m-0">Roteiros Inspiradores</h1>
-          <p class="text-gray-500 font-medium mt-2">Veja como outros viajantes estÃ£o vivendo Noronha.</p>
-        </header>
-
-        @if (loading) {
-          <div class="flex flex-col gap-8">
-            @for (i of [1,2,3]; track i) {
-              <div class="bg-white rounded-[32px] p-6 shadow-sm border border-gray-100">
-                <div class="flex items-center gap-3 mb-6">
-                  <p-skeleton shape="circle" size="3rem"></p-skeleton>
-                  <div class="flex-1">
-                    <p-skeleton width="30%" height="1rem" styleClass="mb-2"></p-skeleton>
-                    <p-skeleton width="20%" height="0.5rem"></p-skeleton>
-                  </div>
-                </div>
-                <p-skeleton width="60%" height="2rem" styleClass="mb-3"></p-skeleton>
-                <p-skeleton width="100%" height="1.5rem" styleClass="mb-6"></p-skeleton>
-                <p-skeleton width="100%" height="12rem" borderRadius="1.5rem"></p-skeleton>
-              </div>
-            }
-          </div>
-        } @else {
-          <div class="flex flex-col gap-8">
-            @for (itin of itineraries; track itin.id) {
-              <div class="bg-white rounded-[32px] shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                <!-- User Info Header -->
-                <div class="p-6 flex items-center justify-between border-b border-gray-50">
-                  <div class="flex items-center gap-3">
-                    <p-avatar [image]="itin.userPhoto || 'assets/default-avatar.png'" shape="circle" size="large"></p-avatar>
-                    <div>
-                      <h3 class="font-bold text-gray-900 leading-none">{{ itin.userName }}</h3>
-                      <span class="text-xs text-gray-400 capitalize">Viajante {{ itin.userRole }}</span>
-                    </div>
-                  </div>
-                  <p-tag [value]="itin.items?.length + ' paradas'" severity="info" [rounded]="true"></p-tag>
-                </div>
-
-                <!-- Itinerary Content -->
-                <div class="p-6">
-                  <h2 class="text-2xl font-extrabold text-gray-800 mb-2">{{ itin.title || 'Viagem dos Sonhos: Noronha' }}</h2>
-                  <p class="text-gray-500 mb-6 line-clamp-2">{{ itin.description || 'Uma jornada inesquecÃ­vel explorando os melhores picos e sabores da ilha!' }}</p>
-
-                  <!-- Featured Image Preview -->
-                  <div class="h-64 mb-6 rounded-2xl overflow-hidden relative group">
-                     <img [src]="itin.coverImage || 'assets/placeholder-itinerary.jpg'" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
-                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
-                        <span class="text-white font-bold text-sm"><i class="pi pi-eye mr-2"></i> {{ itin.views }} visualizaÃ§Ãµes</span>
-                     </div>
-                  </div>
-                </div>
-
-                <!-- Action Footer -->
-                <div class="px-6 py-4 bg-gray-50 flex justify-between items-center">
-                  <div class="flex items-center gap-4 text-gray-400">
-                    <button (click)="toggleLike(itin)" [class.text-red-500]="itin.userLiked" class="flex items-center gap-1 hover:text-red-500 transition-colors bg-transparent border-none cursor-pointer">
-                      <i [class]="itin.userLiked ? 'pi pi-heart-fill' : 'pi pi-heart'"></i> <span class="text-xs font-bold">{{ itin.likes }}</span>
-                    </button>
-                    <button (click)="openComments(itin)" class="flex items-center gap-1 hover:text-blue-500 transition-colors bg-transparent border-none cursor-pointer">
-                      <i class="pi pi-comment"></i> <span class="text-xs font-bold">{{ itin.commentsCount }}</span>
-                    </button>
-                    <button (click)="openShareDialog(itin)" class="flex items-center gap-1 hover:text-green-500 transition-colors bg-transparent border-none cursor-pointer">
-                      <i class="pi pi-share-alt"></i>
-                    </button>
-                  </div>
-                  <p-button label="Ver Detalhes" icon="pi pi-arrow-right" styleClass="p-button-text p-button-sm font-bold"></p-button>
-                </div>
-              </div>
-            }
-
-            @if (loadingMore) {
-              <div class="flex justify-center p-4 text-primary">
-                <i class="pi pi-spin pi-spinner text-2xl"></i>
-              </div>
-            }
-          </div>
-        }
-      </div>
-    </div>
-
-    <!-- Modal de ComentÃ¡rios -->
-    <p-dialog header="ComentÃ¡rios" [(visible)]="displayComments" [modal]="true" [style]="{width: '100%', maxWidth: '500px'}" [draggable]="false" [resizable]="false">
-      <!-- ... -->
-      <div class="flex flex-col h-[60vh]">
-        <!-- Lista de ComentÃ¡rios -->
-        <div class="flex-1 overflow-y-auto p-2 space-y-4">
-          @if (loadingComments) {
-            <div class="flex justify-center py-8">
-              <i class="pi pi-spin pi-spinner text-2xl text-primary"></i>
-            </div>
-          } @else if (currentComments.length === 0) {
-            <div class="text-center text-gray-500 py-8">
-              Nenhum comentÃ¡rio ainda. Seja o primeiro a comentar!
-            </div>
-          } @else {
-            @for (comment of currentComments; track comment.id) {
-              <div class="flex gap-3">
-                <img [src]="comment.userPhoto || 'assets/default-avatar.png'" class="w-8 h-8 rounded-full object-cover">
-                <div class="flex-1 bg-gray-50 rounded-2xl p-3">
-                  <div class="flex justify-between items-baseline mb-1">
-                    <span class="font-bold text-sm text-gray-900">{{ comment.userName }}</span>
-                  </div>
-                  <p class="text-gray-700 text-sm m-0">{{ comment.content }}</p>
-                </div>
-              </div>
-            }
-          }
-        </div>
-
-        <!-- Input de Novo ComentÃ¡rio -->
-        <div class="mt-4 pt-4 border-t flex gap-2 items-center">
-          <input type="text" pInputText [(ngModel)]="newCommentText" (keyup.enter)="postComment()" placeholder="Adicione um comentÃ¡rio..." class="flex-1 rounded-full px-4 text-sm" [disabled]="postingComment">
-          <button pButton icon="pi pi-send" [loading]="postingComment" class="p-button-rounded p-button-primary" (click)="postComment()" [disabled]="!newCommentText.trim()"></button>
-        </div>
-      </div>
-    </p-dialog>
-
-    <p-dialog header="Compartilhar" [(visible)]="displayShare" [modal]="true" [style]="{width: '300px'}" [draggable]="false" [resizable]="false">
-        <div class="flex flex-col gap-3 p-2">
-            <button class="bg-green-500 text-white px-4 py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-green-600 transition font-bold" (click)="shareWhatsApp()">
-                <i class="pi pi-whatsapp text-xl"></i> WhatsApp
-            </button>
-            <button class="bg-gray-800 text-white px-4 py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-900 transition font-bold" (click)="shareTwitter()">
-                <i class="pi pi-twitter text-xl"></i> X / Twitter
-            </button>
-            <button class="bg-blue-100 text-blue-800 px-4 py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-200 transition font-bold" (click)="copyLink()">
-                <i class="pi pi-link text-xl"></i> Copiar Link
-            </button>
-        </div>
-    </p-dialog>
-  `,
+  imports: [CommonModule, RouterModule, FormsModule, NgOptimizedImage],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  templateUrl: './itinerary-feed.html',
   styles: [`
-    .scrollbar-hide::-webkit-scrollbar { display: none; }
-    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    .feed-container { max-width: 100%; overflow-x: hidden; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   `]
 })
 export class ItineraryFeedComponent implements OnInit {
+  private toastService = inject(ToastService);
+  private cdr = inject(ChangeDetectorRef);
   itineraries: any[] = [];
   loading = true;
   loadingMore = false;
@@ -167,7 +30,7 @@ export class ItineraryFeedComponent implements OnInit {
   size = 5;
   hasMore = true;
 
-  // VariÃ¡veis para Modal de ComentÃ¡rios
+  // Variáveis para Modal de Comentários
   displayComments = false;
   displayShare = false;
   loadingComments = false;
@@ -177,13 +40,22 @@ export class ItineraryFeedComponent implements OnInit {
   newCommentText = '';
   selectedItineraryForShare: any = null;
 
+  get showComments() { return this.displayComments; }
+  set showComments(val: boolean) { this.displayComments = val; }
+  get showShare() { return this.displayShare; }
+  set showShare(val: boolean) { this.displayShare = val; }
+
   private http = inject(HttpClient);
+  private router = inject(Router);
   private itineraryService = inject(ItineraryService);
-  private messageService = inject(MessageService);
   public shareService = inject(ShareService);
 
   ngOnInit() {
     this.loadFeed();
+  }
+
+  viewDetails(itin: any) {
+    this.router.navigate(['/itinerary-shared', itin.shareToken || itin.id]);
   }
 
   @HostListener('window:scroll', [])
@@ -199,6 +71,7 @@ export class ItineraryFeedComponent implements OnInit {
   loadFeed(append = false) {
     if (append) this.loadingMore = true;
     else this.loading = true;
+    this.cdr.markForCheck();
 
     this.http.get(`${environment.apiUrl}/itineraries/feed?page=${this.page}&size=${this.size}`).subscribe({
       next: (res: any) => {
@@ -211,24 +84,38 @@ export class ItineraryFeedComponent implements OnInit {
         this.hasMore = res.data?.last === false;
         this.loading = false;
         this.loadingMore = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.loading = false;
         this.loadingMore = false;
+        this.cdr.markForCheck();
       }
     });
   }
 
   toggleLike(itin: any) {
-    itin.userLiked = !itin.userLiked;
-    itin.likes += itin.userLiked ? 1 : -1;
+    const nextLiked = !itin.userLiked;
+    const nextLikes = Math.max(0, (itin.likes || 0) + (nextLiked ? 1 : -1));
+
+    this.syncItineraryUpdate(itin.id, item => ({
+      ...item,
+      userLiked: nextLiked,
+      likes: nextLikes
+    }));
+
     this.http.post(`${environment.apiUrl}/itineraries/${itin.id}/like`, {}).subscribe({
       error: () => {
-        // Revert on error
-        itin.userLiked = !itin.userLiked;
-        itin.likes += itin.userLiked ? 1 : -1;
+        this.syncItineraryUpdate(itin.id, item => ({
+          ...item,
+          userLiked: !nextLiked,
+          likes: Math.max(0, (item.likes || 0) + (nextLiked ? -1 : 1))
+        }));
+        this.cdr.markForCheck();
       }
     });
+
+    this.cdr.markForCheck();
   }
 
   openComments(itin: any) {
@@ -237,15 +124,18 @@ export class ItineraryFeedComponent implements OnInit {
     this.loadingComments = true;
     this.currentComments = [];
     this.newCommentText = '';
+    this.cdr.markForCheck();
 
     this.http.get(`${environment.apiUrl}/itineraries/${itin.id}/comments`).subscribe({
       next: (res: any) => {
         this.currentComments = res.data || [];
         this.loadingComments = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.loadingComments = false;
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao carregar comentÃ¡rios' });
+        this.toastService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao carregar comentÃ¡rios' });
+        this.cdr.markForCheck();
       }
     });
   }
@@ -259,15 +149,20 @@ export class ItineraryFeedComponent implements OnInit {
     this.http.post(`${environment.apiUrl}/itineraries/${this.selectedItinerary.id}/comments`, payload).subscribe({
       next: (res: any) => {
         if (res.data) {
-          this.currentComments.unshift(res.data);
-          this.selectedItinerary.commentsCount++;
+          this.currentComments = [res.data, ...this.currentComments];
+          this.syncItineraryUpdate(this.selectedItinerary.id, item => ({
+            ...item,
+            commentsCount: (item.commentsCount || 0) + 1
+          }));
         }
         this.newCommentText = '';
         this.postingComment = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.postingComment = false;
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao enviar comentÃ¡rio' });
+        this.toastService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao enviar comentÃ¡rio' });
+        this.cdr.markForCheck();
       }
     });
   }
@@ -283,12 +178,13 @@ export class ItineraryFeedComponent implements OnInit {
         location: item.location
       });
     });
-    this.messageService.add({ severity: 'success', summary: 'Copiado!', detail: 'Roteiro clonado para sua lista.' });
+    this.toastService.add({ severity: 'success', summary: 'Copiado!', detail: 'Roteiro clonado para sua lista.' });
   }
 
   openShareDialog(itin: any) {
     this.selectedItineraryForShare = itin;
     this.displayShare = true;
+    this.cdr.markForCheck();
   }
 
   shareWhatsApp() {
@@ -306,8 +202,20 @@ export class ItineraryFeedComponent implements OnInit {
   copyLink() {
     if (this.selectedItineraryForShare) {
       if (this.shareService.copyLink(this.selectedItineraryForShare)) {
-        this.messageService.add({ severity: 'success', summary: 'Copiado', detail: 'Link copiado para a Ã¡rea de transferÃªncia!' });
+        this.toastService.add({ severity: 'success', summary: 'Copiado', detail: 'Link copiado para a Ã¡rea de transferÃªncia!' });
       }
+    }
+  }
+
+  private syncItineraryUpdate(itineraryId: number, updater: (item: any) => any) {
+    this.itineraries = this.itineraries.map(item => item.id === itineraryId ? updater(item) : item);
+
+    if (this.selectedItinerary?.id === itineraryId) {
+      this.selectedItinerary = updater(this.selectedItinerary);
+    }
+
+    if (this.selectedItineraryForShare?.id === itineraryId) {
+      this.selectedItineraryForShare = updater(this.selectedItineraryForShare);
     }
   }
 }

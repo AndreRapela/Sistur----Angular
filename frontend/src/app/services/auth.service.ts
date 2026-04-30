@@ -4,15 +4,23 @@ import { Observable, tap } from 'rxjs';
 import { ApiResponse } from '../models/tourism.models';
 import { environment } from '../../environments/environment';
 
-export type UserRole = 'ADMIN' | 'CLIENT' | 'USER';
+export type UserRole = 'ADMIN' | 'CLIENT' | 'USER' | 'FREE_TOURIST' | 'PRO_TOURIST' | 'PREMIUM_TOURIST';
+export type TouristRole = 'FREE_TOURIST' | 'PRO_TOURIST' | 'PREMIUM_TOURIST';
 
 export interface LoginResponse {
   token: string;
+  id?: number;
   name: string;
   email: string;
   role: UserRole;
   photoUrl?: string;
   bio?: string;
+  ownedEstablishmentId?: number;
+  expiresAt?: number;
+}
+
+interface StoredAuth extends LoginResponse {
+  expiresAt?: number;
 }
 
 @Injectable({
@@ -20,7 +28,9 @@ export interface LoginResponse {
 })
 export class AuthService {
   private apiUrl = `${environment.apiUrl}/auth`;
-  
+  private storageKey = 'sistur_auth';
+  private expiryTimer?: ReturnType<typeof setTimeout>;
+
   // Usando Signals do Angular 21 para performance e reatividade
   currentUser = signal<LoginResponse | null>(null);
 
@@ -39,7 +49,7 @@ export class AuthService {
     );
   }
 
-  register(userData: { name: string, email: string, password: string }): Observable<ApiResponse<LoginResponse>> {
+  register(userData: { name: string, email: string, password: string, role?: TouristRole }): Observable<ApiResponse<LoginResponse>> {
     return this.http.post<ApiResponse<LoginResponse>>(`${this.apiUrl}/register`, userData).pipe(
       tap(res => {
         if (res.data) {
@@ -61,7 +71,7 @@ export class AuthService {
     );
   }
 
-  updateProfile(profileData: { name: string, bio: string, photoUrl: string }): Observable<ApiResponse<LoginResponse>> {
+  updateProfile(profileData: { name: string, bio: string, photoUrl: string, ownedEstablishmentId?: number | null }): Observable<ApiResponse<LoginResponse>> {
     return this.http.put<ApiResponse<LoginResponse>>(`${environment.apiUrl}/users/profile`, profileData).pipe(
       tap(res => {
         if (res.data) {
@@ -76,38 +86,134 @@ export class AuthService {
     );
   }
 
-  logout() {
-    localStorage.removeItem('sistur_auth');
-    this.currentUser.set(null);
-    window.location.href = '/login'; // Forçando recarregamento para limpar estados
-  }
-
-  private saveStorage(data: LoginResponse) {
-    localStorage.setItem('sistur_auth', JSON.stringify(data));
+  logout(redirect = true) {
+    this.clearSessionState();
+    if (redirect && typeof window !== 'undefined') {
+      window.location.href = '/login'; // Forçando recarregamento para limpar estados
+    }
   }
 
   private loadStorage() {
     try {
-      const data = localStorage.getItem('sistur_auth');
+      const data = localStorage.getItem(this.storageKey);
       if (data) {
-        this.currentUser.set(JSON.parse(data));
+        const parsed = JSON.parse(data) as StoredAuth;
+        const expiresAt = parsed.expiresAt ?? this.decodeJwtExpiration(parsed.token);
+
+        if (!expiresAt || expiresAt <= Date.now()) {
+           this.clearSessionState();
+           return;
+        }
+
+        const normalized = { ...parsed, expiresAt };
+        this.currentUser.set(normalized);
+        this.persistSession(normalized);
+        this.scheduleExpiry(expiresAt);
       }
     } catch (e) {
       console.error('Erro ao carregar cache de autenticação', e);
-      localStorage.removeItem('sistur_auth');
-      this.currentUser.set(null);
+      this.clearSessionState();
     }
   }
 
+  private saveStorage(data: LoginResponse) {
+    const expiresAt = this.decodeJwtExpiration(data.token) ?? (Date.now() + 2 * 60 * 60 * 1000);
+    const sessionData: StoredAuth = { ...data, expiresAt };
+    this.persistSession(sessionData);
+    this.scheduleExpiry(expiresAt);
+  }
+
+  getUser() {
+    if (!this.ensureValidSession()) {
+      return null;
+    }
+
+    return this.currentUser();
+  }
+
   isAuthenticated(): boolean {
-    return !!this.currentUser();
+    return !!this.getUser();
   }
 
   hasRole(role: UserRole): boolean {
-    return this.currentUser()?.role === role;
+    const user = this.getUser();
+    return user ? user.role === role : false;
   }
-  
+
   getRole(): UserRole | undefined {
-    return this.currentUser()?.role;
+    return this.getUser()?.role;
+  }
+
+  isFreeTier(): boolean {
+    const role = this.getUser()?.role;
+    return role === 'FREE_TOURIST' || role === 'USER';
+  }
+
+  private ensureValidSession(): boolean {
+    const user = this.currentUser();
+
+    if (!user) {
+      return false;
+    }
+
+    const expiresAt = user.expiresAt ?? this.decodeJwtExpiration(user.token);
+    if (!expiresAt || expiresAt <= Date.now()) {
+      this.clearSessionState();
+      return false;
+    }
+
+    return true;
+  }
+
+  private decodeJwtExpiration(token: string): number | null {
+    try {
+      const payloadPart = token.split('.')[1];
+      if (!payloadPart) {
+        return null;
+      }
+
+      const normalizedPayload = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
+      const paddedPayload = normalizedPayload.padEnd(Math.ceil(normalizedPayload.length / 4) * 4, '=');
+      const payload = JSON.parse(atob(paddedPayload));
+
+      return typeof payload.exp === 'number' ? payload.exp * 1000 : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private scheduleExpiry(expiresAt: number) {
+    this.clearExpiryTimer();
+
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const delay = expiresAt - Date.now();
+    if (delay <= 0) {
+      this.clearSessionState();
+      return;
+    }
+
+    this.expiryTimer = window.setTimeout(() => {
+      this.logout();
+    }, delay);
+  }
+
+  private persistSession(data: StoredAuth) {
+    localStorage.setItem(this.storageKey, JSON.stringify(data));
+  }
+
+  private clearSessionState() {
+    this.clearExpiryTimer();
+    localStorage.removeItem(this.storageKey);
+    this.currentUser.set(null);
+  }
+
+  private clearExpiryTimer() {
+    if (this.expiryTimer) {
+      clearTimeout(this.expiryTimer);
+      this.expiryTimer = undefined;
+    }
   }
 }

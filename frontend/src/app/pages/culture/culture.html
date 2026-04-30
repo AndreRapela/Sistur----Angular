@@ -1,0 +1,112 @@
+<div class="min-h-screen bg-slate-50">
+  <section class="relative overflow-hidden bg-slate-950 text-white">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.15),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.12),transparent_34%)]"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-4 md:px-8 py-14 md:py-20 grid lg:grid-cols-[1.08fr_.92fr] gap-10 items-center">
+      <div>
+        <p class="text-amber-300 font-black uppercase tracking-[0.32em] text-[11px] mb-4">História e cultura</p>
+        <h1 class="text-4xl md:text-6xl font-black leading-[1] tracking-tight m-0 max-w-3xl">Noronha é memória colonial, fé na praça e cultura que acompanha o mar</h1>
+        <p class="mt-6 text-white/75 text-lg md:text-xl leading-relaxed max-w-2xl">
+          A ilha foi descoberta em 1503, passou por fortificações e usos estratégicos, e hoje vive uma mistura muito própria de patrimônio, celebração religiosa, gastronomia local e uma agenda cultural que continua se renovando.
+        </p>
+
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a routerLink="/pontos-turisticos" class="px-5 py-3 rounded-2xl bg-amber-400 text-slate-950 font-black no-underline shadow-xl shadow-amber-500/20 hover:scale-[1.02] transition-transform">
+            Pontos históricos
+          </a>
+          <a routerLink="/environmental" class="px-5 py-3 rounded-2xl bg-white/10 text-white border border-white/10 font-black no-underline hover:bg-white/15 transition-colors">
+            Contexto ambiental
+          </a>
+        </div>
+      </div>
+
+      <div class="relative min-h-[420px] rounded-[34px] overflow-hidden shadow-2xl shadow-black/20 border border-white/10">
+        <div class="absolute inset-0 bg-cover bg-center" [style.backgroundImage]="'url(' + heroImage + ')'">
+        </div>
+        <div class="absolute inset-0 bg-gradient-to-tr from-slate-950/80 via-slate-900/35 to-transparent"></div>
+
+        <div class="relative z-10 h-full flex flex-col justify-end p-6 md:p-8">
+          <div class="max-w-sm rounded-[28px] bg-white/10 backdrop-blur-xl border border-white/15 p-5 text-white">
+            <p class="text-[11px] uppercase tracking-[0.3em] text-amber-200 font-black">O que faz a ilha vibrar</p>
+            <p class="text-2xl font-black mt-2">Praça, igreja, espetáculo e comunidade</p>
+            <p class="text-sm text-white/75 mt-3 leading-relaxed">A Semana da Paixão, a Vila dos Remédios e os rituais do dia a dia mostram que Noronha é destino vivido, não só fotografado.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
+    <div class="grid gap-4 md:grid-cols-4">
+      @for (item of timeline; track item.year) {
+        <article class="rounded-[28px] bg-white border border-slate-100 p-6 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <p class="text-[11px] uppercase tracking-[0.3em] text-slate-400 font-black">{{ item.year }}</p>
+          <h3 class="text-2xl font-black text-slate-900 mt-3 mb-3 leading-tight">{{ item.title }}</h3>
+          <p class="text-slate-500 leading-relaxed text-[15px]">{{ item.text }}</p>
+        </article>
+      }
+    </div>
+  </section>
+
+  <section class="max-w-7xl mx-auto px-4 md:px-8 pb-10 md:pb-14">
+    <div class="flex flex-col lg:flex-row gap-4 lg:items-end lg:justify-between mb-6">
+      <div>
+        <p class="text-[11px] uppercase tracking-[0.32em] text-slate-400 font-black">Pontos de identidade</p>
+        <h2 class="text-3xl md:text-4xl font-black text-slate-950 mt-3 tracking-tight">O que vale a pena conhecer de verdade</h2>
+      </div>
+      <a routerLink="/pontos-turisticos" class="text-emerald-700 font-black no-underline hover:text-emerald-600 transition-colors">Abrir a curadoria de pontos turísticos →</a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
+      @for (card of cultureCards; track card.title) {
+        <article class="rounded-[30px] bg-white border border-slate-100 p-6 md:p-7 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br {{ card.tone }} flex items-center justify-center text-white text-2xl shadow-lg shadow-black/10">
+            <i [class]="card.icon"></i>
+          </div>
+          <h3 class="text-2xl font-black text-slate-900 mt-5 mb-3 leading-tight">{{ card.title }}</h3>
+          <p class="text-slate-500 leading-relaxed text-[15px]">{{ card.text }}</p>
+        </article>
+      }
+    </div>
+  </section>
+
+  <section class="max-w-7xl mx-auto px-4 md:px-8 pb-16">
+    <div class="grid lg:grid-cols-[1.02fr_.98fr] gap-6 md:gap-8 items-start">
+      <div class="rounded-[32px] bg-white border border-slate-100 p-8 md:p-10 shadow-sm">
+        <p class="text-[11px] uppercase tracking-[0.3em] text-amber-500 font-black">Cultura em movimento</p>
+        <h2 class="text-3xl md:text-4xl font-black text-slate-900 mt-4 tracking-tight">A cidade pequena que sempre encontra uma forma de celebrar</h2>
+        <div class="grid gap-4 mt-8">
+          @for (tip of visitorTips; track tip) {
+            <div class="rounded-3xl bg-slate-50 border border-slate-100 p-5 flex gap-4">
+              <div class="w-11 h-11 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                <i class="pi pi-star-fill"></i>
+              </div>
+              <p class="text-slate-600 leading-relaxed m-0">{{ tip }}</p>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="rounded-[32px] bg-slate-950 text-white p-8 md:p-10 shadow-2xl shadow-slate-900/15 overflow-hidden relative">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.16),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(34,197,94,0.16),transparent_34%)]"></div>
+        <div class="relative z-10">
+          <p class="text-amber-300 font-black uppercase tracking-[0.3em] text-[11px]">Semana da Paixão</p>
+          <h2 class="text-3xl md:text-4xl font-black mt-4 mb-4 tracking-tight">Um evento que juntou cultura, fé e economia local</h2>
+          <p class="text-white/75 leading-relaxed">
+            A programação recente da ilha mostrou que a Praça de São Miguel e a Vila dos Remédios conseguem virar palco de espetáculo, atraindo moradores e visitantes em torno da tradição da Paixão de Cristo e de atrações artísticas que movimentam o comércio.
+          </p>
+
+          <div class="grid sm:grid-cols-2 gap-4 mt-8">
+            <div class="rounded-3xl bg-white/8 border border-white/10 p-5">
+              <p class="text-[11px] uppercase tracking-[0.3em] text-amber-200 font-black">Fé e memória</p>
+              <p class="text-xl font-black mt-2">Igreja Matriz, capelas e devoção</p>
+            </div>
+            <div class="rounded-3xl bg-white/8 border border-white/10 p-5">
+              <p class="text-[11px] uppercase tracking-[0.3em] text-emerald-200 font-black">Vida local</p>
+              <p class="text-xl font-black mt-2">Gastronomia, esporte e convivência</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

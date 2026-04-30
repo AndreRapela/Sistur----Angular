@@ -1,0 +1,84 @@
+<nav class="hidden md:flex h-[75px] bg-white/95 backdrop-blur-md px-10 items-center justify-between sticky top-0 z-50 transition-all border-b border-slate-100">
+  <div class="flex flex-col leading-none cursor-pointer group" routerLink="/home">
+     <span class="text-[26px] font-[950] text-primary tracking-[-1.5px] group-hover:scale-105 transition-transform">SisTur</span>
+     <span class="text-[11px] text-slate-500 font-bold uppercase tracking-[1px] mt-[2px]">Noronha</span>
+  </div>
+
+  <div class="flex items-center gap-8">
+    <a routerLink="/home" routerLinkActive="text-primary -translate-y-[1px]" [routerLinkActiveOptions]="{exact: true}" class="no-underline text-slate-600 font-bold text-[15px] cursor-pointer transition-all hover:text-primary hover:-translate-y-[1px]">Explore</a>
+    @if (!auth.isFreeTier()) {
+      <a routerLink="/events" routerLinkActive="text-primary -translate-y-[1px]" class="no-underline text-slate-600 font-bold text-[15px] cursor-pointer transition-all hover:text-primary hover:-translate-y-[1px]">Eventos</a>
+    }
+    <a routerLink="/roteiros" routerLinkActive="text-primary -translate-y-[1px]" class="flex items-center gap-1 no-underline text-slate-600 font-bold text-[15px] cursor-pointer transition-all hover:text-primary hover:-translate-y-[1px]"><i class="pi pi-users text-xs"></i> Roteiros Compartilhados</a>
+
+    <a routerLink="/itinerary" routerLinkActive="text-primary -translate-y-[1px]" class="relative flex items-center gap-1 no-underline text-slate-600 font-bold text-[15px] cursor-pointer transition-all hover:text-primary hover:-translate-y-[1px]">
+      <i class="pi pi-map-marker text-xs"></i> Meu Plano
+      @if (itinerary.items().length > 0) {
+        <span class="absolute -top-2 -right-3 bg-primary text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold shadow-sm animate-pulse-short">
+          {{ itinerary.items().length }}
+        </span>
+      }
+    </a>
+    <a routerLink="/map" routerLinkActive="text-primary -translate-y-[1px]" class="no-underline text-slate-600 font-bold text-[15px] cursor-pointer transition-all hover:text-primary hover:-translate-y-[1px]">Mapa</a>
+
+    <div class="relative py-5 group">
+      <span class="no-underline text-slate-600 font-bold text-[15px] cursor-pointer transition-all group-hover:text-primary group-hover:-translate-y-[1px]">Descubra <i class="pi pi-chevron-down text-xs"></i></span>
+      <div class="absolute top-[100%] left-0 bg-white min-w-[180px] shadow-2xl rounded-xl p-2 hidden opacity-0 transition-all group-hover:block group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto">
+        <a routerLink="/restaurants" class="block p-3 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors no-underline font-bold text-[15px]"><i class="pi pi-utensils w-5"></i> Onde Comer</a>
+        <a routerLink="/hotels" class="block p-3 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors no-underline font-bold text-[15px]"><i class="pi pi-home w-5"></i> Onde Ficar</a>
+        <a routerLink="/pontos-turisticos" class="block p-3 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors no-underline font-bold text-[15px]"><i class="pi pi-compass w-5"></i> Pontos Turísticos</a>
+        @if (!auth.isFreeTier()) {
+          <a routerLink="/events" class="block p-3 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors no-underline font-bold text-[15px]"><i class="pi pi-calendar w-5"></i> Eventos</a>
+        }
+        <a routerLink="/tours" class="block p-3 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors no-underline font-bold text-[15px]"><i class="pi pi-camera w-5"></i> Passeios</a>
+      </div>
+    </div>
+
+    <a routerLink="/culture" routerLinkActive="text-primary -translate-y-[1px]" class="no-underline text-slate-600 font-bold text-[15px] cursor-pointer transition-all hover:text-primary hover:-translate-y-[1px]">História</a>
+    <a routerLink="/environmental" routerLinkActive="text-primary -translate-y-[1px]" class="no-underline text-slate-600 font-bold text-[15px] cursor-pointer transition-all hover:text-primary hover:-translate-y-[1px]">Ambiental</a>
+    <a routerLink="/contact" routerLinkActive="text-primary -translate-y-[1px]" class="no-underline text-slate-600 font-bold text-[15px] cursor-pointer transition-all hover:text-primary hover:-translate-y-[1px]">Contato</a>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <!-- Itinerário -->
+    <a routerLink="/itinerary" class="relative border-none bg-transparent text-slate-400 text-[19px] cursor-pointer transition-colors hover:text-primary no-underline">
+      <i class="pi pi-calendar"></i>
+      @if (itinerary.items().length > 0) {
+        <span class="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold shadow-sm">{{itinerary.items().length}}</span>
+      }
+    </a>
+
+    @if (auth.isAuthenticated()) {
+      <div class="relative group">
+        <div class="w-[42px] h-[42px] bg-primary text-white rounded-xl flex items-center justify-center font-extrabold cursor-pointer hover:scale-105 transition-transform shadow-sm">
+          {{auth.currentUser()?.name?.charAt(0)}}
+        </div>
+
+        <div class="absolute right-0 top-[100%] min-w-[200px] bg-white rounded-2xl hidden p-1 z-50 shadow-2xl group-hover:block transition-all pt-2 before:content-[''] before:absolute before:-top-4 before:left-0 before:right-0 before:h-4">
+          <div class="p-3 text-sm border-b border-slate-100 mb-1">
+            <div class="font-bold text-slate-800">{{auth.currentUser()?.name}}</div>
+            <div class="text-primary text-xs font-black mt-1">{{auth.currentUser()?.role}}</div>
+          </div>
+
+          @if (auth.isFreeTier()) {
+            <a routerLink="/profile" class="block p-2 text-slate-700 text-sm no-underline font-bold rounded-lg hover:bg-amber-50 transition-colors"><i class="pi pi-star mr-2 text-amber-500"></i> Fazer Upgrade</a>
+          }
+
+          @if (auth.hasRole('ADMIN')) {
+            <a routerLink="/admin/dashboard" class="block p-2 text-slate-700 text-sm no-underline font-bold rounded-lg hover:bg-slate-50 transition-colors"><i class="pi pi-shield mr-2"></i> Painel Admin</a>
+          }
+          @if (auth.hasRole('CLIENT')) {
+            <a routerLink="/client/dashboard" class="block p-2 text-slate-700 text-sm no-underline font-bold rounded-lg hover:bg-slate-50 transition-colors"><i class="pi pi-briefcase mr-2"></i> Meu Negócio</a>
+          }
+          <a routerLink="/profile" class="block p-2 text-slate-700 text-sm no-underline font-bold rounded-lg hover:bg-slate-50 transition-colors"><i class="pi pi-user mr-2"></i> Meu Perfil</a>
+
+          <button (click)="auth.logout()" class="block w-full text-left p-2 mt-1 text-red-500 font-bold border-none bg-transparent cursor-pointer rounded-lg hover:bg-red-50 transition-colors">
+            <i class="pi pi-sign-out mr-2"></i> Sair
+          </button>
+        </div>
+      </div>
+    } @else {
+      <button routerLink="/login" class="bg-primary text-white font-bold px-4 py-2 rounded-xl hover:bg-primary/90 transition-colors shadow-sm border-none cursor-pointer">Entrar</button>
+    }
+  </div>
+</nav>

@@ -1,5 +1,5 @@
+﻿import { ToastService } from '../services/toast.service';
 ﻿import { Injectable, signal, computed, inject } from '@angular/core';
-import { MessageService } from 'primeng/api';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
@@ -10,6 +10,12 @@ export interface ItineraryItem {
   name: string;
   image?: string;
   location?: string;
+  category?: string;
+  bestTime?: string;
+  bestSeason?: string;
+  idealWeather?: string;
+  latitude?: number;
+  longitude?: number;
   addedAt: Date;
   day?: number; // 0 = Não definido, 1 = Dia 1, etc.
   time?: string;
@@ -19,9 +25,23 @@ export interface ItineraryItem {
   providedIn: 'root'
 })
 export class ItineraryService {
+  private toastService = inject(ToastService);
   private _items = signal<ItineraryItem[]>(this.loadItems());
 
   items = this._items.asReadonly();
+
+  // Cache para buscas rápidas (id+type -> boolean)
+  private itemsMap = computed(() => {
+    const map = new Map<string, boolean>();
+    this._items().forEach(item => {
+      map.set(`${item.type}:${item.id}`, true);
+    });
+    return map;
+  });
+
+  isInItinerary(id: number | string, type: string): boolean {
+    return this.itemsMap().has(`${type}:${id}`);
+  }
 
   // Agrupamento por dia computado
   itemsByDay = computed(() => {
@@ -39,7 +59,6 @@ export class ItineraryService {
     return this._items().reduce((sum, item) => sum + (item.estimatedCost || 0), 0);
   });
 
-  private messageService = inject(MessageService);
   private auth = inject(AuthService);
   private http = inject(HttpClient);
 
@@ -61,7 +80,7 @@ export class ItineraryService {
 
     if (index > -1) {
       this._items.set(current.filter((_, i) => i !== index));
-      this.messageService.add({ severity: 'info', summary: 'Removido', detail: `${item.name} removido do roteiro` });
+      this.toastService.add({ severity: 'info', summary: 'Removido', detail: `${item.name} removido do roteiro` });
 
       if (this.auth.isAuthenticated()) {
         // Opcional: Implementar DELETE no backend
@@ -80,7 +99,7 @@ export class ItineraryService {
         estimatedCost: 0
       };
       this._items.set([...current, newItem]);
-      this.messageService.add({ severity: 'success', summary: 'Adicionado', detail: `${item.name} adicionado ao seu roteiro!` });
+      this.toastService.add({ severity: 'success', summary: 'Adicionado', detail: `${item.name} adicionado ao seu roteiro!` });
     }
     this.save();
   }
@@ -96,8 +115,13 @@ export class ItineraryService {
     }
   }
 
-  isAdded(id: number | string, type: string): boolean {
-    return this._items().some(i => String(i.id) === String(id) && i.type === type);
+  reorderItems(reorderedArray: ItineraryItem[], day: number) {
+    const current = this._items();
+    // Remove os itens do dia atual
+    const filtered = current.filter(i => (i.day || 0) !== day);
+    // Adiciona na nova ordem
+    this._items.set([...filtered, ...reorderedArray]);
+    this.save();
   }
 
   clear() {
@@ -105,9 +129,14 @@ export class ItineraryService {
     localStorage.removeItem('sistur_itinerary');
   }
 
+  loadItemsFromArray(items: ItineraryItem[]) {
+    this._items.set(items);
+    this.save();
+  }
+
   saveToServer(name: string, isPublic: boolean = false) {
     if (!this.auth.isAuthenticated()) {
-      this.messageService.add({ severity: 'warn', summary: 'AtenÃ§Ã£o', detail: 'FaÃ§a login para salvar seu roteiro na nuvem' });
+      this.toastService.add({ severity: 'warn', summary: 'Atenção', detail: 'Faça login para salvar seu roteiro na nuvem' });
       return;
     }
 

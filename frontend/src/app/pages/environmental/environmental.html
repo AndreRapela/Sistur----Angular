@@ -1,0 +1,104 @@
+<div class="min-h-screen bg-slate-50">
+  <section class="relative overflow-hidden">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.12),transparent_30%)]"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-4 md:px-8 py-14 md:py-20 grid lg:grid-cols-[1.08fr_.92fr] gap-10 items-center">
+      <div>
+        <p class="text-emerald-600 font-black uppercase tracking-[0.32em] text-[11px] mb-4">Santuário ecológico</p>
+        <h1 class="text-4xl md:text-6xl font-black leading-[1] tracking-tight text-slate-950 m-0 max-w-3xl">Fernando de Noronha é natureza protegida, não cenário de consumo</h1>
+        <p class="mt-6 text-slate-600 text-lg md:text-xl leading-relaxed max-w-2xl">
+          O arquipélago reúne o Parque Nacional Marinho, a APA, o Sítio Ramsar e o título de Patrimônio Mundial Natural da Unesco. Aqui, visitar bem é entender as regras, seguir a maré e sair com menos impacto do que entrou.
+        </p>
+
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a routerLink="/pontos-turisticos" class="px-5 py-3 rounded-2xl bg-slate-950 text-white font-black no-underline shadow-xl shadow-slate-950/10 hover:bg-emerald-600 transition-colors">
+            Ver pontos turísticos
+          </a>
+          <a routerLink="/map" class="px-5 py-3 rounded-2xl bg-white text-slate-800 font-black no-underline border border-slate-200 hover:border-emerald-300 hover:text-emerald-700 transition-colors">
+            Abrir mapa
+          </a>
+        </div>
+
+        <div class="grid sm:grid-cols-3 gap-3 mt-8 max-w-2xl">
+          @for (stat of stats; track stat.value) {
+            <div class="rounded-3xl bg-white border border-slate-100 p-4 shadow-sm">
+              <p class="text-3xl font-black text-slate-900 m-0">{{ stat.value }}</p>
+              <p class="text-sm text-slate-500 mt-2 leading-relaxed">{{ stat.label }}</p>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="relative min-h-[420px] rounded-[34px] overflow-hidden shadow-2xl shadow-emerald-950/10 border border-white/60">
+        <div class="absolute inset-0 bg-cover bg-center" [style.backgroundImage]="'url(' + heroImage + ')'">
+        </div>
+        <div class="absolute inset-0 bg-gradient-to-tr from-slate-950/80 via-slate-900/35 to-transparent"></div>
+
+        <div class="relative z-10 h-full flex flex-col justify-end p-6 md:p-8">
+          <div class="max-w-sm rounded-[28px] bg-white/10 backdrop-blur-xl border border-white/15 p-5 text-white">
+            <p class="text-[11px] uppercase tracking-[0.3em] text-emerald-200 font-black">Visitação responsável</p>
+            <p class="text-2xl font-black mt-2">A ilha recompensa quem respeita o ritmo dela</p>
+            <p class="text-sm text-white/75 mt-3 leading-relaxed">Leve reutilizáveis, consulte a tábua de maré, siga as trilhas agendadas e priorize condutores credenciados quando a regra pedir.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-10 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+    @for (card of highlights; track card.title) {
+      <article class="rounded-[28px] bg-white border border-slate-100 p-6 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br {{ card.tone }} flex items-center justify-center text-white text-2xl shadow-lg shadow-black/10">
+          <i [class]="card.icon"></i>
+        </div>
+        <h3 class="text-2xl font-black text-slate-900 mt-5 mb-3 leading-tight">{{ card.title }}</h3>
+        <p class="text-slate-500 leading-relaxed text-[15px]">{{ card.text }}</p>
+      </article>
+    }
+  </section>
+
+  <section class="max-w-7xl mx-auto px-4 md:px-8 pb-10 md:pb-14">
+    <div class="grid lg:grid-cols-[1.02fr_.98fr] gap-6 md:gap-8">
+      <div class="rounded-[32px] bg-slate-950 text-white p-8 md:p-10 shadow-2xl shadow-slate-900/15 overflow-hidden relative">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.2),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.16),transparent_35%)]"></div>
+        <div class="relative z-10">
+          <p class="text-emerald-300 font-black uppercase tracking-[0.3em] text-[11px]">Como visitar sem errar</p>
+          <h2 class="text-3xl md:text-4xl font-black mt-4 mb-4 tracking-tight">A experiência funciona melhor quando a logística vem antes da pressa</h2>
+          <div class="grid gap-4 mt-8">
+            @for (item of guideCards; track item.title) {
+              <div class="rounded-3xl bg-white/8 border border-white/10 p-5 flex gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white text-xl shrink-0">
+                  <i [class]="item.icon"></i>
+                </div>
+                <div>
+                  <h3 class="font-black text-xl m-0">{{ item.title }}</h3>
+                  <p class="text-white/70 mt-2 leading-relaxed">{{ item.text }}</p>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-[32px] bg-white border border-slate-100 p-8 md:p-10 shadow-sm">
+        <p class="text-[11px] uppercase tracking-[0.3em] text-slate-400 font-black">Checklist do visitante</p>
+        <h2 class="text-3xl md:text-4xl font-black text-slate-900 mt-4 tracking-tight">O básico que evita perrengue</h2>
+
+        <div class="grid gap-4 mt-8">
+          @for (item of checklist; track item.title) {
+            <div class="rounded-3xl bg-slate-50 border border-slate-100 p-5">
+              <h3 class="text-xl font-black text-slate-900 m-0">{{ item.title }}</h3>
+              <p class="text-slate-500 mt-2 leading-relaxed">{{ item.text }}</p>
+            </div>
+          }
+        </div>
+
+        <div class="mt-8 rounded-[28px] bg-emerald-50 border border-emerald-100 p-6">
+          <h3 class="text-2xl font-black text-emerald-900 m-0">Nada de deixar rastros</h3>
+          <p class="text-emerald-800/80 mt-3 leading-relaxed">
+            A frase mais famosa de Noronha continua atual: leve só fotos, deixe só pegadas e respeite o tempo da ilha. É isso que mantém o destino bonito, vivo e sustentável.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

@@ -1,1 +1,114 @@
-<p>tour-list works!</p>
+<div class="p-4 md:p-8 max-w-7xl mx-auto page-wrapper bg-slate-50 min-h-screen">
+  <div class="flex flex-col gap-4 md:gap-6 mb-8">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h1 class="font-black text-[28px] md:text-4xl text-slate-800 tracking-tight m-0">Passeios e Experiências</h1>
+        <p class="text-slate-500 mt-1 font-medium">Filtre por tema ou busque por nome, parceiro ou descrição.</p>
+      </div>
+      <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-bold" (click)="goToMap()">
+        Ver no Mapa
+      </button>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 md:p-4 flex flex-col md:flex-row md:items-center gap-3">
+      <div class="relative flex-1">
+        <i class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input #searchInput
+               type="text"
+               [value]="searchQuery()"
+               (input)="onSearch(searchInput.value)"
+               placeholder="Buscar passeios..."
+               title="Buscar passeios"
+               class="w-full pl-11 pr-24 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all font-medium text-sm">
+        @if (searchQuery()) {
+          <button type="button"
+                  (click)="clearSearch(); searchInput.value = ''"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors">
+            Limpar
+          </button>
+        }
+      </div>
+      <div class="text-xs font-black uppercase tracking-widest text-slate-400 px-2 md:px-0 md:pr-2 shrink-0">
+        {{ filteredTours().length }} resultado(s)
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-8 flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+    @for (cat of categories; track cat) {
+      <button [class]="selectedCategory() === cat ? 'bg-primary text-white border-primary shadow-[0_4px_12px_rgba(0,119,182,0.2)]' : 'bg-white text-slate-500 border-slate-200'"
+              (click)="selectedCategory.set(cat)"
+              class="px-5 py-2.5 rounded-full border cursor-pointer font-bold text-sm whitespace-nowrap transition-all duration-200"
+              [title]="'Filtrar por ' + cat">
+        {{cat}}
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <app-skeleton-list></app-skeleton-list>
+  } @else {
+    @if (filteredTours().length > 0) {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @for (tour of filteredTours(); track tour.id) {
+          @defer (on viewport) {
+          <div class="bg-white rounded-[24px] overflow-hidden shadow-sm border border-slate-100 h-full flex flex-col transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_12px_30px_rgba(0,0,0,0.1)] group">
+            <div class="relative overflow-hidden shrink-0 h-[200px]">
+              <img [ngSrc]="tour.photoUrl"
+                   fill
+                   class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                   alt="Tour image">
+              <div class="absolute top-[15px] right-[15px] bg-white text-secondary px-4 py-2 rounded-xl font-extrabold text-[15px] z-10 shadow-md">R$ {{tour.price}}</div>
+            </div>
+
+            <div class="p-6 cursor-pointer flex flex-col flex-1" (click)="viewDetails(tour)">
+               <div class="flex justify-between items-start gap-3">
+                  <h3 class="text-[19px] font-extrabold text-slate-800 leading-tight m-0 flex-1">{{tour.name}}</h3>
+                  <div class="flex flex-col items-end gap-1 shrink-0">
+                    <span class="text-[10px] font-black text-blue-500 uppercase tracking-widest bg-blue-50 px-2 py-1 rounded-md">{{tour.partnership}}</span>
+                  </div>
+               </div>
+
+               <p class="text-[14px] text-slate-500 leading-relaxed mt-4 line-clamp-2">{{tour.description}}</p>
+
+               <div class="mt-auto pt-6 flex gap-2">
+                   <button class="flex-1 bg-primary text-white border-none py-3.5 rounded-xl font-bold cursor-pointer hover:bg-primary/90 transition-colors" (click)="viewDetails(tour); $event.stopPropagation()">Ver Detalhes</button>
+
+                   <button class="w-[50px] h-[50px] shrink-0 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 flex items-center justify-center transition-all duration-200 cursor-pointer hover:bg-white hover:border-primary hover:text-primary"
+                           [class.bg-secondary]="itinerary.isInItinerary(tour.id, 'TOUR')"
+                           [class.text-white]="itinerary.isInItinerary(tour.id, 'TOUR')"
+                           [class.border-secondary]="itinerary.isInItinerary(tour.id, 'TOUR')"
+                           (click)="toggleItinerary(tour); $event.stopPropagation()"
+                           title="Adicionar ao Roteiro">
+                     <i [class]="itinerary.isInItinerary(tour.id, 'TOUR') ? 'pi pi-calendar-times' : 'pi pi-calendar-plus'"></i>
+                   </button>
+
+                   <button class="w-[50px] h-[50px] shrink-0 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 flex items-center justify-center transition-all duration-200 cursor-pointer hover:bg-white hover:border-primary hover:text-primary"
+                           (click)="findOnMap(tour)" title="Encontrar no mapa"><i class="pi pi-compass"></i></button>
+               </div>
+            </div>
+          </div>
+          } @placeholder {
+            <div class="bg-slate-50 rounded-[24px] border border-slate-100 h-full p-4 animate-pulse min-h-[400px]"></div>
+          }
+        }
+      </div>
+    } @else {
+      <div class="bg-white rounded-[28px] border border-slate-100 shadow-sm p-10 text-center">
+        <div class="mx-auto w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-4">
+          <i class="pi pi-search text-2xl"></i>
+        </div>
+        <h3 class="text-2xl font-black text-slate-800">Nenhum passeio encontrado</h3>
+        <p class="text-slate-500 mt-2 max-w-xl mx-auto">
+          Tente outra categoria ou ajuste a busca para encontrar experiências diferentes em Noronha.
+        </p>
+        @if (searchQuery()) {
+          <button class="mt-6 px-5 py-3 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition-colors" (click)="clearSearch(); searchInput.value = ''">
+            Limpar busca
+          </button>
+        }
+      </div>
+    }
+  }
+</div>
+

@@ -1,72 +1,90 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+
+interface HighlightCard {
+  icon: string;
+  title: string;
+  text: string;
+  tone: string;
+}
+
+interface TipCard {
+  icon: string;
+  title: string;
+  text: string;
+}
+
+interface ChecklistCard {
+  title: string;
+  text: string;
+}
 
 @Component({
   selector: 'app-environmental',
   standalone: true,
-  imports: [CommonModule],
-  template: `
-    <div class="page-container p-4 container-fluid">
-      <header class="page-header mb-5">
-        <h1 class="premium-title">Preservação Ambiental</h1>
-        <p class="premium-subtitle"><i class="pi pi-leaf mr-2 text-success"></i> Aprenda a cuidar do paraíso de forma sustentável</p>
-      </header>
-
-      <div class="row g-4">
-        <div class="col-12 col-md-4">
-          <div class="info-card h-100 hover-lift border-left-success">
-            <div class="icon-circle mb-4 bg-success-light">
-              <i class="pi pi-shield text-success"></i>
-            </div>
-            <h3 class="card-headline">Regras do Parque</h3>
-            <p class="card-text">Fernando de Noronha é um Santuário Ecológico. Respeite as demarcações, nunca alimente os animais e siga as orientações dos guias credenciados.</p>
-          </div>
-        </div>
-
-        <div class="col-12 col-md-4">
-          <div class="info-card h-100 hover-lift border-left-primary">
-            <div class="icon-circle mb-4 bg-primary-light">
-              <i class="pi pi-water text-primary"></i>
-            </div>
-            <h3 class="card-headline">Vida Marinha</h3>
-            <p class="card-text">Participe das palestras do Projeto TAMAR para aprender sobre a desova das tartarugas e observe o espetáculo matinal dos golfinhos rotadores no mirante.</p>
-          </div>
-        </div>
-
-        <div class="col-12 col-md-4">
-          <div class="info-card h-100 hover-lift border-left-warning">
-            <div class="icon-circle mb-4 bg-warning-light">
-              <i class="pi pi-map-marker text-warning"></i>
-            </div>
-            <h3 class="card-headline">Trilhas Monitoradas</h3>
-            <p class="card-text">Muitas trilhas exigem agendamento prévio no ICMBio. Planeje seu roteiro com antecedência e garanta sua vaga nos horários de maré baixa.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="noronha-gradient mt-5 p-5 rounded-3xl text-white shadow-xl">
-        <h2 class="font-black text-3xl mb-3">Sua Atitude Importa</h2>
-        <p class="opacity-90 font-medium max-w-2xl">Lembre-se: em Fernando de Noronha, nada se leva além de fotos, nada se deixa além de pegadas, nada se mata além do tempo e nada se queima além do sol.</p>
-      </div>
-    </div>
-  `,
-  styles: [`
-    .premium-title { font-weight: 950; font-size: 34px; color: var(--text-main); letter-spacing: -1.5px; margin: 0; }
-    .premium-subtitle { font-size: 16px; color: #64748b; font-weight: 500; margin-top: 5px; }
-    .info-card { background: white; border-radius: 24px; padding: 35px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); }
-    .icon-circle { width: 60px; height: 60px; border-radius: 18px; display: flex; align-items: center; justify-content: center; i { font-size: 24px; } }
-    .bg-success-light { background: #ecfdf5; }
-    .bg-primary-light { background: #f0f9ff; }
-    .bg-warning-light { background: #fffbeb; }
-    .border-left-success { border-left: 6px solid var(--secondary); }
-    .border-left-primary { border-left: 6px solid var(--primary); }
-    .border-left-warning { border-left: 6px solid #fbbf24; }
-    .card-headline { font-weight: 800; color: var(--text-main); font-size: 22px; margin-bottom: 12px; }
-    .card-text { color: #64748b; line-height: 1.6; font-size: 15px; }
-    .hover-lift { transition: transform 0.3s ease, box-shadow 0.3s ease; }
-    .hover-lift:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
-    .rounded-3xl { border-radius: 32px; }
-    .max-w-2xl { max-width: 670px; }
-  `]
+  imports: [CommonModule, RouterModule],
+  templateUrl: './environmental.html',
+  styles: []
 })
-export class EnvironmentalComponent {}
+export class EnvironmentalComponent {
+  heroImage = 'https://static.wixstatic.com/media/2b2627_eeb8d7b6092249f0bc8fdc54f616f809~mv2.jpg/v1/fill/w_1225,h_556,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/2b2627_eeb8d7b6092249f0bc8fdc54f616f809~mv2.jpg';
+
+  stats = [
+    { value: '70%', label: 'do arquipélago protegido pelo Parque Nacional Marinho' },
+    { value: '2001', label: 'ano em que Noronha entrou na lista de Patrimônio Mundial Natural' },
+    { value: '2', label: 'unidades de conservação federais que estruturam a visitação' }
+  ];
+
+  highlights: HighlightCard[] = [
+    {
+      icon: 'pi pi-shield',
+      title: 'Unesco e Ramsar',
+      text: 'Fernando de Noronha é Patrimônio Mundial Natural e sítio Ramsar. O destino foi desenhado para valorizar biodiversidade, paisagem e uso racional da ilha.',
+      tone: 'from-emerald-500 to-teal-500'
+    },
+    {
+      icon: 'pi pi-ticket',
+      title: 'TPA e ingresso organizam a visita',
+      text: 'A entrada na ilha passa pela Taxa de Preservação Ambiental e, para boa parte dos atrativos, pelo ingresso do Parque Nacional Marinho.',
+      tone: 'from-sky-500 to-blue-500'
+    },
+    {
+      icon: 'pi pi-recycle',
+      title: 'Plástico Zero e Carbono Zero',
+      text: 'A agenda ambiental da ilha incentiva redução de resíduos, proíbe descartáveis e prepara a transição para uma mobilidade cada vez mais limpa.',
+      tone: 'from-amber-500 to-orange-500'
+    },
+    {
+      icon: 'pi pi-leaf',
+      title: 'Visitação com limite inteligente',
+      text: 'As trilhas e piscinas naturais são controladas por agendamento para reduzir impacto e manter a experiência boa para quem visita e para quem vive na ilha.',
+      tone: 'from-lime-500 to-emerald-600'
+    }
+  ];
+
+  guideCards: TipCard[] = [
+    {
+      icon: 'pi pi-map',
+      title: 'Maré baixa manda no roteiro',
+      text: 'Piscinas naturais e certas trilhas dependem da tábua de maré. Consultar isso antes da viagem evita frustração e ajuda a escolher o melhor dia.'
+    },
+    {
+      icon: 'pi pi-users',
+      title: 'Condutor credenciado em trilhas sensíveis',
+      text: 'Alguns atrativos precisam de acompanhamento de condutor cadastrado pelo ICMBio. Essa regra existe para proteger os ambientes mais frágeis.'
+    },
+    {
+      icon: 'pi pi-ban',
+      title: 'Nada de descartar ou alimentar a fauna',
+      text: 'A fauna é a principal estrela da ilha. Respeite a sinalização, não alimente animais e leve sempre seu lixo de volta.'
+    }
+  ];
+
+  checklist: ChecklistCard[] = [
+    { title: 'Leve garrafa reutilizável', text: 'A ilha estimula hábitos de baixo impacto e o uso de descartáveis é cada vez menos bem-vindo.' },
+    { title: 'Use protetor e roupa adequados', text: 'O sol é forte e o acesso a muitas praias exige caminhada em terreno irregular.' },
+    { title: 'Reserve trilhas e atrativos', text: 'Os melhores horários somem rápido nos períodos de maior procura.' },
+    { title: 'Prefira deslocamentos leves', text: 'A experiência de Noronha fica melhor quando a rotina da ilha é respeitada, sem pressa nem excesso.' }
+  ];
+}

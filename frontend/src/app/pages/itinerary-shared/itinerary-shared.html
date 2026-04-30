@@ -1,0 +1,66 @@
+<div class="min-h-screen bg-slate-50 p-4 md:p-8">
+  @if (loading()) {
+    <div class="flex items-center justify-center py-20">
+      <i class="pi pi-spinner pi-spin text-4xl text-primary"></i>
+    </div>
+  } @else if (error()) {
+    <div class="text-center py-20 max-w-md mx-auto">
+      <i class="pi pi-exclamation-triangle text-red-500 text-6xl mb-4"></i>
+      <h2 class="text-xl font-bold mb-2 text-slate-800">Roteiro não encontrado</h2>
+      <p class="text-slate-500 mb-6">{{ errorMessage() }}</p>
+      <button routerLink="/" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 font-bold bg-white hover:bg-slate-50 transition-colors" title="Voltar para a página inicial">
+        Voltar para Início
+      </button>
+    </div>
+  } @else if (itinerary()) {
+    <div class="max-w-4xl mx-auto py-10">
+      <div class="bg-white rounded-[40px] shadow-sm border border-slate-100 p-8 md:p-12 mb-8 relative overflow-hidden">
+        <!-- decorative bg -->
+        <div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-bl-[100%] pointer-events-none"></div>
+
+        <div class="flex justify-between items-start mb-8">
+           <div>
+             <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-black tracking-wider uppercase mb-3 inline-block">
+                Roteiro Compartilhado
+             </span>
+             <h1 class="text-3xl md:text-5xl font-black text-slate-800 tracking-tight leading-none mb-2">
+                {{ itinerary().name }}
+             </h1>
+             <p class="text-slate-500 font-medium">
+               Criado por <span class="text-slate-800 font-bold">{{ itinerary().user?.name || 'Viajante' }}</span> •
+               {{ itinerary().viewCount }} visualizações
+             </p>
+           </div>
+
+           <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-bold shadow-lg shadow-primary/20" (click)="cloneItinerary()">Copiar Roteiro</button>
+        </div>
+
+        <!-- List of items -->
+        <div class="space-y-6 relative z-10">
+           @for (item of itinerary().items; track item.id) {
+             <div class="flex bg-slate-50 rounded-3xl p-4 items-center gap-4 border border-slate-100">
+                <div class="w-20 h-20 rounded-2xl overflow-hidden shrink-0">
+                  <img [ngSrc]="item.image || 'https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?auto=format&fit=crop&q=80&w=200'"
+                       width="80"
+                       height="80"
+                       sizes="80px"
+                       loading="lazy"
+                       decoding="async"
+                       [alt]="item.name || 'Imagem da parada'"
+                       title="{{item.name || 'Imagem da parada'}}"
+                       class="w-full h-full object-cover">
+                </div>
+                <div class="flex-1">
+                  <span class="text-[10px] font-black tracking-widest text-slate-400 uppercase">DIA {{ item.day === 0 ? '?' : item.day }}</span>
+                  <h3 class="text-lg font-bold text-slate-800 leading-tight">{{ item.name }}</h3>
+                  @if(item.location) {
+                     <p class="text-xs text-slate-500 mt-1"><i class="pi pi-map-marker mr-1"></i> {{ item.location }}</p>
+                  }
+                </div>
+             </div>
+           }
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,184 @@
+<div class="min-h-screen bg-slate-50">
+  <section class="relative overflow-hidden bg-slate-950 text-white">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.2),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.16),transparent_34%)]"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-4 md:px-8 py-14 md:py-20 grid lg:grid-cols-[1.1fr_.9fr] gap-10 items-center">
+      <div>
+        <p class="text-emerald-300 font-black uppercase tracking-[0.35em] text-[11px] mb-4">Curadoria SisTur</p>
+        <h1 class="text-4xl md:text-6xl font-black leading-[1] tracking-tight m-0 max-w-3xl">Pontos turísticos reais que definem Fernando de Noronha</h1>
+        <p class="mt-6 text-white/75 text-lg md:text-xl leading-relaxed max-w-2xl">
+          Da Baía do Sancho ao Mirante do Boldró, aqui estão os lugares mais simbólicos da ilha, com contexto útil, acesso organizado e atalhos para você montar o roteiro certo.
+        </p>
+
+        <div class="mt-8 flex flex-wrap gap-3">
+          <button (click)="goToMap()" class="px-5 py-3 rounded-2xl bg-emerald-400 text-slate-950 font-black shadow-xl shadow-emerald-500/20 border-none cursor-pointer hover:scale-[1.02] transition-transform">
+            Ver no mapa
+          </button>
+          <a routerLink="/environmental" class="px-5 py-3 rounded-2xl bg-white/10 text-white border border-white/10 font-black no-underline hover:bg-white/15 transition-colors">
+            Contexto ambiental
+          </a>
+          <a routerLink="/culture" class="px-5 py-3 rounded-2xl bg-white/10 text-white border border-white/10 font-black no-underline hover:bg-white/15 transition-colors">
+            Cultura e história
+          </a>
+        </div>
+      </div>
+
+      <div class="relative">
+        <div class="rounded-[32px] bg-white/10 backdrop-blur-xl border border-white/10 p-6 md:p-8 shadow-2xl shadow-black/20">
+          <div class="grid gap-4 md:grid-cols-2">
+            <div class="rounded-3xl bg-white/10 p-5 border border-white/10">
+              <p class="text-[11px] uppercase tracking-[0.3em] text-emerald-200 font-black">Parnamar</p>
+              <p class="text-3xl font-black mt-2 mb-1">70%</p>
+              <p class="text-sm text-white/75 leading-relaxed">do arquipélago está dentro da área protegida do Parque Nacional Marinho.</p>
+            </div>
+            <div class="rounded-3xl bg-white/10 p-5 border border-white/10">
+              <p class="text-[11px] uppercase tracking-[0.3em] text-sky-200 font-black">Visitação</p>
+              <p class="text-3xl font-black mt-2 mb-1">ingresso + agenda</p>
+              <p class="text-sm text-white/75 leading-relaxed">Alguns atrativos pedem agendamento e condutor credenciado.</p>
+            </div>
+          </div>
+
+          <div class="mt-4 rounded-3xl bg-slate-950/40 p-5 border border-white/10">
+            <p class="text-[11px] uppercase tracking-[0.3em] text-amber-200 font-black">Comece por aqui</p>
+            <div class="grid sm:grid-cols-3 gap-3 mt-4 text-sm">
+              <div class="rounded-2xl bg-white/5 p-4">
+                <i class="pi pi-compass text-emerald-300 text-lg"></i>
+                <p class="mt-3 font-black">Praias icônicas</p>
+                <p class="text-white/70 mt-1">Sancho, Leão, Porcos e Sueste.</p>
+              </div>
+              <div class="rounded-2xl bg-white/5 p-4">
+                <i class="pi pi-map-marker text-sky-300 text-lg"></i>
+                <p class="mt-3 font-black">Mirantes</p>
+                <p class="text-white/70 mt-1">Boldró e Golfinhos para amanhecer e pôr do sol.</p>
+              </div>
+              <div class="rounded-2xl bg-white/5 p-4">
+                <i class="pi pi-book text-amber-300 text-lg"></i>
+                <p class="mt-3 font-black">Memória viva</p>
+                <p class="text-white/70 mt-1">Vila, fortes, capelas e tradição pesqueira.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
+    <div class="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between mb-6">
+      <div>
+        <h2 class="text-3xl md:text-4xl font-black text-slate-900 tracking-tight m-0">Explore sem perder o contexto</h2>
+        <p class="text-slate-500 mt-2 max-w-2xl leading-relaxed">Use os filtros para achar praias, mirantes, trilhas e pontos históricos. Cada card já traz o tipo de acesso e o melhor momento de visita.</p>
+      </div>
+
+      <div class="flex gap-2 w-full lg:w-auto">
+        <div class="relative flex-1 lg:w-96">
+          <label for="tourist-point-search" class="sr-only">Buscar ponto turístico</label>
+          <i class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input id="tourist-point-search" #searchBox type="text" [value]="searchQuery()" (input)="onSearch(searchBox.value)" placeholder="Buscar ponto, praia ou mirante..." class="w-full pl-11 pr-4 py-3 rounded-2xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-emerald-500 bg-white outline-none transition-all font-medium text-sm">
+        </div>
+        <button class="bg-slate-900 text-white px-4 py-3 rounded-2xl hover:bg-emerald-600 font-bold transition-all shadow-md flex items-center gap-2" (click)="goToMap()" title="Ver no mapa">
+          <i class="pi pi-map"></i>
+          <span class="hidden md:inline">Mapa</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="mb-8 flex gap-3 overflow-x-auto pb-2 scrollbar-none">
+      @for (cat of categories; track cat) {
+        <button [class]="selectedCategory() === cat ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg scale-105' : 'bg-white text-slate-500 border-slate-200'"
+                (click)="filterByCategory(cat)"
+                class="px-6 py-3 rounded-2xl border cursor-pointer font-black text-[14px] whitespace-nowrap transition-all duration-200 uppercase tracking-tighter">
+          {{cat}}
+        </button>
+      }
+    </div>
+
+    @if (loading()) {
+      <app-skeleton-list></app-skeleton-list>
+    } @else if (filteredPoints().length > 0) {
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
+        @for (point of filteredPoints(); track point.id) {
+          <article class="bg-white rounded-[32px] overflow-hidden border border-slate-100 hover:border-emerald-400/40 transition-all duration-500 hover:shadow-[0_32px_64px_-16px_rgba(15,23,42,0.16)] flex flex-col group cursor-pointer" (click)="openDetail(point)">
+            <div class="relative h-[250px] overflow-hidden">
+              <img [src]="point.photoUrl || 'assets/placeholder.jpg'" [alt]="point.name" title="{{point.name}}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+              <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-900/20 to-transparent"></div>
+
+              <div class="absolute top-4 left-4 flex flex-wrap gap-2">
+                <span class="px-3 py-1.5 rounded-full bg-white/90 text-slate-800 text-[10px] font-black uppercase tracking-widest shadow-lg">{{ point.category }}</span>
+                <span class="px-3 py-1.5 rounded-full bg-slate-950/80 text-white text-[10px] font-black uppercase tracking-widest shadow-lg">{{ point.accessType || 'Visita livre' }}</span>
+              </div>
+
+              <div class="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-3">
+                <div>
+                  <p class="text-[10px] uppercase tracking-[0.25em] text-emerald-200 font-black">Melhor horário</p>
+                  <p class="text-white font-black mt-1">{{ point.bestTime || 'Qualquer momento' }}</p>
+                </div>
+                @if (point.requiresTicket || point.requiresGuide) {
+                  <div class="flex flex-wrap gap-2 justify-end">
+                    @if (point.requiresTicket) {
+                      <span class="px-3 py-1 rounded-full bg-emerald-400 text-slate-950 text-[10px] font-black uppercase tracking-widest">Ingresso</span>
+                    }
+                    @if (point.requiresGuide) {
+                      <span class="px-3 py-1 rounded-full bg-sky-400 text-slate-950 text-[10px] font-black uppercase tracking-widest">Condutor</span>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="p-7 flex flex-col flex-1">
+              <div class="flex justify-between items-start gap-4">
+                <h3 class="font-black text-2xl text-slate-900 leading-tight group-hover:text-emerald-600 transition-colors">{{ point.name }}</h3>
+              </div>
+
+              <div class="flex items-center gap-2 mt-3 text-sm text-slate-500 font-bold">
+                <i class="pi pi-map-marker text-emerald-500 text-[10px]"></i>
+                {{ point.location }}
+              </div>
+
+              <p class="text-[15px] text-slate-500 leading-relaxed mt-4 line-clamp-3 font-medium">{{ point.description }}</p>
+
+              <div class="mt-5 flex flex-wrap gap-2">
+                @if (point.requiresTicket) {
+                  <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-black uppercase tracking-wider">Acesso controlado</span>
+                }
+                @if (point.requiresGuide) {
+                  <span class="px-3 py-1 rounded-full bg-sky-50 text-sky-700 text-xs font-black uppercase tracking-wider">Condutor obrigatório</span>
+                }
+                <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-500 text-xs font-black uppercase tracking-wider">{{ point.accessType || 'Livre' }}</span>
+              </div>
+
+              <div class="mt-auto pt-7 flex gap-3">
+                <button class="flex-1 bg-slate-950 text-white border-none py-4 px-6 rounded-2xl font-black text-sm cursor-pointer hover:bg-emerald-600 transition-all duration-300 shadow-xl shadow-slate-100" (click)="openDetail(point); $event.stopPropagation()">
+                  Ver detalhes
+                </button>
+
+                <button class="w-[56px] h-[56px] shrink-0 rounded-2xl bg-slate-50 border border-slate-100 text-slate-400 flex items-center justify-center transition-all duration-300 cursor-pointer hover:border-emerald-400 hover:text-emerald-600 hover:bg-white"
+                        [class.bg-emerald-50]="itinerary.isInItinerary(point.id, 'HIGHLIGHT')"
+                        [class.text-emerald-600]="itinerary.isInItinerary(point.id, 'HIGHLIGHT')"
+                        [class.border-emerald-200]="itinerary.isInItinerary(point.id, 'HIGHLIGHT')"
+                        (click)="toggleItinerary(point); $event.stopPropagation()"
+                        title="Adicionar ao roteiro">
+                  <i [class]="itinerary.isInItinerary(point.id, 'HIGHLIGHT') ? 'pi pi-calendar-times' : 'pi pi-calendar-plus'" class="text-xl"></i>
+                </button>
+
+                <button class="w-[56px] h-[56px] shrink-0 rounded-2xl bg-slate-50 border border-slate-100 text-slate-400 flex items-center justify-center transition-all duration-300 cursor-pointer hover:border-blue-400 hover:text-blue-600 hover:bg-white"
+                        (click)="openOnMap(point); $event.stopPropagation()"
+                        title="Encontrar no mapa">
+                  <i class="pi pi-compass text-xl"></i>
+                </button>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="bg-white rounded-[32px] border border-slate-100 p-10 text-center shadow-sm">
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 text-2xl mb-4">
+          <i class="pi pi-compass"></i>
+        </div>
+        <h3 class="text-2xl font-black text-slate-800 m-0 mb-2">Nenhum ponto encontrado</h3>
+        <p class="text-slate-500 m-0">Tente outro filtro ou remova a busca para ver todos os atrativos já cadastrados.</p>
+      </div>
+    }
+  </section>
+</div>

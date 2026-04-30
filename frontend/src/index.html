@@ -4,12 +4,28 @@
   <meta charset="utf-8">
   <title>SisTur</title>
   <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="SisTur - Sistema de Turismo Sustentável de Fernando de Noronha. Descubra eventos, passeios e estabelecimentos no paraíso.">
+  <meta name="keywords" content="Fernando de Noronha, Turismo, Sustentabilidade, Eventos, Passeios, Noronha">
+  <meta property="og:title" content="SisTur - Fernando de Noronha">
+  <meta property="og:description" content="Explore Fernando de Noronha de forma sustentável e inteligente.">
+  <meta property="og:image" content="https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?auto=format&fit=crop&q=80&w=1200">
+  <meta property="og:type" content="website">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="assets/icons/icon.svg">
   <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#0077B6">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+  <meta name="theme-color" content="#0077B6" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#023E8A" media="(prefers-color-scheme: dark)">
+
+  <!-- Preconnect to external domains to speed up DNS/TCP resolution -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
+
+  <!-- Async loading of map CSS to unblock initial paint since map is rarely the first page -->
+  <link rel="preload" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"></noscript>
+
   <style>
     .marker-pin {
       width: 40px; height: 40px; border-radius: 50% 50% 50% 0;
@@ -23,13 +39,71 @@
     .pin-hotel { background: #3b82f6; }
     .pin-event { background: #f59e0b; }
     .pin-tour { background: #10b981; }
-    
-    /* Routing instructions panel override - hiding it */
+
     .leaflet-routing-container { display: none !important; }
+
+    /* Splash Screen Loader to improve Perceived Performance */
+    #initial-loader {
+        position: fixed; inset: 0; background: white; z-index: 99999;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        transition: opacity 0.5s ease;
+    }
+    .spinner {
+        width: 50px; height: 50px; border: 5px solid #f3f4f6;
+        border-top-color: #0077B6; border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TravelAgency",
+    "name": "SisTur Fernando de Noronha",
+    "description": "Sistema de Turismo Sustent�vel de Fernando de Noronha. Planeje seu roteiro, descubra eventos e aproveite o para�so.",
+    "url": "https://sistur.gov.br",
+    "image": "https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?auto=format&fit=crop&q=80&w=1200",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Fernando de Noronha",
+      "addressRegion": "PE",
+      "addressCountry": "BR"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": "-3.8407",
+      "longitude": "-32.4111"
+    },
+    "openingHoursSpecification": {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": [
+        "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+      ],
+      "opens": "00:00",
+      "closes": "23:59"
+    }
+  }
+  </script>
 </head>
 <body>
+  <div id="initial-loader">
+    <div class="spinner"></div>
+    <h2 class="font-sans text-slate-800 mt-5 font-extrabold">SisTur</h2>
+  </div>
   <app-root></app-root>
+  <script>
+    // Remove loader smoothly when Angular bootstraps the first component
+    window.addEventListener('load', function() {
+        setTimeout(function() {
+            var loader = document.getElementById('initial-loader');
+            if(loader) {
+                loader.style.opacity = '0';
+                setTimeout(function(){ loader.remove(); }, 500);
+            }
+        }, 300);
+    });
+  </script>
 </body>
 </html>
+

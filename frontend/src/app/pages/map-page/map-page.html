@@ -1,0 +1,66 @@
+<div class="map-container-wrapper">
+  <div id="map" class="full-screen-map"></div>
+
+  <div class="map-overlay-top">
+    <div class="search-bar shadow-lg">
+      <label for="map-search" class="sr-only">Para onde você quer ir?</label>
+      <i class="pi pi-search text-primary"></i>
+      <input id="map-search" type="text" placeholder="Para onde você quer ir?" (input)="onSearch($event)" title="Buscar local no mapa">
+    </div>
+
+    <div class="category-filters-scroll mt-3 scroll-hide">
+      @for (cat of categories; track cat.id) {
+        <button [class.active]="activeCategory === cat.id"
+                (click)="filterByCategory(cat.id)"
+                class="filter-chip shadow-md"
+                title="Filtrar por {{cat.label}}">
+          <i [class]="cat.icon" [style.color]="activeCategory === cat.id ? 'white' : 'var(--primary)'"></i>
+          {{cat.label}}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (selectedLocation) {
+    <div class="map-overlay-bottom">
+      <div class="location-detail-card p-4 bounce-in border-0 shadow-2xl">
+        <div class="d-flex gap-4">
+          <div class="detail-img-wrapper shadow-sm w-24 h-24 rounded-2xl overflow-hidden shrink-0">
+            <img [ngSrc]="selectedLocation.photoUrl || 'assets/placeholder.jpg'"
+                 width="96"
+                 height="96"
+                 sizes="96px"
+                 loading="lazy"
+                 decoding="async"
+                 class="detail-img w-full h-full object-cover"
+                 [alt]="selectedLocation.name || selectedLocation.title"
+                 title="{{selectedLocation.name || selectedLocation.title}}">
+          </div>
+          <div class="flex-grow-1">
+            <h3 class="location-name">{{selectedLocation.name || selectedLocation.title}}</h3>
+            <p class="text-muted small m-0 d-flex align-items-center gap-1">
+              <i class="pi pi-map-marker text-primary"></i> {{selectedLocation.location}}
+            </p>
+
+            @if (routeSummary) {
+              <div class="mt-2 p-2 bg-light rounded text-sm d-flex gap-3 justify-content-center border">
+                <span class="d-flex align-items-center gap-1"><i class="pi pi-car text-primary"></i> {{ (routeSummary.distanceMeters / 1000).toFixed(1) }} km</span>
+                <span class="d-flex align-items-center gap-1"><i class="pi pi-clock text-primary"></i> {{ Math.round(routeSummary.durationSeconds / 60) }} min</span>
+                <span class="d-flex align-items-center gap-1"><i class="pi pi-bolt text-danger"></i> {{ Math.round(routeSummary.estimatedCalories) }} kcal</span>
+              </div>
+            }
+
+            <div class="mt-4 d-flex gap-2">
+              <button class="btn-primary-gradient flex-grow-1" (click)="getDirections()">
+                <i class="pi pi-directions mr-2"></i> Como chegar
+              </button>
+              <button class="btn-icon-light" (click)="closeLocation()" title="Fechar Detalhes">
+                <i class="pi pi-times"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

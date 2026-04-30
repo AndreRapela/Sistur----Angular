@@ -6,7 +6,7 @@ export const roleGuard = (allowedRoles: UserRole[]): CanActivateFn => {
   return () => {
     const authService = inject(AuthService);
     const router = inject(Router);
-    const user = authService.currentUser();
+    const user = authService.getUser();
 
     if (!user) {
       return router.createUrlTree(['/login']);

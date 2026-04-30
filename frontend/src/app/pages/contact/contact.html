@@ -1,0 +1,64 @@
+<div class="p-4 md:p-8 max-w-7xl mx-auto min-h-screen">
+  <header class="mb-8 md:mb-12 text-center md:text-left">
+    <h1 class="font-black text-[32px] md:text-5xl text-slate-800 tracking-tight m-0">Fale Conosco</h1>
+    <p class="text-slate-500 mt-3 md:mt-4 text-[16px] md:text-lg">Estamos aqui para tornar sua estadia inesquecível</p>
+  </header>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
+    <div class="lg:col-span-5 flex flex-col gap-4">
+      <a href="tel:+558136190888" class="bg-white rounded-[20px] p-5 flex items-center transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_15px_30px_rgba(0,0,0,0.06)] shadow-sm border border-slate-100 cursor-pointer no-underline text-inherit">
+        <div class="w-[60px] h-[60px] shrink-0 rounded-2xl bg-blue-50 flex items-center justify-center mr-5">
+          <i class="pi pi-phone text-primary text-2xl"></i>
+        </div>
+        <div class="flex-1">
+          <span class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Telefone Central</span>
+          <strong class="text-xl md:text-2xl text-slate-800 font-extrabold">(81) 3619-0888</strong>
+        </div>
+      </a>
+
+      <a href="https://wa.me/558136190888?text=Olá!%20Quero%20saber%20mais%20sobre%20os%20planos%20Free,%20Pro%20e%20Premium%20do%20SisTur." target="_blank" rel="noopener noreferrer" class="bg-gradient-to-br from-green-500 to-green-700 rounded-[20px] p-5 flex items-center transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_15px_30px_rgba(34,197,94,0.2)] shadow-sm cursor-pointer text-white no-underline">
+        <div class="w-[60px] h-[60px] shrink-0 rounded-2xl bg-white/20 flex items-center justify-center mr-5">
+          <i class="pi pi-whatsapp text-2xl"></i>
+        </div>
+        <div class="flex-1">
+          <span class="block text-xs font-bold text-white/80 uppercase tracking-widest mb-1">WhatsApp</span>
+          <strong class="text-xl md:text-2xl font-extrabold">Iniciar Conversa</strong>
+        </div>
+        <i class="pi pi-arrow-right ml-auto opacity-50 text-xl"></i>
+      </a>
+
+      <a href="mailto:ajuda@sistur.gov.br" class="bg-white rounded-[20px] p-5 flex items-center transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_15px_30px_rgba(0,0,0,0.06)] shadow-sm border border-slate-100 cursor-pointer no-underline text-inherit">
+         <div class="w-[60px] h-[60px] shrink-0 rounded-2xl bg-red-50 flex items-center justify-center mr-5">
+           <i class="pi pi-envelope text-red-500 text-2xl"></i>
+         </div>
+         <div class="flex-1">
+           <span class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">E-mail Suporte</span>
+           <strong class="text-xl md:text-2xl text-slate-800 font-extrabold">ajuda@sistur.gov.br</strong>
+         </div>
+      </a>
+    </div>
+
+    <div class="lg:col-span-7">
+      <form class="bg-white rounded-[32px] p-6 md:p-10 shadow-xl border border-slate-100" (ngSubmit)="submitContact($event)">
+        <h3 class="font-extrabold text-[24px] md:text-3xl text-slate-800 mb-6 md:mb-8">Envie uma mensagem</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="flex flex-col gap-2">
+            <label class="text-[13px] font-bold text-slate-500 uppercase tracking-wider">Seu Nome</label>
+            <input type="text" name="name" [(ngModel)]="name" placeholder="Como podemos te chamar?" class="w-full px-4 py-3.5 rounded-2xl border-2 border-slate-100 bg-slate-50 outline-none transition-all duration-200 font-medium text-slate-700 focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(0,119,182,0.1)] placeholder:text-slate-400">
+          </div>
+          <div class="flex flex-col gap-2">
+            <label class="text-[13px] font-bold text-slate-500 uppercase tracking-wider">Seu E-mail</label>
+            <input type="email" name="email" [(ngModel)]="email" placeholder="Para respondermos você" class="w-full px-4 py-3.5 rounded-2xl border-2 border-slate-100 bg-slate-50 outline-none transition-all duration-200 font-medium text-slate-700 focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(0,119,182,0.1)] placeholder:text-slate-400">
+          </div>
+          <div class="col-span-full flex flex-col gap-2">
+            <label class="text-[13px] font-bold text-slate-500 uppercase tracking-wider">Mensagem</label>
+            <textarea name="message" [(ngModel)]="message" placeholder="No que podemos ajudar hoje?" rows="5" class="w-full px-4 py-3.5 rounded-2xl border-2 border-slate-100 bg-slate-50 outline-none transition-all duration-200 font-medium text-slate-700 focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(0,119,182,0.1)] placeholder:text-slate-400 resize-none"></textarea>
+          </div>
+          <div class="col-span-full mt-2">
+            <button type="submit" class="w-full bg-primary text-white border-none py-4 rounded-2xl font-black text-[16px] md:text-lg shadow-lg hover:shadow-xl hover:brightness-110 transition-all duration-300 cursor-pointer">Enviar Mensagem</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

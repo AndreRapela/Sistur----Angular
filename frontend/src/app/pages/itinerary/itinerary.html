@@ -1,0 +1,334 @@
+<div class="page-wrapper min-h-screen bg-white p-4 md:p-8 pb-32">
+  <!-- WIZARD STEP 1: CONFIG (ROTEO STYLE) -->
+  @if (step === 'SETUP') {
+    <div class="max-w-2xl mx-auto py-12 md:py-16 animate-fade-in">
+      <div class="text-center mb-10">
+        <span class="inline-block bg-primary/10 text-primary px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest mb-4">Plano Guiado</span>
+        <h1 class="text-4xl md:text-5xl font-black text-slate-800 mb-4 tracking-tight leading-tight">Crie seu roteiro<br/>personalizado</h1>
+        <p class="text-slate-500 font-medium text-lg">Nos conte um pouco sobre sua viagem para Fernando de Noronha.</p>
+      </div>
+
+      <div class="bg-white p-8 md:p-10 rounded-[40px] shadow-2xl shadow-slate-200/50 border border-slate-100">
+        <div class="space-y-8">
+
+          <!-- Destino -->
+          <div class="relative">
+            <label class="block text-xs font-black uppercase text-slate-400 mb-2 tracking-widest">Destino</label>
+            <div class="flex items-center gap-4 p-4 rounded-2xl bg-primary/5 border-2 border-primary/20">
+              <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                <i class="pi pi-map-marker text-primary font-bold"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-primary">Fernando de Noronha, PE</h3>
+                <p class="text-xs text-primary/70 font-medium">Brasil</p>
+              </div>
+              <button class="ml-auto text-primary font-bold text-sm bg-white px-3 py-1 rounded-lg border border-primary/10 shadow-sm cursor-not-allowed opacity-50">Alterar</button>
+            </div>
+          </div>
+
+          <!-- Datas da Viagem -->
+          <div>
+            <label class="block text-xs font-black uppercase text-slate-400 mb-2 tracking-widest">Quando você vai?</label>
+            <div class="flex flex-col md:flex-row gap-4">
+              <div class="relative flex-1">
+                <i class="pi pi-calendar absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none"></i>
+                <input type="date" [(ngModel)]="startDate" [min]="minDate" title="Data de Ida"
+                       class="w-full bg-white border-2 border-slate-200 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold text-slate-700 outline-none focus:border-primary focus:ring-4 ring-primary/10 transition-all cursor-pointer hover:border-slate-300 relative z-0">
+              </div>
+              <div class="relative flex-1">
+                <i class="pi pi-calendar absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none"></i>
+                <input type="date" [(ngModel)]="endDate" [min]="startDate || minDate" title="Data de Volta"
+                       class="w-full bg-white border-2 border-slate-200 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold text-slate-700 outline-none focus:border-primary focus:ring-4 ring-primary/10 transition-all cursor-pointer hover:border-slate-300 relative z-0">
+              </div>
+            </div>
+          </div>
+
+          <!-- Com quem? -->
+          <div>
+             <label class="block text-xs font-black uppercase text-slate-400 mb-2 tracking-widest">Quem vai com você?</label>
+             <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div class="flex flex-col items-center justify-center p-4 border-2 border-slate-100 rounded-2xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all text-slate-400 hover:text-primary group">
+                   <i class="pi pi-user text-2xl mb-2 group-hover:scale-110 transition-transform"></i>
+                   <h4 class="font-bold text-sm text-slate-700">Sozinho</h4>
+                </div>
+                <div class="flex flex-col items-center justify-center p-4 border-2 border-primary bg-primary/5 rounded-2xl cursor-pointer transition-all text-primary">
+                   <i class="pi pi-heart-fill text-2xl mb-2 scale-110"></i>
+                   <h4 class="font-bold text-sm text-slate-800">Casal</h4>
+                </div>
+                <div class="flex flex-col items-center justify-center p-4 border-2 border-slate-100 rounded-2xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all text-slate-400 hover:text-primary group">
+                   <i class="pi pi-users text-2xl mb-2 group-hover:scale-110 transition-transform"></i>
+                   <h4 class="font-bold text-sm text-slate-700">Amigos</h4>
+                </div>
+                <div class="flex flex-col items-center justify-center p-4 border-2 border-slate-100 rounded-2xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all text-slate-400 hover:text-primary group">
+                   <i class="pi pi-home text-2xl mb-2 group-hover:scale-110 transition-transform"></i>
+                   <h4 class="font-bold text-sm text-slate-700">Família</h4>
+                </div>
+             </div>
+          </div>
+
+          <!-- Nome do Roteiro -->
+          <div>
+            <label class="block text-xs font-black uppercase text-slate-400 mb-2 tracking-widest">Dê um nome para a viagem</label>
+            <div class="relative">
+              <i class="pi pi-sparkles absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+              <input type="text" [(ngModel)]="itineraryName" placeholder="Ex: Férias de Verão, Trip dos Sonhos..."
+                     class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 pl-14 pr-4 text-lg font-bold outline-none focus:bg-white focus:border-primary focus:ring-4 ring-primary/10 transition-all placeholder:font-medium placeholder:text-slate-400">
+            </div>
+          </div>
+
+          <!-- Opções de Privacidade -->
+          <div>
+             <label class="block text-xs font-black uppercase text-slate-400 mb-2 tracking-widest">Visibilidade</label>
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex items-center gap-4 p-4 border-2 rounded-2xl cursor-pointer transition-all"
+                     [class.border-primary]="!isPublic" [class.bg-primary/5]="!isPublic"
+                     [class.border-slate-100]="isPublic" [class.bg-white]="isPublic"
+                     (click)="isPublic = false">
+                   <div class="w-10 h-10 rounded-full flex items-center justify-center" [class.bg-white]="!isPublic" [class.shadow-sm]="!isPublic" [class.bg-slate-50]="isPublic">
+                     <i class="pi pi-lock text-lg" [class.text-primary]="!isPublic" [class.text-slate-400]="isPublic"></i>
+                   </div>
+                   <div>
+                     <h4 class="font-bold text-slate-800 text-sm">Privado</h4>
+                     <p class="text-[11px] text-slate-500 mt-0.5">Apenas você tem acesso</p>
+                   </div>
+                </div>
+
+                <div class="flex items-center gap-4 p-4 border-2 rounded-2xl cursor-pointer transition-all"
+                     [class.border-primary]="isPublic" [class.bg-primary/5]="isPublic"
+                     [class.border-slate-100]="!isPublic" [class.bg-white]="!isPublic"
+                     (click)="isPublic = true">
+                   <div class="w-10 h-10 rounded-full flex items-center justify-center" [class.bg-white]="isPublic" [class.shadow-sm]="isPublic" [class.bg-slate-50]="!isPublic">
+                     <i class="pi pi-globe text-lg" [class.text-primary]="isPublic" [class.text-slate-400]="!isPublic"></i>
+                   </div>
+                   <div>
+                     <h4 class="font-bold text-slate-800 text-sm">Público</h4>
+                     <p class="text-[11px] text-slate-500 mt-0.5">Compartilhar com a comunidade</p>
+                   </div>
+                </div>
+             </div>
+          </div>
+
+        </div>
+
+        <div class="mt-10 pt-8 border-t border-slate-100">
+          <button (click)="startPlanning()" [disabled]="!itineraryName"
+                  class="w-full bg-slate-900 hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed text-white py-5 rounded-2xl font-black text-lg transition-all shadow-xl flex items-center justify-center gap-2">
+            Montar meu Roteiro Automático <i class="pi pi-bolt"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- WIZARD STEP 2: PLANNING -->
+  @defer (when step === 'PLANNING') {
+    @if (step === 'PLANNING') {
+      <header class="mb-12 flex flex-col md:flex-row justify-between md:items-end gap-4 max-w-5xl mx-auto animate-fade-in hide-on-print">
+        <div>
+          <span class="text-primary font-black uppercase tracking-widest text-[10px]">{{ itineraryName }}</span>
+          <div class="flex items-center gap-4">
+            <h1 class="text-4xl md:text-6xl font-black text-slate-800 mt-1 tracking-tight">Seu Plano</h1>
+            <div class="bg-primary/10 text-primary px-4 py-2 rounded-full font-black text-xl mt-2 flex items-center justify-center shadow-inner">
+              R$ {{ itinerary.totalCost() }}
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-bold shadow-lg flex items-center gap-2"
+                  (click)="generateAISuggestions()" [disabled]="isGeneratingAI()">
+            <i class="pi" [ngClass]="isGeneratingAI() ? 'pi-spin pi-spinner' : 'pi-sparkles'"></i>
+            {{ isGeneratingAI() ? 'Analisando...' : 'IA Sugerir Percurso' }}
+          </button>
+          <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 font-bold" (click)="clearItinerary()">
+            <i class="pi pi-trash mr-2"></i> Limpar
+          </button>
+          <button class="bg-slate-700 text-white px-4 py-2 rounded hover:bg-slate-800 font-bold" (click)="printItinerary()">
+            <i class="pi pi-print mr-2"></i> Exportar
+          </button>
+          <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 font-bold shadow-lg" (click)="saveItinerary()">
+            <i class="pi pi-check mr-2"></i> Salvar
+          </button>
+        </div>
+      </header>
+
+      <section class="mb-8 max-w-5xl mx-auto bg-white rounded-[28px] border border-slate-100 shadow-sm p-6 hide-on-print">
+        <div class="flex items-center gap-3 mb-4">
+          <i class="pi pi-sun text-amber-500 text-xl"></i>
+          <h2 class="text-lg font-black text-slate-800">Contexto da viagem para a IA</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label for="ai-start-date" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Data de ida</label>
+            <input id="ai-start-date" type="date" [(ngModel)]="startDate" [min]="minDate" title="Data de ida" class="w-full rounded-2xl border border-slate-200 px-4 py-3 font-bold text-slate-700 outline-none focus:ring-2 focus:ring-primary/30">
+          </div>
+          <div>
+            <label for="ai-end-date" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Data de volta</label>
+            <input id="ai-end-date" type="date" [(ngModel)]="endDate" [min]="startDate || minDate" title="Data de volta" class="w-full rounded-2xl border border-slate-200 px-4 py-3 font-bold text-slate-700 outline-none focus:ring-2 focus:ring-primary/30">
+          </div>
+          <div>
+            <label for="ai-weather-condition" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Clima previsto</label>
+            <select id="ai-weather-condition" [(ngModel)]="weatherCondition" title="Clima previsto" class="w-full rounded-2xl border border-slate-200 px-4 py-3 font-bold text-slate-700 outline-none focus:ring-2 focus:ring-primary/30 bg-white">
+              <option value="SUNNY">Ensolarado</option>
+              <option value="PARTLY_CLOUDY">Parcialmente nublado</option>
+              <option value="CLOUDY">Nublado</option>
+              <option value="RAINY">Chuvoso</option>
+              <option value="WINDY">Ventoso</option>
+            </select>
+          </div>
+          <div>
+            <label for="ai-temperature" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Temperatura média</label>
+            <input id="ai-temperature" type="number" [(ngModel)]="temperatureCelsius" min="18" max="40" title="Temperatura média" class="w-full rounded-2xl border border-slate-200 px-4 py-3 font-bold text-slate-700 outline-none focus:ring-2 focus:ring-primary/30">
+          </div>
+        </div>
+        <p class="text-xs text-slate-500 mt-4 leading-relaxed">A IA usa esses dados junto com hora, distância e pontos escolhidos para distribuir melhor o que fazer em cada dia.</p>
+      </section>
+
+      <!-- PRINT HEADER (Only visible when printing) -->
+      <div class="print-only mb-10 text-center">
+          <h1 class="text-5xl font-black text-slate-800">{{ itineraryName }}</h1>
+          <p class="text-xl text-slate-500 mt-2">Um roteiro exclusivo criado no SisTur - Custo Estimado: R$ {{ itinerary.totalCost() }}</p>
+      </div>
+
+      <div class="max-w-5xl mx-auto animate-slide-up">
+
+        <!-- Bloco de Sugestão de IA (Solo aparece após solicitação) -->
+        @if (aiRecommendation(); as recommendation) {
+          <div class="mb-10 p-6 bg-blue-50 border border-blue-100 rounded-[32px] animate-fade-in">
+            <div class="flex items-center gap-3 mb-4">
+              <i class="pi pi-sparkles text-blue-600 font-bold"></i>
+              <h3 class="font-black text-blue-900 uppercase tracking-widest text-sm">Sugestão do Concierge IA</h3>
+            </div>
+            <p class="text-blue-800 font-medium leading-relaxed mb-4">
+              {{ recommendation!.aiReasoning }}
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+              <div class="bg-white rounded-2xl p-4 border border-blue-100">
+                <span class="text-[10px] font-black uppercase tracking-widest text-blue-400">Distância estimada</span>
+                <p class="text-2xl font-black text-slate-800 mt-1">{{ recommendation!.estimatedDistanceKm }} km</p>
+              </div>
+              <div class="bg-white rounded-2xl p-4 border border-blue-100">
+                <span class="text-[10px] font-black uppercase tracking-widest text-blue-400">Tempo estimado</span>
+                <p class="text-2xl font-black text-slate-800 mt-1">{{ recommendation!.estimatedDurationMinutes }} min</p>
+              </div>
+              <div class="bg-white rounded-2xl p-4 border border-blue-100">
+                <span class="text-[10px] font-black uppercase tracking-widest text-blue-400">Dificuldade</span>
+                <p class="text-2xl font-black text-slate-800 mt-1">{{ recommendation!.difficulty }}</p>
+              </div>
+            </div>
+            @if (recommendation!.optimizedItems.length) {
+              <div class="mb-4 rounded-2xl bg-white p-4 border border-blue-100">
+                <span class="text-[10px] font-black uppercase tracking-widest text-blue-400">Ordem sugerida</span>
+                <div class="mt-3 flex flex-wrap gap-2">
+                  @for (opt of recommendation!.optimizedItems.slice(0, 8); track opt.type + '-' + opt.id) {
+                    <span class="px-3 py-2 rounded-full bg-blue-50 border border-blue-100 text-blue-800 text-xs font-bold">
+                      {{ opt.name }}
+                    </span>
+                  }
+                </div>
+              </div>
+            }
+            <div class="flex flex-wrap gap-2">
+              @for (tip of recommendation!.tips; track tip) {
+                <span class="bg-white/80 px-3 py-1 rounded-full text-xs font-bold text-blue-600 border border-blue-200">
+                  # {{ tip }}
+                </span>
+              }
+            </div>
+            <div class="mt-5">
+              <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-bold shadow-lg"
+                      (click)="applyAISuggestion()">
+                Aplicar sugestão da IA
+              </button>
+            </div>
+          </div>
+        }
+
+        @if (itinerary.items().length === 0) {
+          <div class="flex flex-col items-center justify-center py-20 text-center bg-slate-50 rounded-[40px] border border-dashed border-slate-200 px-6">
+             <i class="pi pi-plus-circle text-slate-300 text-4xl mb-4"></i>
+             <h2 class="text-2xl font-black text-slate-800 mb-2">Adicione experiências</h2>
+             <p class="text-slate-500 mb-8 max-w-xs mx-auto">Navegue pelas praias e passeios e adicione-os aqui para organizar seu dia.</p>
+             <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-bold" routerLink="/home">
+               <i class="pi pi-search mr-2"></i> Buscar Locais
+             </button>
+          </div>
+        } @else {
+          <div cdkDropListGroup>
+          @for (dayGroup of dayKeys(); track dayGroup) {
+            <div class="mb-16">
+              <div class="flex items-center gap-4 mb-8">
+                <div class="w-10 h-10 bg-slate-800 text-white rounded-xl flex items-center justify-center font-black text-lg shadow-lg">
+                  {{dayGroup === 0 ? '?' : dayGroup}}
+                </div>
+                <h2 class="text-xl font-bold text-slate-800">
+                  {{dayGroup === 0 ? 'Ideias e Pendentes' : 'Dia ' + dayGroup}}
+                </h2>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[100px] p-2 -mx-2 rounded-2xl transition-all"
+                   cdkDropList
+                   [cdkDropListData]="itinerary.itemsByDay()[dayGroup]"
+                   (cdkDropListDropped)="drop($event, dayGroup)">
+                @for (item of itinerary.itemsByDay()[dayGroup]; track item.id) {
+                  <div cdkDrag class="bg-white rounded-3xl shadow-sm border border-slate-100 p-4 flex flex-col hover:shadow-md transition-all cursor-move active:scale-[0.98] relative group z-10">
+
+                    <div *cdkDragPlaceholder class="bg-primary/5 border-2 border-primary/20 border-dashed rounded-3xl opacity-50 min-h-[120px]"></div>
+
+                    <div class="flex gap-4">
+                      <div class="w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden shrink-0">
+                        <img [ngSrc]="item.image || 'https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?auto=format&fit=crop&q=80&w=200'"
+                             width="80"
+                             height="80"
+                             sizes="(max-width: 768px) 64px, 80px"
+                             loading="lazy"
+                             decoding="async"
+                             [alt]="item.name"
+                             title="{{item.name}}"
+                             class="w-full h-full object-cover">
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <h3 class="font-bold text-slate-800 truncate">{{item.name}}</h3>
+                        <div class="flex flex-wrap items-center gap-2 mt-2">
+                           <select class="p-2 border rounded cursor-pointer" [(ngModel)]="item.day" (change)="itinerary.updateItem(item)" title="Alterar Dia">
+                             @for (d of daysOptions; track d.value) {
+                               <option [value]="d.value">{{d.label}}</option>
+                             }
+                           </select>
+                           <div class="flex items-center gap-1 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+                             <span class="text-xs text-slate-400 font-medium">R$</span>
+                             <span class="text-sm font-black text-slate-700 print:text-black">{{ item.estimatedCost || 0 }}</span>
+                           </div>
+                           <div class="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 relative group cursor-pointer hover:border-primary/50 transition-colors">
+                             <i class="pi pi-clock text-primary pointer-events-none"></i>
+                             <input type="time"
+                                    [(ngModel)]="item.time"
+                                    (change)="itinerary.updateItem(item)"
+                                    (focus)="setTimeIfEmpty(item); $event.stopPropagation()"
+                                    (click)="$event.stopPropagation(); setTimeIfEmpty(item)"
+                                    title="Definir Horário"
+                                    class="text-sm bg-transparent border-none font-black text-slate-700 focus:ring-0 p-0 outline-none w-[110px] cursor-pointer print:text-black">
+                           </div>
+                           <button (click)="findOnMap(item)" title="Ver no Mapa" class="bg-transparent border-none text-slate-300 hover:text-primary cursor-pointer hide-on-print"><i class="pi pi-compass"></i></button>
+                           <button (click)="itinerary.toggleItem(item)" title="Remover" class="bg-transparent border-none text-slate-300 hover:text-red-500 cursor-pointer hide-on-print"><i class="pi pi-times"></i></button>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-slate-50 relative">
+                       <i class="pi pi-align-left absolute left-2 top-4 text-slate-300 text-xs"></i>
+                       <input type="text"
+                              [(ngModel)]="item.notes"
+                              (change)="itinerary.updateItem(item)"
+                              placeholder="Notas ou Lembretes (ex: Trazer protetor, Reservar às 14h...)"
+                              class="w-full text-xs p-2 pl-7 bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-transparent focus:border-primary/20 rounded-xl outline-none text-slate-600 transition-all print:border-none print:p-0 print:text-black print:pl-0">
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

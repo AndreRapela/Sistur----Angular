@@ -1,0 +1,33 @@
+<div class="fixed top-4 right-4 z-[9999] flex flex-col gap-2">
+  @for (msg of toastService.messages(); track msg.id) {
+    <div class="min-w-[300px] p-4 rounded-xl shadow-xl flex items-start gap-3 transform transition-all animate-in slide-in-from-right duration-300"
+         [ngClass]="{
+           'bg-white border-l-4 border-green-500': msg.severity === 'success',
+           'bg-white border-l-4 border-red-500': msg.severity === 'error',
+           'bg-white border-l-4 border-blue-500': msg.severity === 'info',
+           'bg-white border-l-4 border-yellow-500': msg.severity === 'warn'
+         }">
+         
+      <div class="mt-0.5">
+        <i class="pi" 
+           [ngClass]="{
+             'pi-check-circle text-green-500': msg.severity === 'success',
+             'pi-times-circle text-red-500': msg.severity === 'error',
+             'pi-info-circle text-blue-500': msg.severity === 'info',
+             'pi-exclamation-triangle text-yellow-500': msg.severity === 'warn'
+           }"></i>
+      </div>
+      
+      <div class="flex-1">
+        <h4 class="m-0 text-sm font-bold text-slate-800">{{msg.summary}}</h4>
+        <p class="m-0 mt-1 text-sm text-slate-600">{{msg.detail}}</p>
+      </div>
+      
+      <button class="bg-transparent border-none text-slate-400 hover:text-slate-600 cursor-pointer p-1" 
+              title="Fechar alerta"
+              (click)="msg.id !== undefined && toastService.remove(msg.id)">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+  }
+</div>

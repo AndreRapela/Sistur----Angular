@@ -1,131 +1,19 @@
-import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, OnInit, OnDestroy, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
-import { Establishment, Event, Tour } from '../../models/tourism.models';
+import { Establishment, Event, Tour, TouristPoint, LocationDTO, RouteResponseDTO } from '../../models/tourism.models';
 import * as L from 'leaflet';
+import { forkJoin } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-map-page',
   standalone: true,
-  imports: [CommonModule],
-  template: `
-    <div class="map-container-wrapper">
-      <div id="map" class="full-screen-map"></div>
-
-      <div class="map-overlay-top">
-        <div class="search-bar shadow-lg">
-          <i class="pi pi-search text-primary"></i>
-          <input type="text" placeholder="Para onde você quer ir?" (input)="onSearch($event)">
-        </div>
-
-        <div class="category-filters-scroll mt-3 scroll-hide">
-          @for (cat of categories; track cat.id) {
-            <button [class.active]="activeCategory === cat.id"
-                    (click)="filterByCategory(cat.id)"
-                    class="filter-chip shadow-md">
-              <i [class]="cat.icon" [style.color]="activeCategory === cat.id ? 'white' : 'var(--primary)'"></i>
-              {{cat.label}}
-            </button>
-          }
-        </div>
-      </div>
-
-      @if (selectedLocation) {
-        <div class="map-overlay-bottom">
-          <div class="location-detail-card p-4 bounce-in border-0 shadow-2xl">
-            <div class="d-flex gap-4">
-              <div class="detail-img-wrapper shadow-sm">
-                <img [src]="selectedLocation.photoUrl" class="detail-img" alt="">
-              </div>
-              <div class="flex-grow-1">
-                <h3 class="location-name">{{selectedLocation.name || selectedLocation.title}}</h3>
-                <p class="text-muted small m-0 d-flex align-items-center gap-1">
-                  <i class="pi pi-map-marker text-primary"></i> {{selectedLocation.location}}
-                </p>
-
-                @if (routeSummary) {
-                  <div class="mt-2 p-2 bg-light rounded text-sm d-flex gap-3 justify-content-center border">
-                    <span class="d-flex align-items-center gap-1"><i class="pi pi-car text-primary"></i> {{ (routeSummary.distanceMeters / 1000).toFixed(1) }} km</span>
-                    <span class="d-flex align-items-center gap-1"><i class="pi pi-clock text-primary"></i> {{ Math.round(routeSummary.durationSeconds / 60) }} min</span>
-                    <span class="d-flex align-items-center gap-1"><i class="pi pi-bolt text-danger"></i> {{ Math.round(routeSummary.estimatedCalories) }} kcal</span>
-                  </div>
-                }
-
-                <div class="mt-4 d-flex gap-2">
-                  <button class="btn-primary-gradient flex-grow-1" (click)="getDirections()">
-                    <i class="pi pi-directions mr-2"></i> Como chegar
-                  </button>
-                  <button class="btn-icon-light" (click)="closeLocation()">
-                    <i class="pi pi-times"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      }
-    </div>
-  `,
-  styles: [`
-    .map-container-wrapper { position: relative; width: 100%; height: calc(100vh - 65px); }
-    .full-screen-map { width: 100%; height: 100%; z-index: 1; }
-
-    .map-overlay-top {
-      position: absolute; top: 20px; left: 20px; right: 20px;
-      z-index: 990; pointer-events: none;
-    }
-    .search-bar, .category-filters-scroll { pointer-events: auto; }
-
-    .search-bar {
-      background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
-      border-radius: 20px; padding: 15px 25px;
-      display: flex; align-items: center; gap: 12px;
-      border: 1px solid rgba(255,255,255,0.3);
-    }
-    .search-bar input { border: none; outline: none; width: 100%; font-size: 16px; background: transparent; font-weight: 500; }
-
-    .category-filters-scroll {
-      display: flex; gap: 10px; overflow-x: auto; padding: 5px 0;
-      scrollbar-width: none;
-    }
-    .scroll-hide::-webkit-scrollbar { display: none; }
-
-    .filter-chip {
-      white-space: nowrap; background: white; border-radius: 14px;
-      padding: 10px 18px; border: 1px solid #e2e8f0;
-      font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 8px;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .filter-chip.active { background: var(--primary); color: white; border-color: var(--primary); transform: translateY(-2px); }
-
-    .map-overlay-bottom {
-      position: absolute; bottom: 30px; left: 20px; right: 20px;
-      z-index: 1000;
-    }
-    .location-detail-card {
-      background: white; border-radius: 24px;
-    }
-    .detail-img-wrapper { border-radius: 16px; overflow: hidden; width: 90px; height: 90px; }
-    .detail-img { width: 100%; height: 100%; object-fit: cover; }
-    .location-name { font-weight: 900; font-size: 20px; color: var(--text-main); line-height: 1.2; margin-bottom: 5px; }
-
-    .btn-primary-gradient {
-        background: var(--primary); color: white; border: none; border-radius: 14px;
-        padding: 0 20px; height: 48px; font-weight: 700; display: flex; align-items: center; justify-content: center;
-    }
-    .btn-icon-light {
-        width: 48px; height: 48px; border-radius: 14px; background: #f8fafc; border: 1px solid #e2e8f0;
-        color: #64748b; display: flex; align-items: center; justify-content: center;
-    }
-
-    .bounce-in { animation: bounceIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2); }
-
-    @keyframes bounceIn {
-      0% { transform: translateY(20px) scale(0.95); opacity: 0; }
-      100% { transform: translateY(0) scale(1); opacity: 1; }
-    }
-  `]
+  imports: [CommonModule, NgOptimizedImage],
+  templateUrl: './map-page.html',
+  styleUrls: ['./map-page.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private map!: L.Map;
@@ -133,17 +21,21 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private routeLayer = L.layerGroup();
   private userLocationMarker?: L.CircleMarker;
 
+  private cdr: ChangeDetectorRef;
+
   Math = Math;
   activeCategory = 'ALL';
   selectedLocation: any = null;
-  routeSummary: any = null;
+  routeSummary: RouteResponseDTO | null = null;
+  searchTerm = '';
 
   categories = [
     { id: 'ALL', label: 'Tudo', icon: 'pi pi-map' },
     { id: 'RESTAURANT', label: 'Comer', icon: 'pi pi-utensils' },
     { id: 'HOTEL', label: 'Ficar', icon: 'pi pi-home' },
     { id: 'EVENT', label: 'Eventos', icon: 'pi pi-calendar' },
-    { id: 'TOUR', label: 'Passeios', icon: 'pi pi-camera' }
+    { id: 'TOUR', label: 'Passeios', icon: 'pi pi-camera' },
+    { id: 'POINT', label: 'Pontos', icon: 'pi pi-compass' }
   ];
 
   allData: any[] = [];
@@ -152,11 +44,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private api: ApiService,
     private route: ActivatedRoute,
-    private router: Router
-  ) {}
+    private router: Router,
+    cdr: ChangeDetectorRef
+  ) {
+    this.cdr = cdr;
+  }
 
   ngOnInit() {
-    this.loadAllData();
+    this.loadAllData(this.route.snapshot.queryParams);
   }
 
   ngAfterViewInit() {
@@ -187,11 +82,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedLocation = null;
     this.routeSummary = null;
     this.routeLayer.clearLayers();
+    this.cdr.markForCheck();
   }
 
   private trackUserLocation() {
     if (navigator.geolocation) {
-      navigator.geolocation.watchPosition((pos) => {
+      navigator.geolocation.getCurrentPosition((pos) => {
         const { latitude, longitude } = pos.coords;
         if (this.userLocationMarker) {
           this.userLocationMarker.setLatLng([latitude, longitude]);
@@ -204,55 +100,77 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
             fillOpacity: 1
           }).addTo(this.map);
         }
-      }, err => console.warn('Geolocation error:', err), { enableHighAccuracy: true });
+      }, err => console.warn('Geolocation error:', err), { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 });
     }
   }
 
-  private loadAllData() {
-    // For simplicity, we fetch everything. In a real app we'd paginate or filter on backend.
-    this.api.getEstablishments('RESTAURANT').subscribe(res => this.mergeData(res.data.content, 'RESTAURANT'));
-    this.api.getEstablishments('HOTEL').subscribe(res => this.mergeData(res.data.content, 'HOTEL'));
-    this.api.getEvents().subscribe(res => this.mergeData(res.data.content, 'EVENT'));
-    this.api.getTours().subscribe(res => this.mergeData(res.data.content, 'TOUR'));
-  }
-
-  private mergeData(items: any[], type: string) {
-    const typedItems = items.map(i => ({ ...i, mapSearchType: type }));
-    this.allData = [...this.allData, ...typedItems];
-    this.updateMarkers();
-    this.checkInitialLocation();
-  }
-
-  private checkInitialLocation() {
-    this.route.queryParams.subscribe(params => {
-      if (params['id'] && params['type']) {
-        const found = this.allData.find(i => i.id == params['id'] && i.mapSearchType == params['type']);
-        if (found) {
-          this.selectedLocation = found;
-          this.map.flyTo([found.latitude, found.longitude], 16);
-        }
-      }
+  private loadAllData(initialParams: Params) {
+    forkJoin({
+      restaurants: this.api.getEstablishments('RESTAURANT').pipe(map(res => res.data?.content || [])),
+      hotels: this.api.getEstablishments('HOTEL').pipe(map(res => res.data?.content || [])),
+      events: this.api.getEvents().pipe(map(res => res.data?.content || [])),
+      tours: this.api.getTours().pipe(map(res => res.data?.content || [])),
+      points: this.api.getTouristPoints().pipe(map(res => res.data?.content || []))
+    }).subscribe(({ restaurants, hotels, events, tours, points }) => {
+      this.allData = [
+        ...restaurants.map(item => ({ ...item, mapSearchType: 'RESTAURANT' })),
+        ...hotels.map(item => ({ ...item, mapSearchType: 'HOTEL' })),
+        ...events.map(item => ({ ...item, mapSearchType: 'EVENT' })),
+        ...tours.map(item => ({ ...item, mapSearchType: 'TOUR' })),
+        ...points.map((item: TouristPoint) => ({ ...item, mapSearchType: 'POINT' }))
+      ];
+      this.filteredData = this.allData;
+      this.updateMarkers();
+      this.applyInitialSelection(initialParams);
+      this.cdr.markForCheck();
     });
+  }
+
+  private applyInitialSelection(params: Params) {
+    if (!params['id'] || !params['type']) {
+      return;
+    }
+
+    const found = this.allData.find(item => item.id == params['id'] && item.mapSearchType == params['type']);
+    if (found) {
+      this.selectedLocation = found;
+      this.map.flyTo([found.latitude, found.longitude], 16);
+      this.cdr.markForCheck();
+    }
   }
 
   filterByCategory(type: string) {
     this.activeCategory = type;
     this.updateMarkers();
+    this.cdr.markForCheck();
   }
 
   onSearch(event: any) {
-    const query = event.target.value.toLowerCase();
-    this.filteredData = this.allData.filter(i =>
-      (i.name || i.title).toLowerCase().includes(query)
-    );
-    this.updateMarkers(true);
+    this.searchTerm = event.target.value.toLowerCase();
+    this.updateMarkers();
+    this.cdr.markForCheck();
   }
 
-  private updateMarkers(isSearch = false) {
+  private getVisibleData() {
+    const categoryData = this.activeCategory === 'ALL'
+      ? this.allData
+      : this.allData.filter(item => item.mapSearchType === this.activeCategory);
+
+    const query = this.searchTerm.trim();
+    if (!query) {
+      return categoryData;
+    }
+
+    return categoryData.filter(item =>
+      (item.name || item.title || '').toLowerCase().includes(query)
+    );
+  }
+
+  private updateMarkers() {
     this.markersLayer.clearLayers();
 
-    const dataToUse = isSearch ? this.filteredData :
-      (this.activeCategory === 'ALL' ? this.allData : this.allData.filter(i => i.mapSearchType === this.activeCategory));
+    const dataToUse = this.getVisibleData();
+    this.filteredData = dataToUse;
 
     dataToUse.forEach(item => {
       if (item.latitude && item.longitude) {
@@ -266,6 +184,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         this.markersLayer.addLayer(marker);
       }
     });
+
+    this.cdr.markForCheck();
   }
 
   private createCustomIcon(type: string) {
@@ -273,7 +193,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       RESTAURANT: 'pi-utensils',
       HOTEL: 'pi-home',
       EVENT: 'pi-calendar',
-      TOUR: 'pi-camera'
+      TOUR: 'pi-camera',
+      POINT: 'pi-compass'
     };
 
     return L.divIcon({
@@ -291,22 +212,28 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.userLocationMarker) {
       const userLatLng = this.userLocationMarker.getLatLng();
       const request = {
-        origin: { latitude: userLatLng.lat, longitude: userLatLng.lng },
-        destination: { latitude: Number(this.selectedLocation.latitude), longitude: Number(this.selectedLocation.longitude) },
+        waypoints: [
+          { lat: userLatLng.lat, lng: userLatLng.lng, name: 'Sua localização' },
+          { lat: Number(this.selectedLocation.latitude), lng: Number(this.selectedLocation.longitude), name: this.selectedLocation.name || this.selectedLocation.title || 'Destino' }
+        ] as LocationDTO[],
         travelMode: 'DRIVING'
       };
 
       this.api.calculateRoute(request).subscribe({
         next: (res) => {
-          this.routeSummary = res;
+          this.routeSummary = res.data;
 
-          // Draw a straightforward line to represent the mock/straight path
-          const poly = L.polyline([
-            [userLatLng.lat, userLatLng.lng],
-            [request.destination.latitude, request.destination.longitude]
-          ], { color: '#3b82f6', weight: 6, opacity: 0.8 }).addTo(this.routeLayer);
+          const routePoints = this.routeSummary?.optimizedWaypoints?.length
+            ? this.routeSummary.optimizedWaypoints
+            : request.waypoints;
+
+          const poly = L.polyline(
+            routePoints.map(point => [point.lat, point.lng]),
+            { color: '#3b82f6', weight: 6, opacity: 0.8 }
+          ).addTo(this.routeLayer);
 
           this.map.fitBounds(poly.getBounds(), { padding: [50, 50] });
+          this.cdr.markForCheck();
         },
         error: (err) => console.error('Erro ao calcular rota', err)
       });

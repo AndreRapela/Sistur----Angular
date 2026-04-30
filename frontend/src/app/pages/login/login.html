@@ -1,0 +1,64 @@
+<div class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-50 to-slate-200">
+  <div class="w-full max-w-[420px]">
+    <div class="text-center mb-8">
+      <h1 class="text-5xl font-black text-primary m-0 mb-2 tracking-tight">SisTur</h1>
+      <p class="text-xs font-bold uppercase tracking-[2px] text-slate-500 m-0">Fernando de Noronha</p>
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-xl p-8 border border-slate-100">
+      <div class="text-center mb-6">
+        <h2 class="text-xl font-bold text-slate-800 m-0 mb-1">Seja Bem-vindo</h2>
+        <p class="text-sm text-slate-500 m-0">Entre com suas credenciais do SisTur</p>
+      </div>
+
+      <form (ngSubmit)="onSubmit()">
+        <div class="mb-5">
+          <label for="email" class="block font-bold mb-2 text-slate-700 text-sm">E-mail</label>
+          <input id="email" type="email" name="email" [(ngModel)]="credentials.email" required
+                 placeholder="Seu e-mail"
+                 class="w-full px-4 py-3 text-base rounded-xl border border-slate-300 text-slate-700 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-slate-400" />
+        </div>
+
+        <div class="mb-6">
+          <label for="password" class="block font-bold mb-2 text-slate-700 text-sm">Senha</label>
+          <div class="relative">
+            <input id="password" [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="credentials.password" required
+                   placeholder="Sua senha"
+                   class="w-full px-4 py-3 text-base rounded-xl border border-slate-300 text-slate-700 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-slate-400" />
+            <button type="button"
+                    (click)="showPassword = !showPassword"
+                    [attr.aria-pressed]="showPassword"
+                    [attr.title]="showPassword ? 'Ocultar senha' : 'Ver senha'"
+                    class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 bg-transparent border-none cursor-pointer p-1">
+              <i class="pi" [ngClass]="showPassword ? 'pi-eye-slash' : 'pi-eye'"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" [disabled]="loading"
+                class="w-full py-3.5 bg-primary text-white rounded-xl font-bold text-base hover:bg-primary/90 transition-all active:scale-[0.98] shadow-lg shadow-primary/20 border-none cursor-pointer flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+          <i *ngIf="!loading" class="pi pi-sign-in"></i>
+          <i *ngIf="loading" class="pi pi-spin pi-spinner"></i>
+          {{ loading ? 'Entrando...' : 'Acessar Conta' }}
+        </button>
+      </form>
+
+      <div class="text-center my-6 relative">
+        <div class="absolute inset-0 flex items-center">
+          <div class="w-full border-t border-slate-200"></div>
+        </div>
+        <div class="relative flex justify-center text-sm">
+          <span class="px-3 bg-white text-slate-400">Ou continue com</span>
+        </div>
+      </div>
+
+      <div class="flex justify-center mb-2 h-[44px] items-center">
+         <div id="google-btn" class="transition-all duration-300 hover:scale-[1.02]"></div>
+      </div>
+
+      <p class="text-center mt-6 text-sm text-slate-600">
+        Não tem uma conta? <a routerLink="/register" class="no-underline text-primary font-bold hover:underline">Cadastre-se</a>
+      </p>
+    </div>
+  </div>
+</div>

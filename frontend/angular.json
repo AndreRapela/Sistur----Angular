@@ -34,9 +34,14 @@
               }
             ],
             "styles": [
+              "node_modules/primeicons/primeicons.css",
               "node_modules/leaflet/dist/leaflet.css",
               "node_modules/leaflet-routing-machine/dist/leaflet-routing-machine.css",
-              "src/styles.scss"
+              "src/styles.css"
+            ],
+            "allowedCommonJsDependencies": [
+              "leaflet",
+              "leaflet-routing-machine"
             ]
           },
             "configurations": {

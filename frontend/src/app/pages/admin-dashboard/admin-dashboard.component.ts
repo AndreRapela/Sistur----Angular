@@ -1,99 +1,151 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../../services/auth.service';
 import { RouterModule } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
+import { ApiService } from '../../services/api.service';
+import { AnalyticsService } from '../../services/analytics.service';
+import { AdminStatsDTO } from '../../models/tourism.models';
+
+type DashboardStat = {
+  label: string;
+  value: string;
+  trend: number;
+  icon: string;
+  iconColor: string;
+  bgColor: string;
+};
+
+type DashboardActivity = {
+  id: number;
+  user: string;
+  action: string;
+  target: string;
+  time: string;
+};
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
   imports: [CommonModule, RouterModule],
-  template: `
-    <div class="min-h-screen bg-slate-50 p-6 md:p-10">
-      <header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-          <span class="text-primary font-black text-[10px] uppercase tracking-[0.2em]">Painel Administrativo</span>
-          <h1 class="text-4xl font-black text-slate-800 tracking-tight mt-2">Visão Geral</h1>
-        </div>
-        <div class="flex gap-3">
-          <button class="px-6 py-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50 transition-all shadow-sm">
-            <i class="pi pi-download mr-2"></i> Relatórios
-          </button>
-          <button class="px-6 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
-            <i class="pi pi-plus mr-2"></i> Novo Registro
-          </button>
-        </div>
-      </header>
-
-      <!-- Stats Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-        @for (stat of stats; track stat.label) {
-          <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 hover:shadow-xl transition-all group">
-            <div class="flex items-center justify-between mb-4">
-              <div [class]="'w-12 h-12 rounded-2xl flex items-center justify-center ' + stat.bgColor">
-                <i [class]="'pi ' + stat.icon + ' ' + stat.iconColor"></i>
-              </div>
-              <span class="text-[10px] font-black text-emerald-500 bg-emerald-50 px-2 py-1 rounded-lg">+{{stat.trend}}%</span>
-            </div>
-            <h3 class="text-slate-400 font-bold text-xs uppercase tracking-widest">{{stat.label}}</h3>
-            <p class="text-3xl font-black text-slate-800 mt-1 tracking-tight">{{stat.value}}</p>
-          </div>
-        }
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Recent Activity -->
-        <div class="lg:col-span-2 bg-white rounded-[2.5rem] p-8 shadow-premium">
-          <h3 class="text-xl font-black text-slate-800 mb-6 tracking-tight">Atividades Recentes</h3>
-          <div class="space-y-6">
-            @for (act of activities; track act.id) {
-              <div class="flex items-center gap-4 p-4 hover:bg-slate-50 rounded-2xl transition-colors group">
-                <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-black text-slate-400 group-hover:bg-primary group-hover:text-white transition-all">
-                  {{act.user.charAt(0)}}
-                </div>
-                <div class="flex-grow">
-                  <p class="text-sm font-bold text-slate-700">
-                    <span class="text-slate-900">{{act.user}}</span> {{act.action}} <span class="text-primary">{{act.target}}</span>
-                  </p>
-                  <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{act.time}}</span>
-                </div>
-                <button class="p-2 opacity-0 group-hover:opacity-100 transition-opacity"><i class="pi pi-ellipsis-h text-slate-400"></i></button>
-              </div>
-            }
-          </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="bg-primary rounded-[2.5rem] p-8 text-white shadow-xl shadow-primary/20">
-          <h3 class="text-xl font-black mb-6 tracking-tight">Ações Rápidas</h3>
-          <div class="grid grid-cols-1 gap-3">
-            <button class="w-full p-4 bg-white/10 hover:bg-white/20 rounded-2xl font-bold flex items-center gap-3 transition-all">
-              <i class="pi pi-users"></i> Gerenciar Usuários
-            </button>
-            <button class="w-full p-4 bg-white/10 hover:bg-white/20 rounded-2xl font-bold flex items-center gap-3 transition-all">
-              <i class="pi pi-map-marker"></i> Aprovar Locais
-            </button>
-            <button class="w-full p-4 bg-white/10 hover:bg-white/20 rounded-2xl font-bold flex items-center gap-3 transition-all">
-              <i class="pi pi-cog"></i> Configurações
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  `
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  templateUrl: './admin-dashboard.component.html'
 })
-export class AdminDashboardComponent {
-  stats = [
-    { label: 'Turistas', value: '12,450', trend: 12, icon: 'pi-users', iconColor: 'text-primary', bgColor: 'bg-primary/10' },
-    { label: 'Estabelecimentos', value: '458', trend: 5, icon: 'pi-home', iconColor: 'text-secondary', bgColor: 'bg-secondary/10' },
-    { label: 'Eventos Ativos', value: '24', trend: 8, icon: 'pi-calendar', iconColor: 'text-cta', bgColor: 'bg-cta/10' },
-    { label: 'Visitantes/Dia', value: '1,200', trend: 15, icon: 'pi-chart-line', iconColor: 'text-nature', bgColor: 'bg-nature/10' }
+export class AdminDashboardComponent implements OnInit {
+  private api = inject(ApiService);
+  private analytics = inject(AnalyticsService);
+  private cdr = inject(ChangeDetectorRef);
+
+  stats: DashboardStat[] = [
+    { label: 'Turistas cadastrados', value: '0', trend: 0, icon: 'pi-users', iconColor: 'text-primary', bgColor: 'bg-primary/10' },
+    { label: 'Ativos 30 dias', value: '0', trend: 0, icon: 'pi-clock', iconColor: 'text-secondary', bgColor: 'bg-secondary/10' },
+    { label: 'Cadastros 30 dias', value: '0', trend: 0, icon: 'pi-user-plus', iconColor: 'text-cta', bgColor: 'bg-cta/10' },
+    { label: 'Requisições', value: '0', trend: 0, icon: 'pi-chart-line', iconColor: 'text-nature', bgColor: 'bg-nature/10' },
+    { label: 'Conversões', value: '0', trend: 0, icon: 'pi-bolt', iconColor: 'text-amber-600', bgColor: 'bg-amber-50' }
   ];
 
-  activities = [
-    { id: 1, user: 'João Silva', action: 'avaliou', target: 'Pousada Maravilha', time: 'Há 5 minutos' },
-    { id: 2, user: 'Maria Santos', action: 'adicionou', target: 'Trilha do Sancho', time: 'Há 12 minutos' },
-    { id: 3, user: 'Carlos Oliveira', action: 'reservou', target: 'Buggy Tour', time: 'Há 25 minutos' }
+  activities: DashboardActivity[] = [
+    { id: 1, user: 'Noronha', action: 'aguarda dados reais de uso', target: 'carregando métricas', time: 'Agora' }
   ];
 
   constructor(public auth: AuthService) {}
+
+  ngOnInit() {
+    this.analytics.pageView('/admin/dashboard', 'PAGE', 'admin-dashboard');
+    this.loadStats();
+  }
+
+  private loadStats() {
+    this.api.getAdminStats().subscribe({
+      next: ({ data }) => {
+        if (!data) {
+          return;
+        }
+
+        this.stats = [
+          {
+            label: 'Turistas cadastrados',
+            value: this.formatNumber(data.totalUsers),
+            trend: this.safeTrend(data.activeUsersLast30Days, data.totalUsers),
+            icon: 'pi-users',
+            iconColor: 'text-primary',
+            bgColor: 'bg-primary/10'
+          },
+          {
+            label: 'Ativos 30 dias',
+            value: this.formatNumber(data.activeUsersLast30Days),
+            trend: this.safeTrend(data.activeUsersLast30Days, data.totalUsers),
+            icon: 'pi-clock',
+            iconColor: 'text-secondary',
+            bgColor: 'bg-secondary/10'
+          },
+          {
+            label: 'Cadastros 30 dias',
+            value: this.formatNumber(data.registrationsLast30Days),
+            trend: this.safeTrend(data.registrationsLast30Days, data.totalUsers),
+            icon: 'pi-user-plus',
+            iconColor: 'text-cta',
+            bgColor: 'bg-cta/10'
+          },
+          {
+            label: 'Requisições',
+            value: this.formatNumber(data.totalRequests),
+            trend: this.safeTrend(data.totalRequests, data.totalUsers),
+            icon: 'pi-chart-line',
+            iconColor: 'text-nature',
+            bgColor: 'bg-nature/10'
+          },
+          {
+            label: 'Conversões',
+            value: this.formatNumber(data.totalConversions),
+            trend: this.safeTrend(data.totalConversions, data.totalRequests || 1),
+            icon: 'pi-bolt',
+            iconColor: 'text-amber-600',
+            bgColor: 'bg-amber-50'
+          }
+        ];
+
+        this.activities = this.buildActivities(data);
+        this.cdr.markForCheck();
+      },
+      error: () => this.cdr.markForCheck()
+    });
+  }
+
+  private buildActivities(stats: AdminStatsDTO): DashboardActivity[] {
+    const accessItems = Object.entries(stats.accessByEstablishment || {})
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([target, count], index) => ({
+        id: index + 1,
+        user: target,
+        action: 'recebeu',
+        target: `${this.formatNumber(count)} acessos`,
+        time: 'Últimos 30 dias'
+      }));
+
+    const conversionItems = Object.entries(stats.conversionByEstablishment || {})
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([target, count], index) => ({
+        id: index + 101,
+        user: target,
+        action: 'gerou',
+        target: `${this.formatNumber(count)} conversões`,
+        time: 'Últimos 30 dias'
+      }));
+
+    return [...accessItems, ...conversionItems].slice(0, 6);
+  }
+
+  private formatNumber(value: number): string {
+    return new Intl.NumberFormat('pt-BR').format(value ?? 0);
+  }
+
+  private safeTrend(value: number, baseline: number): number {
+    if (!baseline) {
+      return 0;
+    }
+
+    return Math.max(1, Math.min(99, Math.round((value / baseline) * 100)));
+  }
 }

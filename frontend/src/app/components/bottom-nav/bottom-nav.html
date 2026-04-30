@@ -1,0 +1,47 @@
+<nav class="md:hidden fixed bottom-0 left-0 right-0 h-[75px] bg-white/95 backdrop-blur-[15px] border-t border-black/5 flex items-center justify-around z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.05)] pb-[env(safe-area-inset-bottom,0px)]">
+  <a routerLink="/home" routerLinkActive="active-nav" [routerLinkActiveOptions]="{exact: true}" class="flex-1 flex flex-col items-center justify-center gap-1 no-underline text-slate-400 group">
+    <div class="p-2 rounded-xl transition-all duration-300 group-[.active-nav]:bg-primary/15 group-[.active-nav]:text-primary group-hover:bg-primary/15 group-hover:text-primary"><i class="pi pi-home text-xl"></i></div>
+    <span class="text-[10px] font-black uppercase tracking-[1px] transition-colors duration-300 group-[.active-nav]:text-primary group-hover:text-primary">Explore</span>
+  </a>
+
+  @if (!auth.isFreeTier()) {
+    <a routerLink="/events" routerLinkActive="active-nav" class="flex-1 flex flex-col items-center justify-center gap-1 no-underline text-slate-400 group">
+      <div class="p-2 rounded-xl transition-all duration-300 group-[.active-nav]:bg-primary/15 group-[.active-nav]:text-primary group-hover:bg-primary/15 group-hover:text-primary"><i class="pi pi-calendar text-xl"></i></div>
+      <span class="text-[10px] font-black uppercase tracking-[1px] transition-colors duration-300 group-[.active-nav]:text-primary group-hover:text-primary">Eventos</span>
+    </a>
+  } @else {
+    <a routerLink="/profile" routerLinkActive="active-nav" class="flex-1 flex flex-col items-center justify-center gap-1 no-underline text-slate-400 group">
+      <div class="p-2 rounded-xl transition-all duration-300 group-[.active-nav]:bg-primary/15 group-[.active-nav]:text-primary group-hover:bg-primary/15 group-hover:text-primary"><i class="pi pi-star text-xl"></i></div>
+      <span class="text-[10px] font-black uppercase tracking-[1px] transition-colors duration-300 group-[.active-nav]:text-primary group-hover:text-primary">Upgrade</span>
+    </a>
+  }
+
+  <a routerLink="/roteiros" routerLinkActive="active-nav" class="flex-1 flex flex-col items-center justify-center gap-1 no-underline text-slate-400 group">
+    <div class="p-2 rounded-xl transition-all duration-300 group-[.active-nav]:bg-primary/15 group-[.active-nav]:text-primary group-hover:bg-primary/15 group-hover:text-primary"><i class="pi pi-users text-xl"></i></div>
+    <span class="text-[10px] font-black uppercase tracking-[1px] transition-colors duration-300 group-[.active-nav]:text-primary group-hover:text-primary">Roteiros</span>
+  </a>
+
+  <a routerLink="/itinerary" routerLinkActive="active-nav" class="flex-1 flex flex-col items-center justify-center gap-1 no-underline text-slate-400 group relative">
+    <div class="p-2 rounded-xl transition-all duration-300 group-[.active-nav]:bg-primary/15 group-[.active-nav]:text-primary group-hover:bg-primary/15 group-hover:text-primary relative">
+      <i class="pi pi-map-marker text-xl"></i>
+      @if (itinerary.items().length > 0) {
+        <span class="absolute -top-1 -right-2 bg-primary text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold shadow-sm">
+          {{ itinerary.items().length }}
+        </span>
+      }
+    </div>
+    <span class="text-[10px] font-black uppercase tracking-[1px] transition-colors duration-300 group-[.active-nav]:text-primary group-hover:text-primary">Meu Plano</span>
+  </a>
+
+  @if (auth.isAuthenticated()) {
+    <a (click)="auth.logout()" class="flex-1 flex flex-col items-center justify-center gap-1 no-underline text-slate-400 group cursor-pointer">
+      <div class="p-2 rounded-xl transition-all duration-300 group-hover:bg-red-500/15 group-hover:text-red-500"><i class="pi pi-sign-out text-xl"></i></div>
+      <span class="text-[10px] font-black uppercase tracking-[1px] transition-colors duration-300 group-hover:text-red-500">Sair</span>
+    </a>
+  } @else {
+    <a routerLink="/profile" routerLinkActive="active-nav" class="flex-1 flex flex-col items-center justify-center gap-1 no-underline text-slate-400 group">
+      <div class="p-2 rounded-xl transition-all duration-300 group-[.active-nav]:bg-primary/15 group-[.active-nav]:text-primary group-hover:bg-primary/15 group-hover:text-primary"><i class="pi pi-user text-xl"></i></div>
+      <span class="text-[10px] font-black uppercase tracking-[1px] transition-colors duration-300 group-[.active-nav]:text-primary group-hover:text-primary">Perfil</span>
+    </a>
+  }
+</nav>

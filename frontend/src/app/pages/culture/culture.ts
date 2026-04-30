@@ -1,68 +1,95 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+
+interface TimelineItem {
+  year: string;
+  title: string;
+  text: string;
+}
+
+interface CultureCard {
+  icon: string;
+  title: string;
+  text: string;
+  tone: string;
+}
 
 @Component({
   selector: 'app-culture',
   standalone: true,
-  imports: [CommonModule],
-  template: `
-    <div class="page-container p-4 container-fluid">
-      <header class="page-header mb-5 text-center">
-        <h1 class="premium-title">Cultura e História</h1>
-        <div class="header-divider mx-auto"></div>
-        <p class="text-muted mt-3">Mergulhe nas raízes históricos do arquipélago</p>
-      </header>
-
-      <section class="mb-5">
-        <div class="history-hero p-5 shadow-2xl overflow-hidden position-relative">
-          <div class="hero-content">
-            <h2 class="hero-title">Nossa Origem</h2>
-            <p class="hero-text">Fernando de Noronha foi descoberto em 1503 por Américo Vespúcio. A ilha já testemunhou séculos de história, servindo como presídio nacional e base militar estratégica na 2ª Guerra, antes de se tornar este paraíso protegido pela UNESCO.</p>
-          </div>
-          <div class="hero-overlay"></div>
-        </div>
-      </section>
-
-      <section class="curiosities row g-4">
-        <div class="col-12"><h3 class="section-label">Você sabia?</h3></div>
-        
-        <div class="col-12 col-md-6">
-          <div class="noronha-card p-4 d-flex align-items-center hover-lift border-0 shadow-sm">
-            <div class="icon-avatar bg-blue-50 mr-4">
-              <i class="pi pi-info-circle text-primary"></i>
-            </div>
-            <span class="font-medium text-gray-700">Noronha possui a menor rodovia federal do Brasil, a BR-363, com apenas 7km de extensão.</span>
-          </div>
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <div class="noronha-card p-4 d-flex align-items-center hover-lift border-0 shadow-sm">
-            <div class="icon-avatar bg-emerald-50 mr-4">
-              <i class="pi pi-map text-emerald-500"></i>
-            </div>
-            <span class="font-medium text-gray-700">A Vila dos Remédios é o centro histórico onde o tempo parece passar mais devagar entre as ruínas e o casario.</span>
-          </div>
-        </div>
-      </section>
-    </div>
-  `,
-  styles: [`
-    .premium-title { font-weight: 950; font-size: 36px; color: var(--text-main); letter-spacing: -2px; }
-    .header-divider { width: 60px; height: 6px; background: var(--cta); margin-top: 10px; border-radius: 10px; }
-    .history-hero { 
-        background-image: url('https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f');
-        background-size: cover; background-position: center; border-radius: 32px; min-height: 300px;
-        display: flex; align-items: center;
-    }
-    .hero-content { position: relative; z-index: 2; max-width: 600px; color: white; }
-    .hero-title { font-weight: 950; font-size: 42px; margin-bottom: 20px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
-    .hero-text { font-size: 18px; line-height: 1.6; font-weight: 500; text-shadow: 0 1px 5px rgba(0,0,0,0.3); }
-    .hero-overlay { position: absolute; inset:0; background: linear-gradient(90deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 100%); z-index: 1; }
-    .section-label { font-weight: 800; font-size: 22px; color: var(--text-main); }
-    .icon-avatar { width: 55px; height: 55px; border-radius: 16px; display: flex; align-items: center; justify-content: center; i { font-size: 24px; } }
-    .mr-4 { margin-right: 1.5rem; }
-    .hover-lift { transition: all 0.3s; &:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important; } }
-    .bg-emerald-50 { background: #ecfdf5; }
-  `]
+  imports: [CommonModule, RouterModule],
+  templateUrl: './culture.html',
+  styles: []
 })
-export class CultureComponent {}
+export class CultureComponent {
+  heroImage = 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1600&q=80';
+
+  timeline: TimelineItem[] = [
+    {
+      year: '1503',
+      title: 'Descoberta e primeiros mapas',
+      text: 'Fernando de Noronha surge nos relatos de navegação do início do século XVI e passa a figurar cedo na rota do Atlântico brasileiro.'
+    },
+    {
+      year: 'séculos XVII e XVIII',
+      title: 'Fortes, defesa e vigilância',
+      text: 'A ilha ganha fortificações e postos estratégicos para proteger o litoral e controlar o território.'
+    },
+    {
+      year: 'séculos XIX e XX',
+      title: 'Presídio e base militar',
+      text: 'A ocupação muda o cotidiano local e deixa marcas arquitetônicas e memórias que ainda aparecem no traçado urbano.'
+    },
+    {
+      year: 'hoje',
+      title: 'Patrimônio e turismo ordenado',
+      text: 'A vida cultural combina conservação, festa, fé, gastronomia e eventos que fortalecem o sentimento de pertencimento.'
+    }
+  ];
+
+  cultureCards: CultureCard[] = [
+    {
+      icon: 'pi pi-map',
+      title: 'Vila dos Remédios',
+      text: 'Centro histórico e afetivo da ilha, com casario, circulação de moradores e o cenário urbano mais reconhecível de Noronha.',
+      tone: 'from-sky-500 to-blue-500'
+    },
+    {
+      icon: 'pi pi-heart',
+      title: 'Fé e tradição',
+      text: 'A Igreja Matriz Nossa Senhora dos Remédios, a capela de São Pedro e as celebrações religiosas seguem como pontos de encontro da comunidade.',
+      tone: 'from-amber-500 to-orange-500'
+    },
+    {
+      icon: 'pi pi-calendar',
+      title: 'Semana da Paixão',
+      text: 'A programação recente da ilha mostra que Noronha também sabe transformar a Praça de São Miguel em palco de música, teatro e convivência.',
+      tone: 'from-rose-500 to-pink-500'
+    },
+    {
+      icon: 'pi pi-utensils',
+      title: 'Gastronomia com identidade',
+      text: 'Peixes, frutos do mar, receitas simples e produtos locais ajudam a contar a história da ilha sem pedir protagonismo demais.',
+      tone: 'from-emerald-500 to-teal-500'
+    },
+    {
+      icon: 'pi pi-users',
+      title: 'Comunidade e esporte',
+      text: 'As ações comunitárias, os projetos sociais e os eventos esportivos reforçam a ilha como lugar vivido, não apenas visitado.',
+      tone: 'from-violet-500 to-fuchsia-500'
+    },
+    {
+      icon: 'pi pi-compass',
+      title: 'Cultura de respeito ao território',
+      text: 'Cultura em Noronha também é aceitar limites, seguir sinalizações e entender que a paisagem faz parte da identidade local.',
+      tone: 'from-cyan-500 to-sky-600'
+    }
+  ];
+
+  visitorTips = [
+    'Caminhe com calma pela Vila dos Remédios e perceba como história e cotidiano se misturam.',
+    'Inclua pelo menos um pôr do sol em mirante ou praia para entender o ritmo da ilha.',
+    'Valorize eventos e negócios locais: eles sustentam boa parte da experiência cultural de Noronha.'
+  ];
+}

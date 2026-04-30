@@ -1,0 +1,64 @@
+<div class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-50 to-slate-200">
+  <div class="w-full max-w-[420px]">
+    <div class="text-center mb-8">
+      <h1 class="text-5xl font-black text-primary m-0 mb-2 tracking-tight">SisTur</h1>
+      <p class="text-xs font-bold uppercase tracking-[2px] text-slate-500 m-0">Crie sua conta</p>
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-xl p-8 border border-slate-100">
+      <div class="text-center mb-6">
+        <h2 class="text-xl font-bold text-slate-800 m-0 mb-1">Novo no SisTur?</h2>
+        <p class="text-sm text-slate-500 m-0">Complete seus dados para começar</p>
+      </div>
+
+      <form (submit)="onSubmit($event)">
+        <div class="mb-4">
+          <label for="name" class="block font-bold mb-2 text-slate-700 text-sm">Nome Completo</label>
+          <input id="name" name="name" [(ngModel)]="name" required
+                 placeholder="Seu nome"
+                 class="w-full px-4 py-3 text-base rounded-xl border border-slate-300 text-slate-700 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-slate-400" />
+        </div>
+
+        <div class="mb-4">
+          <label for="email" class="block font-bold mb-2 text-slate-700 text-sm">E-mail</label>
+          <input id="email" type="email" name="email" [(ngModel)]="email" required
+                 placeholder="seu@email.com"
+                 class="w-full px-4 py-3 text-base rounded-xl border border-slate-300 text-slate-700 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-slate-400" />
+        </div>
+
+        <div class="mb-4">
+          <label for="role" class="block font-bold mb-2 text-slate-700 text-sm">Perfil de acesso</label>
+          <select id="role" name="role" [(ngModel)]="selectedRole"
+                  class="w-full px-4 py-3 text-base rounded-xl border border-slate-300 text-slate-700 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all bg-white">
+            <option value="FREE_TOURIST">Gratuito - vê o app e roteiros básicos</option>
+            <option value="PRO_TOURIST">Pro - eventos em tempo real</option>
+            <option value="PREMIUM_TOURIST">Premium - eventos + ofertas exclusivas</option>
+          </select>
+        </div>
+
+        <div class="mb-6">
+          <label for="password" class="block font-bold mb-2 text-slate-700 text-sm">Senha</label>
+          <div class="relative">
+            <input id="password" [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="password" required
+                   placeholder="Mínimo 6 caracteres"
+                   class="w-full px-4 py-3 text-base rounded-xl border border-slate-300 text-slate-700 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-slate-400" />
+            <button type="button" (click)="showPassword = !showPassword" title="Alternar Visibilidade da Senha" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 bg-transparent border-none cursor-pointer p-1">
+              <i class="pi" [ngClass]="showPassword ? 'pi-eye-slash' : 'pi-eye'"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" [disabled]="isLoading"
+                class="w-full py-3.5 bg-primary text-white rounded-xl font-bold text-base hover:bg-primary/90 transition-all active:scale-[0.98] shadow-lg shadow-primary/20 border-none cursor-pointer flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+          <i *ngIf="!isLoading" class="pi pi-user-plus"></i>
+          <i *ngIf="isLoading" class="pi pi-spin pi-spinner"></i>
+          {{ isLoading ? 'Cadastrando...' : 'Criar Conta' }}
+        </button>
+      </form>
+
+      <p class="text-center mt-6 text-sm text-slate-600">
+        Já tem uma conta? <a routerLink="/login" class="no-underline text-primary font-bold hover:underline">Entre aqui</a>
+      </p>
+    </div>
+  </div>
+</div>

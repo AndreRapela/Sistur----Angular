@@ -1,35 +1,31 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { CarouselModule } from 'primeng/carousel';
-import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
-import { InputTextModule } from 'primeng/inputtext';
 import { ItineraryService } from '../../services/itinerary.service';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, CarouselModule, ButtonModule, CardModule, InputTextModule],
+  imports: [CommonModule, RouterModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="home-container max-w-[1400px] mx-auto">
-      
+
       <!-- HERO COM BACKGROUND DE NORONHA -->
       <section class="hero-section relative overflow-hidden rounded-b-[60px]">
         <div class="hero-bg"></div>
         <div class="hero-overlay"></div>
-        
+
         <div class="hero-content relative z-10 max-w-[800px] mx-auto text-center px-4">
           <h1 class="text-3xl md:text-6xl font-black text-white mb-8 tracking-tight drop-shadow-lg">
             Descubra o melhor de <span class="text-primary-light">Noronha</span>
           </h1>
           <p class="text-white/90 text-lg md:text-xl font-medium mb-10 max-w-2xl mx-auto">Viva experiências inesquecíveis no santuário ecológico mais preservado do Brasil.</p>
-          
+
           <div class="search-box p-2 bg-white flex items-center gap-2">
             <div class="flex-1 flex items-center gap-3 px-4">
               <i class="pi pi-search text-slate-400"></i>
-              <input type="text" placeholder="Buscar praias, passeios ou eventos..." 
+              <input type="text" placeholder="Buscar praias, passeios ou eventos..."
                      class="search-input w-full py-3 border-none outline-none text-slate-700 font-medium">
             </div>
             <button class="bg-primary text-white font-bold px-8 py-3 rounded-xl hover:bg-primary/90 transition-all active:scale-95">
@@ -45,34 +41,40 @@ import { ItineraryService } from '../../services/itinerary.service';
           <h2 class="text-2xl font-black text-slate-800">Eventos em Destaque</h2>
           <a routerLink="/events" class="text-primary font-bold text-sm hover:underline">Ver todos</a>
         </div>
-        
-        <p-carousel [value]="eventHighlights" [numVisible]="3" [numScroll]="1" [responsiveOptions]="responsiveOptions" [circular]="true" [autoplayInterval]="5000">
-          <ng-template let-event pTemplate="item">
-            <div class="px-2">
-              <div class="relative h-48 rounded-2xl overflow-hidden group cursor-pointer" [routerLink]="['/events']">
-                <img [src]="event.image" loading="lazy" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                <div class="absolute bottom-4 left-4 text-white">
-                  <span class="text-[10px] uppercase font-black bg-cta px-2 py-0.5 rounded-md mb-2 inline-block">Hoje</span>
-                  <h3 class="font-bold text-lg leading-tight">{{event.title}}</h3>
-                </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          @for (event of eventHighlights; track event.title) {
+            <div class="relative h-48 rounded-2xl overflow-hidden group cursor-pointer" [routerLink]="['/events']">
+              <img [src]="event.image" loading="lazy" alt="{{event.title}}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+              <div class="absolute bottom-4 left-4 text-white">
+                <span class="text-[10px] uppercase font-black bg-cta px-2 py-0.5 rounded-md mb-2 inline-block">Hoje</span>
+                <h3 class="font-bold text-lg leading-tight">{{event.title}}</h3>
               </div>
             </div>
-          </ng-template>
-        </p-carousel>
+          }
+        </div>
       </section>
 
       <!-- CATEGORIAS ESTILO IFOOD (CÍRCULOS E SUB-OPÇÕES) -->
       <section class="px-4 py-12">
         <h2 class="text-2xl font-black text-slate-800 mb-8">O que você procura hoje?</h2>
-        <div class="grid grid-cols-4 md:grid-cols-8 gap-y-10 gap-x-4">
+        <div class="grid grid-cols-4 md:grid-cols-9 gap-y-10 gap-x-4">
           @for (cat of categories; track cat.label) {
             <div class="flex flex-col items-center group cursor-pointer" [routerLink]="cat.route">
               <div class="w-16 h-16 md:w-20 md:h-20 bg-white rounded-full shadow-premium border border-slate-50 flex items-center justify-center group-hover:scale-110 transition-all duration-300 mb-3">
-                <i [class]="'pi ' + cat.icon" class="text-2xl text-primary"></i>
+                @if (cat.label === 'Comer') {
+                  <svg viewBox="0 0 64 64" class="w-8 h-8 text-primary" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="32" cy="32" r="18"></circle>
+                    <circle cx="32" cy="32" r="7"></circle>
+                    <path d="M19 18c2 2 4 3 7 3s5-1 7-3"></path>
+                    <path d="M22 46c3-2 6-3 10-3s7 1 10 3"></path>
+                  </svg>
+                } @else {
+                  <i [class]="'pi ' + cat.icon" class="text-2xl text-primary"></i>
+                }
               </div>
               <span class="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest text-center group-hover:text-primary transition-colors">{{cat.label}}</span>
-              
+
               <!-- SUB-OPÇÕES RÁPIDAS (ESTILO IFOOD) -->
               <div class="hidden md:flex flex-wrap justify-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 @for (sub of cat.subs; track sub) {
@@ -109,20 +111,20 @@ import { ItineraryService } from '../../services/itinerary.service';
                     <span class="bg-primary text-white text-[10px] font-black uppercase px-3 py-1 rounded-lg">{{item.category}}</span>
                   </div>
                 </div>
-                
+
                 <h3 class="text-xl font-black text-slate-800 mb-2 truncate px-2">{{item.title}}</h3>
                 <div class="flex items-center gap-2 text-slate-400 text-xs font-bold px-2 mb-4">
                   <i class="pi pi-map-marker text-primary"></i> {{item.location}}
                 </div>
-                
+
                 <div class="flex items-center justify-between border-t border-slate-50 pt-4 mt-2 px-2">
                    <span class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Experiência</span>
                    <div class="flex gap-2">
                      <button (click)="toggleItinerary(item); $event.stopPropagation()"
-                             [class.bg-secondary]="itinerary.isAdded(item.title, 'HIGHLIGHT')"
-                             [class.text-white]="itinerary.isAdded(item.title, 'HIGHLIGHT')"
+                             [class.bg-secondary]="itinerary.isInItinerary(item.title, 'HIGHLIGHT')"
+                             [class.text-white]="itinerary.isInItinerary(item.title, 'HIGHLIGHT')"
                              class="w-10 h-10 bg-slate-50 text-slate-400 rounded-full hover:bg-secondary hover:text-white transition-all flex items-center justify-center">
-                       <i [class]="itinerary.isAdded(item.title, 'HIGHLIGHT') ? 'pi pi-calendar-times' : 'pi pi-calendar-plus'" class="text-lg"></i>
+                       <i [class]="itinerary.isInItinerary(item.title, 'HIGHLIGHT') ? 'pi pi-calendar-times' : 'pi pi-calendar-plus'" class="text-lg"></i>
                      </button>
                      <button class="w-10 h-10 bg-slate-50 text-primary rounded-full hover:bg-primary hover:text-white transition-all">
                        <i class="pi pi-arrow-right"></i>
@@ -155,7 +157,7 @@ import { ItineraryService } from '../../services/itinerary.service';
     .home-container {
       padding-bottom: 2rem;
     }
-    
+
     .hero-section {
       position: relative;
       min-height: 70vh;
@@ -367,7 +369,7 @@ import { ItineraryService } from '../../services/itinerary.service';
     }
     .contact-box h3 { font-size: 2rem; font-weight: 900; margin-bottom: 10px;}
     .contact-box p { opacity: 0.9; margin-bottom: 20px;}
-    
+
     @media (max-width: 768px) {
       .hero-title { font-size: 2.8rem; }
       .search-card { flex-direction: column; }
@@ -379,9 +381,10 @@ export class HomeComponent {
 
   categories: { label: string, icon: string, route: string, subs: string[] }[] = [
     { label: 'Ambiental', icon: 'pi-globe', route: '/environmental', subs: ['Trilhas', 'Projetos', 'Praias'] },
+    { label: 'Pontos', icon: 'pi-compass', route: '/pontos-turisticos', subs: ['Sancho', 'Boldró', 'Vila'] },
     { label: 'Cultura', icon: 'pi-palette', route: '/culture', subs: ['Museus', 'História', 'Arte'] },
     { label: 'Passeios', icon: 'pi-camera', route: '/tours', subs: ['Barco', 'Buggy', 'Mergulho'] },
-    { label: 'Comer', icon: 'pi-utensils', route: '/restaurants', subs: ['Peixe', 'Bares', 'Cafés'] },
+    { label: 'Comer', icon: 'pi-shopping-bag', route: '/restaurants', subs: ['Peixe', 'Bares', 'Cafés'] },
     { label: 'Dormir', icon: 'pi-home', route: '/hotels', subs: ['Pousada', 'Holanda', 'Resort'] },
     { label: 'Eventos', icon: 'pi-calendar', route: '/events', subs: ['Shows', 'Festas', 'Luau'] },
     { label: 'Mapa', icon: 'pi-map', route: '/map', subs: ['GPS', 'Pontos'] },
@@ -394,36 +397,30 @@ export class HomeComponent {
     { title: 'Pôr do Sol Musical', image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&q=80' }
   ];
 
-  responsiveOptions = [
-    { breakpoint: '1024px', numVisible: 3, numScroll: 1 },
-    { breakpoint: '768px', numVisible: 2, numScroll: 1 },
-    { breakpoint: '560px', numVisible: 1, numScroll: 1 }
-  ];
-
   highlights = [
-    { 
-      title: 'Baía do Sancho', 
-      description: 'Eleita diversas vezes a melhor praia do mundo, com águas cristalinas e vida marinha abundante.', 
-      image: 'https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=600&q=80', 
-      rating: 5.0, 
-      category: 'Praia', 
-      location: 'Parque Nacional' 
+    {
+      title: 'Baía do Sancho',
+      description: 'Eleita diversas vezes a melhor praia do mundo, com águas cristalinas e vida marinha abundante.',
+      image: 'https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=600&q=80',
+      rating: 5.0,
+      category: 'Praia',
+      location: 'Parque Nacional'
     },
-    { 
-      title: 'Restaurante Varanda', 
-      description: 'O melhor da culinária local com uma vista privilegiada para o pôr do sol mais famoso do Brasil.', 
-      image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80', 
-      rating: 4.8, 
-      category: 'Gastronomia', 
-      location: 'Vila dos Remédios' 
+    {
+      title: 'Restaurante Varanda',
+      description: 'O melhor da culinária local com uma vista privilegiada para o pôr do sol mais famoso do Brasil.',
+      image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80',
+      rating: 4.8,
+      category: 'Gastronomia',
+      location: 'Vila dos Remédios'
     },
-    { 
-      title: 'Ilha Tour Completo', 
-      description: 'Conheça os principais pontos turísticos da ilha em um dia inteiro de aventura e descobertas.', 
-      image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&q=80', 
-      rating: 4.9, 
-      category: 'Passeio', 
-      location: 'Toda a Ilha' 
+    {
+      title: 'Ilha Tour Completo',
+      description: 'Conheça os principais pontos turísticos da ilha em um dia inteiro de aventura e descobertas.',
+      image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&q=80',
+      rating: 4.9,
+      category: 'Passeio',
+      location: 'Toda a Ilha'
     }
   ];
 
