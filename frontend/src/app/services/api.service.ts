@@ -1,3 +1,4 @@
+import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Event, Tour, TouristPoint, Establishment, EstablishmentType, Page, ApiResponse, AdminStatsDTO, EstablishmentStatsDTO, RouteRequestDTO, RouteResponseDTO } from '../models/tourism.models';
