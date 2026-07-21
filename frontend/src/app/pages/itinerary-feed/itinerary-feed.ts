@@ -199,9 +199,9 @@ export class ItineraryFeedComponent implements OnInit {
     }
   }
 
-  copyLink() {
+  async copyLink() {
     if (this.selectedItineraryForShare) {
-      if (this.shareService.copyLink(this.selectedItineraryForShare)) {
+      if (await this.shareService.copyLink(this.selectedItineraryForShare)) {
         this.toastService.add({ severity: 'success', summary: 'Copiado', detail: 'Link copiado para a área de transferência!' });
       }
     }

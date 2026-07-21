@@ -30,6 +30,26 @@ export class ProfilePageComponent {
 
   userTierLabel = signal('Free');
   userTierDescription = signal('Explore o app com o plano gratuito.');
+  planCards = [
+    {
+      name: 'Free',
+      price: 'Gratis',
+      description: 'Para turistas que querem explorar Noronha com mapa, roteiros e categorias essenciais.',
+      features: ['Mapa e pontos principais', 'Roteiro local', 'Restaurantes e hospedagens']
+    },
+    {
+      name: 'Pro',
+      price: 'Sob consulta',
+      description: 'Para quem quer planejar melhor a viagem com eventos, agenda e conteudo dinamico.',
+      features: ['Eventos em tempo real', 'Roteiros mais completos', 'Alertas e recomendacoes']
+    },
+    {
+      name: 'Premium',
+      price: 'Sob consulta',
+      description: 'Para viajantes que querem ofertas, beneficios de parceiros e experiencia assistida.',
+      features: ['Ofertas exclusivas', 'Beneficios de parceiros', 'Atendimento comercial']
+    }
+  ];
 
     constructor() {
     this.loadMyItineraries();
@@ -64,7 +84,7 @@ export class ProfilePageComponent {
   loadMyItineraries() {
     this.http.get(`${environment.apiUrl}/itineraries/my`).subscribe({
       next: (res: any) => this.itineraries.set(res.data || []),
-      error: () => console.warn('Erro ao carregar roteiros do perfil')
+      error: () => this.itineraries.set([])
     });
   }
 
@@ -99,6 +119,10 @@ export class ProfilePageComponent {
 
   isFreeUser() {
     return this.auth.isFreeTier();
+  }
+
+  isCurrentPlan(planName: string) {
+    return this.userTierLabel().toLowerCase() === planName.toLowerCase();
   }
 
   saveProfile() {

@@ -7,6 +7,7 @@ import { AuthService } from '../../services/auth.service';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { AnalyticsService } from '../../services/analytics.service';
+import { openExternalLink } from '../../utils/external-link';
 
 @Component({
   selector: 'app-establishment-detail',
@@ -62,14 +63,14 @@ export class EstablishmentDetailComponent implements OnInit {
     if (!establishment?.contactNumber) return;
     const msg = encodeURIComponent(`Olá! Vi o estabelecimento "${establishment.name}" no SisTur e gostaria de mais informações.`);
     this.analytics.conversion('ESTABLISHMENT', 'WHATSAPP_CLICK', establishment.id, `/establishments/${establishment.id}`);
-    window.open(`https://wa.me/${establishment.contactNumber}?text=${msg}`, '_blank');
+    openExternalLink(`https://wa.me/${establishment.contactNumber}?text=${msg}`);
   }
 
   openGoogleMaps() {
     const establishment = this.est();
     if (!establishment) return;
     this.analytics.conversion('ESTABLISHMENT', 'MAP_CLICK', establishment.id, `/establishments/${establishment.id}`);
-    window.open(`https://www.google.com/maps/dir/?api=1&destination=${establishment.latitude},${establishment.longitude}`, '_blank');
+    openExternalLink(`https://www.google.com/maps/dir/?api=1&destination=${establishment.latitude},${establishment.longitude}`);
   }
 
   openGoogleService() {
@@ -77,21 +78,21 @@ export class EstablishmentDetailComponent implements OnInit {
     if (!establishment) return;
     const query = encodeURIComponent(`${establishment.name} ${establishment.location || 'Fernando de Noronha'}`);
     this.analytics.googleServiceClick('ESTABLISHMENT', establishment.id, establishment.name, `/establishments/${establishment.id}`);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank', 'noopener');
+    openExternalLink(`https://www.google.com/maps/search/?api=1&query=${query}`);
   }
 
   openWebsite() {
     const establishment = this.est();
     if (!establishment?.websiteUrl) return;
     this.analytics.conversion('ESTABLISHMENT', 'WEBSITE_CLICK', establishment.id, `/establishments/${establishment.id}`);
-    window.open(establishment.websiteUrl, '_blank');
+    openExternalLink(establishment.websiteUrl);
   }
 
   openInstagram() {
     const establishment = this.est();
     if (!establishment?.instagramUrl) return;
     this.analytics.conversion('ESTABLISHMENT', 'INSTAGRAM_CLICK', establishment.id, `/establishments/${establishment.id}`);
-    window.open(establishment.instagramUrl, '_blank');
+    openExternalLink(establishment.instagramUrl);
   }
 
   loadEstablishment(id: string) {

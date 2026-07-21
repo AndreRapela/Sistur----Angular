@@ -5,7 +5,6 @@ import { ApiResponse } from '../models/tourism.models';
 import { environment } from '../../environments/environment';
 
 export type UserRole = 'ADMIN' | 'CLIENT' | 'USER' | 'FREE_TOURIST' | 'PRO_TOURIST' | 'PREMIUM_TOURIST';
-export type TouristRole = 'FREE_TOURIST' | 'PRO_TOURIST' | 'PREMIUM_TOURIST';
 
 export interface LoginResponse {
   token: string;
@@ -49,7 +48,7 @@ export class AuthService {
     );
   }
 
-  register(userData: { name: string, email: string, password: string, role?: TouristRole }): Observable<ApiResponse<LoginResponse>> {
+  register(userData: { name: string, email: string, password: string }): Observable<ApiResponse<LoginResponse>> {
     return this.http.post<ApiResponse<LoginResponse>>(`${this.apiUrl}/register`, userData).pipe(
       tap(res => {
         if (res.data) {
@@ -110,8 +109,7 @@ export class AuthService {
         this.persistSession(normalized);
         this.scheduleExpiry(expiresAt);
       }
-    } catch (e) {
-      console.error('Erro ao carregar cache de autenticação', e);
+    } catch {
       this.clearSessionState();
     }
   }

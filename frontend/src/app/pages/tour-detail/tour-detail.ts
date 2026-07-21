@@ -6,6 +6,7 @@ import { ItineraryService } from '../../services/itinerary.service';
 import { MapComponent } from '../../components/map/map';
 import { finalize } from 'rxjs';
 import { AnalyticsService } from '../../services/analytics.service';
+import { openExternalLink } from '../../utils/external-link';
 
 @Component({
   selector: 'app-tour-detail',
@@ -65,7 +66,7 @@ export class TourDetailComponent implements OnInit {
     if (!t) return;
     const msg = encodeURIComponent(`Olá! Vi o passeio "${t.name}" no SisTur e gostaria de mais informações.`);
     this.analytics.conversion('TOUR', 'WHATSAPP_CLICK', t.id, `/tours/${t.id}`);
-    window.open(`https://wa.me/${t.contactNumber}?text=${msg}`, '_blank');
+    openExternalLink(`https://wa.me/${t.contactNumber}?text=${msg}`);
   }
 
   openGoogleMaps() {
@@ -73,7 +74,7 @@ export class TourDetailComponent implements OnInit {
     if (!t) return;
     const url = `https://www.google.com/maps/dir/?api=1&destination=${t.latitude},${t.longitude}`;
     this.analytics.conversion('TOUR', 'MAP_CLICK', t.id, `/tours/${t.id}`);
-    window.open(url, '_blank');
+    openExternalLink(url);
   }
 
   openGoogleService() {
@@ -81,6 +82,6 @@ export class TourDetailComponent implements OnInit {
     if (!t) return;
     const query = encodeURIComponent(`${t.name} ${t.partnership || ''} Fernando de Noronha`);
     this.analytics.googleServiceClick('TOUR', t.id, t.name, `/tours/${t.id}`);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank', 'noopener');
+    openExternalLink(`https://www.google.com/maps/search/?api=1&query=${query}`);
   }
 }

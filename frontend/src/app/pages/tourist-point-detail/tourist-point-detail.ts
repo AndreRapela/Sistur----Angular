@@ -7,6 +7,7 @@ import { ItineraryService } from '../../services/itinerary.service';
 import { AnalyticsService } from '../../services/analytics.service';
 import { TouristPoint } from '../../models/tourism.models';
 import { touristPointDetails, TouristPointDetailMeta } from '../../data/tourist-point-details';
+import { openExternalLink } from '../../utils/external-link';
 
 type TouristPointDetailViewModel = TouristPoint & TouristPointDetailMeta;
 
@@ -111,6 +112,6 @@ export class TouristPointDetailComponent implements OnInit {
 
     const query = encodeURIComponent(`${point.name} ${point.location || 'Fernando de Noronha'}`);
     this.analytics.googleServiceClick('TOURIST_POINT', point.id, point.name, `/pontos-turisticos/${point.id}`);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank', 'noopener');
+    openExternalLink(`https://www.google.com/maps/search/?api=1&query=${query}`);
   }
 }

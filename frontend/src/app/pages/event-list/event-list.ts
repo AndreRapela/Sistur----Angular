@@ -9,6 +9,7 @@ import { ToastService } from "../../services/toast.service";
 import { AnalyticsService } from "../../services/analytics.service";
 import { Event } from "../../models/tourism.models";
 import { SkeletonListComponent } from "../../components/skeleton-list/skeleton-list";
+import { openExternalLink } from "../../utils/external-link";
 
 @Component({
   selector: "app-event-list",
@@ -76,7 +77,7 @@ export class EventListComponent implements OnInit {
 
   openCategoryInGoogle() {
     this.analytics.googleCategoryClick("EVENT", "Eventos", "/events");
-    window.open("https://www.google.com/maps/search/?api=1&query=eventos%20Fernando%20de%20Noronha", "_blank", "noopener");
+    openExternalLink("https://www.google.com/maps/search/?api=1&query=eventos%20Fernando%20de%20Noronha");
   }
 
   toggleLike(event: Event) {
@@ -89,20 +90,26 @@ export class EventListComponent implements OnInit {
 
   shareEvent(event: Event) {
     this.analytics.conversion('EVENT', 'SHARE', event.id, `/events/${event.id}`);
+    const url = `${window.location.origin}/events/${event.id}`;
+
     if (navigator.share) {
       navigator.share({
         title: event.title,
         text: event.description || "Confira este evento em Noronha!",
-        url: window.location.href
-      }).catch(() => this.copyToClipboard());
+        url
+      }).catch(() => this.copyToClipboard(url));
     } else {
-      this.copyToClipboard();
+      this.copyToClipboard(url);
     }
   }
 
-  private copyToClipboard() {
-    navigator.clipboard.writeText(window.location.href);
-    this.toastService.add({ severity: "success", summary: "Copiado", detail: "Link do evento copiado!" });
+  private async copyToClipboard(url: string) {
+    try {
+      await navigator.clipboard.writeText(url);
+      this.toastService.add({ severity: "success", summary: "Copiado", detail: "Link do evento copiado!" });
+    } catch {
+      this.toastService.add({ severity: "warn", summary: "Nao copiado", detail: "Nao foi possivel copiar o link do evento." });
+    }
   }
 
   findOnMap(event: Event) {
@@ -113,7 +120,7 @@ export class EventListComponent implements OnInit {
   openGoogleService(event: Event) {
     const query = encodeURIComponent(`${event.title} ${event.location || "Fernando de Noronha"}`);
     this.analytics.googleServiceClick("EVENT", event.id, event.title, `/events/${event.id}`);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, "_blank", "noopener");
+    openExternalLink(`https://www.google.com/maps/search/?api=1&query=${query}`);
   }
 
   toggleItinerary(event: Event) {

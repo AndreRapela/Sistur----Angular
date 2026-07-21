@@ -10,6 +10,7 @@ import { AnalyticsService } from '../../services/analytics.service';
 import { TouristPoint } from '../../models/tourism.models';
 import { touristPointDetails } from '../../data/tourist-point-details';
 import { SkeletonListComponent } from '../../components/skeleton-list/skeleton-list';
+import { openExternalLink } from '../../utils/external-link';
 
 @Component({
   selector: 'app-tourist-points',
@@ -100,7 +101,7 @@ export class TouristPointsComponent implements OnInit {
 
   openCategoryInGoogle() {
     this.analytics.googleCategoryClick('POINT', 'Pontos turisticos e praias', '/pontos-turisticos');
-    window.open('https://www.google.com/maps/search/?api=1&query=pontos%20turisticos%20praias%20Fernando%20de%20Noronha', '_blank', 'noopener');
+    openExternalLink('https://www.google.com/maps/search/?api=1&query=pontos%20turisticos%20praias%20Fernando%20de%20Noronha');
   }
 
   openDetail(point: TouristPoint) {
@@ -116,7 +117,7 @@ export class TouristPointsComponent implements OnInit {
   openGoogleService(point: TouristPoint) {
     const query = encodeURIComponent(`${point.name} ${point.location || 'Fernando de Noronha'}`);
     this.analytics.googleServiceClick('TOURIST_POINT', point.id, point.name, `/pontos-turisticos/${point.id}`);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank', 'noopener');
+    openExternalLink(`https://www.google.com/maps/search/?api=1&query=${query}`);
   }
 
   toggleItinerary(point: TouristPoint) {

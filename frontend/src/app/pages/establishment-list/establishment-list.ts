@@ -11,6 +11,7 @@ import { AnalyticsService } from '../../services/analytics.service';
 import { Establishment, EstablishmentType } from '../../models/tourism.models';
 import { SkeletonListComponent } from '../../components/skeleton-list/skeleton-list';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { openExternalLink } from '../../utils/external-link';
 
 @Component({
   selector: 'app-establishment-list',
@@ -120,7 +121,7 @@ export class EstablishmentListComponent implements OnInit {
       : 'restaurantes Fernando de Noronha';
 
     this.analytics.googleCategoryClick(category, label, `/${this.type === 'HOTEL' ? 'hotels' : 'restaurants'}`);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`, '_blank', 'noopener');
+    openExternalLink(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`);
   }
 
   findOnMap(est: Establishment) {
@@ -131,7 +132,7 @@ export class EstablishmentListComponent implements OnInit {
   openGoogleService(est: Establishment) {
     const query = encodeURIComponent(`${est.name} ${est.location || 'Fernando de Noronha'}`);
     this.analytics.googleServiceClick('ESTABLISHMENT', est.id, est.name, `/establishments/${est.id}`);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank', 'noopener');
+    openExternalLink(`https://www.google.com/maps/search/?api=1&query=${query}`);
   }
 
   toggleItinerary(est: Establishment) {

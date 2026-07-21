@@ -7,7 +7,11 @@ import { ToastService } from '../../services/toast.service';
 import { AnalyticsService } from '../../services/analytics.service';
 import { environment } from '../../../environments/environment';
 
-declare const google: any;
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
 
 @Component({
   selector: 'app-login',
@@ -20,6 +24,7 @@ export class LoginComponent implements AfterViewInit, OnInit {
   credentials = { email: '', password: '' };
   showPassword = false;
   googleSignInEnabled = Boolean(environment.googleClientId?.trim());
+  private googleIdentityPromise?: Promise<any>;
 
   constructor(
     private authService: AuthService,
@@ -59,22 +64,86 @@ export class LoginComponent implements AfterViewInit, OnInit {
   }
 
   ngAfterViewInit() {
-    this.initializeGoogleSignIn();
+    void this.initializeGoogleSignIn();
   }
 
-  initializeGoogleSignIn() {
-    if (!this.googleSignInEnabled || typeof google === 'undefined' || !google?.accounts?.id) {
+  async initializeGoogleSignIn() {
+    if (!this.googleSignInEnabled) {
       return;
     }
 
-    google.accounts.id.initialize({
-      client_id: environment.googleClientId,
-      callback: this.handleGoogleCredentialResponse.bind(this)
+    try {
+      const google = await this.loadGoogleIdentity();
+      if (!google?.accounts?.id) {
+        return;
+      }
+
+      google.accounts.id.initialize({
+        client_id: environment.googleClientId,
+        callback: this.handleGoogleCredentialResponse.bind(this)
+      });
+
+      const buttonHost = document.getElementById('google-btn');
+      if (!buttonHost) {
+        return;
+      }
+
+      google.accounts.id.renderButton(buttonHost, { theme: 'outline', size: 'large', width: '100%' });
+    } catch {
+      this.googleSignInEnabled = false;
+    }
+  }
+
+  private loadGoogleIdentity(): Promise<any> {
+    if (window.google?.accounts?.id) {
+      return Promise.resolve(window.google);
+    }
+
+    if (this.googleIdentityPromise) {
+      return this.googleIdentityPromise;
+    }
+
+    this.googleIdentityPromise = new Promise((resolve, reject) => {
+      const resolveIfReady = () => {
+        if (window.google?.accounts?.id) {
+          resolve(window.google);
+          return true;
+        }
+        return false;
+      };
+
+      const existingScript = document.querySelector<HTMLScriptElement>('script[data-sistur-google-identity]');
+      if (existingScript) {
+        if (resolveIfReady()) {
+          return;
+        }
+
+        existingScript.addEventListener('load', resolveIfReady, { once: true });
+        existingScript.addEventListener('error', reject, { once: true });
+        window.setTimeout(() => {
+          if (!resolveIfReady()) {
+            reject(new Error('Google Identity indisponivel'));
+          }
+        }, 10000);
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.setAttribute('data-sistur-google-identity', 'true');
+      script.addEventListener('load', resolveIfReady, { once: true });
+      script.addEventListener('error', reject, { once: true });
+      window.setTimeout(() => {
+        if (!resolveIfReady()) {
+          reject(new Error('Google Identity indisponivel'));
+        }
+      }, 10000);
+      document.head.appendChild(script);
     });
-    google.accounts.id.renderButton(
-      document.getElementById('google-btn'),
-      { theme: 'outline', size: 'large', width: '100%' }
-    );
+
+    return this.googleIdentityPromise;
   }
 
   handleGoogleCredentialResponse(response: any) {

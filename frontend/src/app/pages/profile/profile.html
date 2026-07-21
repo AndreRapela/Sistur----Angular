@@ -68,6 +68,49 @@
     </div>
   </header>
 
+  <section class="max-w-5xl mx-auto px-4 pb-10">
+    <div class="mb-4 flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
+      <div>
+        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Planos SisTur</span>
+        <h2 class="m-0 text-2xl font-black text-slate-900">Modelo de acesso</h2>
+      </div>
+      <a routerLink="/contact" class="text-sm font-black text-primary no-underline hover:underline">Falar com a equipe</a>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+      @for (plan of planCards; track plan.name) {
+        <article class="rounded-2xl border p-5 transition-all"
+                 [class.border-primary]="isCurrentPlan(plan.name)"
+                 [class.bg-primary]="isCurrentPlan(plan.name)"
+                 [class.text-white]="isCurrentPlan(plan.name)"
+                 [class.border-slate-200]="!isCurrentPlan(plan.name)"
+                 [class.bg-white]="!isCurrentPlan(plan.name)">
+          <div class="flex items-center justify-between gap-3">
+            <h3 class="m-0 text-lg font-black">{{ plan.name }}</h3>
+            @if (isCurrentPlan(plan.name)) {
+              <span class="rounded-full bg-white/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest">Atual</span>
+            }
+          </div>
+          <p class="mt-2 text-2xl font-black">{{ plan.price }}</p>
+          <p class="min-h-[56px] text-sm font-semibold opacity-80">{{ plan.description }}</p>
+          <ul class="mt-4 space-y-2 p-0 text-sm font-bold">
+            @for (feature of plan.features; track feature) {
+              <li class="flex items-center gap-2">
+                <i class="pi pi-check-circle"></i>
+                <span>{{ feature }}</span>
+              </li>
+            }
+          </ul>
+          @if (!isCurrentPlan(plan.name)) {
+            <a routerLink="/contact" class="mt-5 flex items-center justify-center rounded-xl bg-slate-900 px-4 py-3 text-sm font-black text-white no-underline hover:bg-primary transition-colors">
+              Solicitar {{ plan.name }}
+            </a>
+          }
+        </article>
+      }
+    </div>
+  </section>
+
   <!-- Tabs e Grid -->
   <div class="max-w-5xl mx-auto border-t border-slate-200">
     <div class="flex justify-center gap-12 -mt-px">

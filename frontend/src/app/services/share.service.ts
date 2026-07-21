@@ -1,23 +1,24 @@
 import { Injectable } from '@angular/core';
+import { openExternalLink } from '../utils/external-link';
 
 @Injectable({ providedIn: 'root' })
 export class ShareService {
   shareWhatsApp(itinerary: any) {
     const url = window.location.origin + '/itinerary-shared/' + (itinerary.shareToken || itinerary.id);
     const text = `Vem comigo para Noronha! ${itinerary.title} - ${url}`;
-    window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(text), '_blank');
+    openExternalLink('https://api.whatsapp.com/send?text=' + encodeURIComponent(text));
   }
 
   shareTwitter(itinerary: any) {
      const url = window.location.origin + '/itinerary-shared/' + (itinerary.shareToken || itinerary.id);
      const text = `Vem comigo para Noronha! ${itinerary.title}`;
-     window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(url), '_blank');
+     openExternalLink('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(url));
   }
 
-  copyLink(itinerary: any): boolean {
+  async copyLink(itinerary: any): Promise<boolean> {
     const url = window.location.origin + '/itinerary-shared/' + (itinerary.shareToken || itinerary.id);
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(url);
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(url);
       return true;
     }
     return false;

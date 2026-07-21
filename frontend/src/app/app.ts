@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { BottomNavComponent } from './components/bottom-nav/bottom-nav';
@@ -34,6 +35,7 @@ export class AppComponent {
 
   auth = inject(AuthService);
   private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
 
   currentRoute = signal<string>('');
   showSabat = false;
@@ -62,8 +64,11 @@ export class AppComponent {
   constructor() {
     this.currentRoute.set(this.router.url);
     this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe((event: any) => {
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(event => {
         this.currentRoute.set(event.urlAfterRedirects || event.url);
       });
   }

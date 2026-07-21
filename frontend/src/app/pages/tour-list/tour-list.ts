@@ -7,6 +7,7 @@ import { SkeletonListComponent } from '../../components/skeleton-list/skeleton-l
 import { ItineraryService } from '../../services/itinerary.service';
 import { AnalyticsService } from '../../services/analytics.service';
 import { finalize } from 'rxjs';
+import { openExternalLink } from '../../utils/external-link';
 
 @Component({
   selector: 'app-tour-list',
@@ -75,7 +76,7 @@ export class TourListComponent implements OnInit {
 
   openCategoryInGoogle() {
     this.analytics.googleCategoryClick('TOUR', 'Passeios', '/tours');
-    window.open('https://www.google.com/maps/search/?api=1&query=passeios%20turisticos%20Fernando%20de%20Noronha', '_blank', 'noopener');
+    openExternalLink('https://www.google.com/maps/search/?api=1&query=passeios%20turisticos%20Fernando%20de%20Noronha');
   }
 
   onSearch(term: string) {
@@ -94,7 +95,7 @@ export class TourListComponent implements OnInit {
   openGoogleService(tour: Tour) {
     const query = encodeURIComponent(`${tour.name} ${tour.partnership || ''} Fernando de Noronha`);
     this.analytics.googleServiceClick('TOUR', tour.id, tour.name, `/tours/${tour.id}`);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank', 'noopener');
+    openExternalLink(`https://www.google.com/maps/search/?api=1&query=${query}`);
   }
 
   toggleItinerary(tour: Tour) {

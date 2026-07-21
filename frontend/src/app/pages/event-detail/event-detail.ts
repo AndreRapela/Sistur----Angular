@@ -5,6 +5,7 @@ import { ApiService } from '../../services/api.service';
 import { ItineraryService } from '../../services/itinerary.service';
 import { MapComponent } from '../../components/map/map';
 import { AnalyticsService } from '../../services/analytics.service';
+import { openExternalLink } from '../../utils/external-link';
 
 @Component({
   selector: 'app-event-detail',
@@ -51,7 +52,7 @@ export class EventDetailComponent implements OnInit {
     if (!event?.contactNumber) return;
     const msg = encodeURIComponent(`Olá! Vi o evento "${event.title}" no SisTur e gostaria de mais informações.`);
     this.analytics.conversion('EVENT', 'WHATSAPP_CLICK', event.id, `/events/${event.id}`);
-    window.open(`https://wa.me/${event.contactNumber}?text=${msg}`, '_blank');
+    openExternalLink(`https://wa.me/${event.contactNumber}?text=${msg}`);
   }
 
   openGoogleMaps() {
@@ -59,7 +60,7 @@ export class EventDetailComponent implements OnInit {
     if (!event) return;
     const url = `https://www.google.com/maps/dir/?api=1&destination=${event.latitude},${event.longitude}`;
     this.analytics.conversion('EVENT', 'MAP_CLICK', event.id, `/events/${event.id}`);
-    window.open(url, '_blank');
+    openExternalLink(url);
   }
 
   openGoogleService() {
@@ -67,13 +68,13 @@ export class EventDetailComponent implements OnInit {
     if (!event) return;
     const query = encodeURIComponent(`${event.title} ${event.location || 'Fernando de Noronha'}`);
     this.analytics.googleServiceClick('EVENT', event.id, event.title, `/events/${event.id}`);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank', 'noopener');
+    openExternalLink(`https://www.google.com/maps/search/?api=1&query=${query}`);
   }
 
   openBookingLink() {
     const event = this.event;
     if (!event?.externalBookingUrl) return;
     this.analytics.conversion('EVENT', 'BOOKING_CLICK', event.id, `/events/${event.id}`);
-    window.open(event.externalBookingUrl, '_blank');
+    openExternalLink(event.externalBookingUrl);
   }
 }

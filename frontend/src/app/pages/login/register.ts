@@ -5,7 +5,6 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
 import { AnalyticsService } from '../../services/analytics.service';
-import { TouristRole } from '../../services/auth.service';
 
 @Component({
   selector: 'app-register',
@@ -22,7 +21,6 @@ export class RegisterComponent implements OnInit {
   name = '';
   email = '';
   password = '';
-  selectedRole: TouristRole = 'FREE_TOURIST';
   isLoading = false;
   showPassword = false;
 
@@ -43,7 +41,7 @@ export class RegisterComponent implements OnInit {
     }
 
     this.isLoading = true;
-    this.auth.register({ name: this.name, email: this.email, password: this.password, role: this.selectedRole }).subscribe({
+    this.auth.register({ name: this.name, email: this.email, password: this.password }).subscribe({
       next: () => {
         this.toastService.add({ severity: 'success', summary: 'Sucesso', detail: 'Conta criada com sucesso!' });
         this.analytics.conversion('AUTH', 'REGISTER_SUCCESS', this.email, '/register');

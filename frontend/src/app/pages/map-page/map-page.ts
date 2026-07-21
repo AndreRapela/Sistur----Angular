@@ -19,6 +19,7 @@ import { ApiService } from '../../services/api.service';
 import { AnalyticsService } from '../../services/analytics.service';
 import { GoogleMapsLoaderService } from '../../services/google-maps-loader.service';
 import { ItineraryService } from '../../services/itinerary.service';
+import { openExternalLink } from '../../utils/external-link';
 import {
   Establishment,
   EstablishmentType,
@@ -287,13 +288,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       location.name,
       `/map?category=${location.mapSearchType}`
     );
-    window.open(url, '_blank', 'noopener');
+    openExternalLink(url);
   }
 
   openCategoryInGoogle() {
     const query = this.googleCategoryQuery(this.activeCategory);
     this.analytics.googleCategoryClick(this.activeCategory, this.activeCategoryName(), `/map?category=${this.activeCategory}`);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`, '_blank', 'noopener');
+    openExternalLink(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`);
   }
 
   openDetails(location: MapLocation | null = this.selectedLocation) {
@@ -1068,7 +1069,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.analytics.conversion(this.analyticsTargetType(location), 'DIRECTIONS_CLICK', this.analyticsTargetId(location), `/map?category=${location.mapSearchType}`);
-    window.open(this.googleDirectionsUrl(location), '_blank', 'noopener');
+    openExternalLink(this.googleDirectionsUrl(location));
   }
 
   private googleDirectionsUrl(location: MapLocation): string {
