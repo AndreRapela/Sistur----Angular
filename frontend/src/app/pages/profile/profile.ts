@@ -70,9 +70,19 @@ export class ProfilePageComponent {
 
   onFileSelected(event: any) {
     const file = event.target.files[0];
-    if (file) {
-      this.toastService.add({ severity: 'info', summary: 'Upload', detail: 'Simulando upload de imagem...' });
+    if (!file) {
+      return;
     }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.tempUser.photoUrl = String(reader.result || '');
+      this.toastService.add({ severity: 'success', summary: 'Foto pronta', detail: 'Clique em Salvar para atualizar seu perfil.' });
+    };
+    reader.onerror = () => {
+      this.toastService.add({ severity: 'error', summary: 'Erro', detail: 'Nao foi possivel carregar a imagem.' });
+    };
+    reader.readAsDataURL(file);
   }
 
   toggleEdit() {

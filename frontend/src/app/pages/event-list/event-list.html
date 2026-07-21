@@ -4,15 +4,20 @@
       <span class="text-primary font-black uppercase tracking-widest text-[10px]">Agenda Cultural</span>
       <h1 class="text-4xl md:text-6xl font-black text-slate-800 mt-1 tracking-tight">Eventos</h1>
     </div>
-    <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-bold" (click)="goToMap()">
-      <i class="pi pi-map mr-2"></i> Mapa
-    </button>
+    <div class="flex gap-2">
+      <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-bold" (click)="goToMap()">
+        <i class="pi pi-map mr-2"></i> Mapa
+      </button>
+      <button class="bg-white text-red-600 border border-red-100 px-4 py-2 rounded hover:bg-red-50 font-bold" (click)="openCategoryInGoogle()">
+        <i class="pi pi-google mr-2"></i> Google
+      </button>
+    </div>
   </header>
 
   <div class="max-w-7xl mx-auto">
     <!-- FILTROS -->
     <div class="flex gap-4 mb-12 overflow-x-auto pb-4 no-scrollbar">
-      @for (cat of categories; track cat) {
+      @for (cat of categories(); track cat) {
         <button [class.bg-primary]="selectedCategory() === cat"
                 [class.text-white]="selectedCategory() === cat"
                 [class.bg-white]="selectedCategory() !== cat"
@@ -32,11 +37,18 @@
           @defer (on viewport) {
           <div class="bg-white rounded-[40px] shadow-premium border border-slate-50 overflow-hidden group hover:-translate-y-3 transition-all duration-500 cursor-pointer" (click)="viewDetails(event)">
             <div class="relative h-72 overflow-hidden">
-              <img [ngSrc]="event.photoUrl"
-                   fill
-                   [alt]="event.title"
-                   title="{{event.title}}"
-                   class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[1500ms]">
+              @if (event.photoUrl) {
+                <img [ngSrc]="event.photoUrl"
+                     fill
+                     [alt]="event.title"
+                     title="{{event.title}}"
+                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[1500ms]">
+              } @else {
+                <div class="w-full h-full bg-slate-900 text-white flex flex-col items-center justify-center gap-3">
+                  <i class="pi pi-calendar text-4xl text-amber-300"></i>
+                  <span class="text-xs font-black uppercase tracking-[0.18em] text-white/70">Foto real pendente</span>
+                </div>
+              }
               <div class="absolute top-6 left-6">
                 <span class="bg-white/95 backdrop-blur-md text-primary text-[10px] font-black uppercase px-4 py-2 rounded-2xl shadow-xl border border-white/50">
                   {{event.category}}
@@ -84,9 +96,14 @@
                   </div>
                 </div>
 
-                <button (click)="findOnMap(event); $event.stopPropagation()" title="Ver no Mapa" class="w-12 h-12 bg-slate-50 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-2xl flex items-center justify-center transition-all">
-                  <i class="pi pi-compass text-xl"></i>
-                </button>
+                <div class="flex gap-2">
+                  <button (click)="findOnMap(event); $event.stopPropagation()" title="Ver no Mapa" class="w-12 h-12 bg-slate-50 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-2xl flex items-center justify-center transition-all">
+                    <i class="pi pi-compass text-xl"></i>
+                  </button>
+                  <button (click)="openGoogleService(event); $event.stopPropagation()" title="Ver no Google" class="w-12 h-12 bg-red-50 text-red-500 hover:text-red-600 hover:bg-white border border-red-100 rounded-2xl flex items-center justify-center transition-all">
+                    <i class="pi pi-google text-xl"></i>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -98,4 +115,3 @@
     }
   </div>
 </div>
-

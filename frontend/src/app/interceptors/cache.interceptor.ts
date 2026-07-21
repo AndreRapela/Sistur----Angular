@@ -1,11 +1,11 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { HttpResponse } from '@angular/common/http';
-import { of } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { finalize, shareReplay, tap } from 'rxjs/operators';
 
-// Simple in-memory cache for GET requests
 const cache = new Map<string, { data: HttpResponse<any>; timestamp: number }>();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const pendingRequests = new Map<string, Observable<any>>();
+const DEFAULT_CACHE_DURATION = 3 * 60 * 1000;
 const MAX_CACHE_ENTRIES = 100;
 
 const shouldSkipCache = (url: string) =>
@@ -15,6 +15,15 @@ const shouldSkipCache = (url: string) =>
   url.includes('/api/analytics') ||
   url.includes('/api/admin/stats') ||
   url.includes('/reviews');
+
+const isAnalyticsRequest = (url: string) => url.includes('/api/analytics');
+
+const cacheDurationFor = (url: string) => {
+  if (url.includes('/gamification/badges')) return 15 * 60 * 1000;
+  if (url.includes('/tourist-points') || url.includes('/tours') || url.includes('/events') || url.includes('/establishments')) return 5 * 60 * 1000;
+  if (url.includes('/itineraries/feed')) return 60 * 1000;
+  return DEFAULT_CACHE_DURATION;
+};
 
 const evictOldestEntry = () => {
   if (cache.size < MAX_CACHE_ENTRIES) {
@@ -37,32 +46,48 @@ const evictOldestEntry = () => {
 };
 
 export const cacheInterceptor: HttpInterceptorFn = (req, next) => {
-  // Only cache GET requests
-  if (req.method !== 'GET' || shouldSkipCache(req.url)) {
+  if (req.method !== 'GET') {
+    if (!isAnalyticsRequest(req.url)) {
+      cache.clear();
+      pendingRequests.clear();
+    }
+
+    return next(req);
+  }
+
+  if (shouldSkipCache(req.url)) {
     return next(req);
   }
 
   const authKey = req.headers.get('Authorization') ?? 'public';
   const cacheKey = `${authKey}::${req.urlWithParams}`;
   const cachedResponse = cache.get(cacheKey);
+  const now = Date.now();
 
-  // Return cached response if still valid
   if (cachedResponse) {
-    const now = Date.now();
-    if (now - cachedResponse.timestamp < CACHE_DURATION) {
+    if (now - cachedResponse.timestamp < cacheDurationFor(req.url)) {
       return of(cachedResponse.data.clone());
-    } else {
-      // Cache expired, remove it
-      cache.delete(cacheKey);
     }
+
+    cache.delete(cacheKey);
   }
 
-  return next(req).pipe(
+  const pending = pendingRequests.get(cacheKey);
+  if (pending) {
+    return pending;
+  }
+
+  const request$ = next(req).pipe(
     tap(response => {
       if (response instanceof HttpResponse) {
         evictOldestEntry();
         cache.set(cacheKey, { data: response.clone(), timestamp: Date.now() });
       }
-    })
+    }),
+    finalize(() => pendingRequests.delete(cacheKey)),
+    shareReplay({ bufferSize: 1, refCount: false })
   );
+
+  pendingRequests.set(cacheKey, request$);
+  return request$;
 };

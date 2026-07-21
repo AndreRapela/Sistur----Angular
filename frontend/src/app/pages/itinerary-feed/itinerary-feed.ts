@@ -134,7 +134,7 @@ export class ItineraryFeedComponent implements OnInit {
       },
       error: () => {
         this.loadingComments = false;
-        this.toastService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao carregar comentÃ¡rios' });
+        this.toastService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao carregar comentários' });
         this.cdr.markForCheck();
       }
     });
@@ -161,14 +161,14 @@ export class ItineraryFeedComponent implements OnInit {
       },
       error: () => {
         this.postingComment = false;
-        this.toastService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao enviar comentÃ¡rio' });
+        this.toastService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao enviar comentário' });
         this.cdr.markForCheck();
       }
     });
   }
 
   cloneItinerary(itin: any) {
-    // LÃ³gica para adicionar todos os itens ao roteiro do usuÃ¡rio logado
+    // Lógica para adicionar todos os itens ao roteiro do usuário logado
     itin.items.forEach((item: any) => {
       this.itineraryService.toggleItem({
         id: item.originalId,
@@ -202,7 +202,7 @@ export class ItineraryFeedComponent implements OnInit {
   copyLink() {
     if (this.selectedItineraryForShare) {
       if (this.shareService.copyLink(this.selectedItineraryForShare)) {
-        this.toastService.add({ severity: 'success', summary: 'Copiado', detail: 'Link copiado para a Ã¡rea de transferÃªncia!' });
+        this.toastService.add({ severity: 'success', summary: 'Copiado', detail: 'Link copiado para a área de transferência!' });
       }
     }
   }

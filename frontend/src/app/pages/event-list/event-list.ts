@@ -29,7 +29,14 @@ export class EventListComponent implements OnInit {
   events = signal<Event[]>([]);
   loading = signal(true);
   selectedCategory = signal("Todos");
-  categories = ["Todos", "Cultural", "Esportivo", "Gastronômico", "Ecológico"];
+  categories = computed(() => {
+    const values = this.events()
+      .map(event => event.category)
+      .filter((category): category is string => Boolean(category))
+      .sort((a, b) => a.localeCompare(b, "pt-BR"));
+
+    return ["Todos", ...Array.from(new Set(values))];
+  });
 
   filteredEvents = computed(() => {
     const cat = this.selectedCategory();
@@ -67,6 +74,11 @@ export class EventListComponent implements OnInit {
     this.router.navigate(["/map"]);
   }
 
+  openCategoryInGoogle() {
+    this.analytics.googleCategoryClick("EVENT", "Eventos", "/events");
+    window.open("https://www.google.com/maps/search/?api=1&query=eventos%20Fernando%20de%20Noronha", "_blank", "noopener");
+  }
+
   toggleLike(event: Event) {
     const nextLikes = (event.likes || 0) + 1;
     this.events.update(items =>
@@ -96,6 +108,12 @@ export class EventListComponent implements OnInit {
   findOnMap(event: Event) {
     this.analytics.conversion('EVENT', 'MAP_CLICK', event.id, `/events/${event.id}`);
     this.router.navigate(["/map"], { queryParams: { id: event.id, type: "EVENT" } });
+  }
+
+  openGoogleService(event: Event) {
+    const query = encodeURIComponent(`${event.title} ${event.location || "Fernando de Noronha"}`);
+    this.analytics.googleServiceClick("EVENT", event.id, event.title, `/events/${event.id}`);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, "_blank", "noopener");
   }
 
   toggleItinerary(event: Event) {

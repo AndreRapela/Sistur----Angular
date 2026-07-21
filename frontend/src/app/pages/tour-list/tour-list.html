@@ -5,9 +5,14 @@
         <h1 class="font-black text-[28px] md:text-4xl text-slate-800 tracking-tight m-0">Passeios e Experiências</h1>
         <p class="text-slate-500 mt-1 font-medium">Filtre por tema ou busque por nome, parceiro ou descrição.</p>
       </div>
-      <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-bold" (click)="goToMap()">
-        Ver no Mapa
-      </button>
+      <div class="flex gap-2">
+        <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-bold" (click)="goToMap()">
+          Ver no Mapa
+        </button>
+        <button class="bg-white text-red-600 border border-red-100 px-4 py-2 rounded hover:bg-red-50 font-bold" (click)="openCategoryInGoogle()">
+          Google
+        </button>
+      </div>
     </div>
 
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 md:p-4 flex flex-col md:flex-row md:items-center gap-3">
@@ -35,7 +40,7 @@
   </div>
 
   <div class="mb-8 flex gap-3 overflow-x-auto pb-2 no-scrollbar">
-    @for (cat of categories; track cat) {
+    @for (cat of categories(); track cat) {
       <button [class]="selectedCategory() === cat ? 'bg-primary text-white border-primary shadow-[0_4px_12px_rgba(0,119,182,0.2)]' : 'bg-white text-slate-500 border-slate-200'"
               (click)="selectedCategory.set(cat)"
               class="px-5 py-2.5 rounded-full border cursor-pointer font-bold text-sm whitespace-nowrap transition-all duration-200"
@@ -54,11 +59,24 @@
           @defer (on viewport) {
           <div class="bg-white rounded-[24px] overflow-hidden shadow-sm border border-slate-100 h-full flex flex-col transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_12px_30px_rgba(0,0,0,0.1)] group">
             <div class="relative overflow-hidden shrink-0 h-[200px]">
-              <img [ngSrc]="tour.photoUrl"
-                   fill
-                   class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                   alt="Tour image">
-              <div class="absolute top-[15px] right-[15px] bg-white text-secondary px-4 py-2 rounded-xl font-extrabold text-[15px] z-10 shadow-md">R$ {{tour.price}}</div>
+              @if (tour.photoUrl) {
+                <img [ngSrc]="tour.photoUrl"
+                     fill
+                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                     alt="Tour image">
+              } @else {
+                <div class="w-full h-full bg-slate-900 text-white flex flex-col items-center justify-center gap-3">
+                  <i class="pi pi-camera text-3xl text-emerald-300"></i>
+                  <span class="text-xs font-black uppercase tracking-[0.18em] text-white/70">Foto real pendente</span>
+                </div>
+              }
+              <div class="absolute top-[15px] right-[15px] bg-white text-secondary px-4 py-2 rounded-xl font-extrabold text-[15px] z-10 shadow-md">
+                @if (tour.price) {
+                  A partir de R$ {{tour.price | number:'1.0-0'}}
+                } @else {
+                  Consultar
+                }
+              </div>
             </div>
 
             <div class="p-6 cursor-pointer flex flex-col flex-1" (click)="viewDetails(tour)">
@@ -84,7 +102,10 @@
                    </button>
 
                    <button class="w-[50px] h-[50px] shrink-0 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 flex items-center justify-center transition-all duration-200 cursor-pointer hover:bg-white hover:border-primary hover:text-primary"
-                           (click)="findOnMap(tour)" title="Encontrar no mapa"><i class="pi pi-compass"></i></button>
+                           (click)="findOnMap(tour); $event.stopPropagation()" title="Encontrar no mapa"><i class="pi pi-compass"></i></button>
+
+                   <button class="w-[50px] h-[50px] shrink-0 rounded-xl bg-red-50 border border-red-100 text-red-500 flex items-center justify-center transition-all duration-200 cursor-pointer hover:bg-white hover:border-red-300 hover:text-red-600"
+                           (click)="openGoogleService(tour); $event.stopPropagation()" title="Reservar/Comprar no Google"><i class="pi pi-google"></i></button>
                </div>
             </div>
           </div>
@@ -111,4 +132,3 @@
     }
   }
 </div>
-

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, DestroyRef, OnInit, inject, signal, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectionStrategy, DestroyRef, OnInit, computed, inject, signal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -34,9 +34,28 @@ export class EstablishmentListComponent implements OnInit {
   type: EstablishmentType = 'RESTAURANT';
   selectedCategory = signal('Todos');
   searchQuery = signal('');
-  establishments = signal<Establishment[]>([]);
+  private allEstablishments = signal<Establishment[]>([]);
+  establishments = computed(() => {
+    const category = this.selectedCategory().toLowerCase();
+    const items = this.allEstablishments();
+
+    if (category === 'todos') {
+      return items;
+    }
+
+    return items.filter(establishment =>
+      (establishment.foodType || establishment.type || '').toLowerCase().includes(category)
+    );
+  });
   loading = signal(true);
-  categories = ['Todos', 'Gastronomia', 'Hospedagem', 'Lazer', 'Compras', 'Natureza'];
+  categories = computed(() => {
+    const values = this.allEstablishments()
+      .map(establishment => establishment.foodType || establishment.type)
+      .filter((category): category is string => Boolean(category))
+      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+    return ['Todos', ...Array.from(new Set(values))];
+  });
 
   private searchSubject = new Subject<string>();
 
@@ -62,14 +81,14 @@ export class EstablishmentListComponent implements OnInit {
     this.loading.set(true);
     this.cdr.markForCheck();
 
-    this.api.getEstablishments(this.type, this.selectedCategory(), this.searchQuery())
+    this.api.getEstablishments(this.type, 'Todos', this.searchQuery())
       .pipe(finalize(() => {
         this.loading.set(false);
         this.cdr.markForCheck();
       }))
       .subscribe({
         next: (res: any) => {
-          this.establishments.set(res.data?.content || []);
+          this.allEstablishments.set(res.data?.content || []);
         }
       });
   }
@@ -93,9 +112,26 @@ export class EstablishmentListComponent implements OnInit {
     this.router.navigate(['/map']);
   }
 
+  openCategoryInGoogle() {
+    const category = this.type === 'HOTEL' ? 'HOTEL' : 'RESTAURANT';
+    const label = this.type === 'HOTEL' ? 'Hospedagem' : 'Restaurantes';
+    const query = this.type === 'HOTEL'
+      ? 'hoteis pousadas Fernando de Noronha'
+      : 'restaurantes Fernando de Noronha';
+
+    this.analytics.googleCategoryClick(category, label, `/${this.type === 'HOTEL' ? 'hotels' : 'restaurants'}`);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`, '_blank', 'noopener');
+  }
+
   findOnMap(est: Establishment) {
     this.analytics.conversion('ESTABLISHMENT', 'MAP_CLICK', est.id, `/establishments/${est.id}`);
     this.router.navigate(['/map'], { queryParams: { id: est.id, type: est.type } });
+  }
+
+  openGoogleService(est: Establishment) {
+    const query = encodeURIComponent(`${est.name} ${est.location || 'Fernando de Noronha'}`);
+    this.analytics.googleServiceClick('ESTABLISHMENT', est.id, est.name, `/establishments/${est.id}`);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank', 'noopener');
   }
 
   toggleItinerary(est: Establishment) {

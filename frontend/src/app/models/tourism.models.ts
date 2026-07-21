@@ -8,6 +8,7 @@ export interface ApiResponse<T> {
 export interface TrackEventRequest {
   targetType: string;
   targetId?: number | string | null;
+  targetLabel?: string | null;
   actionType?: string;
   pagePath?: string;
   referrer?: string;
@@ -78,6 +79,44 @@ export interface AdminStatsDTO {
   conversionByEstablishment: Record<string, number>;
 }
 
+export interface AdminMetricEntryDTO {
+  key: string;
+  label: string;
+  value: number;
+  rate: number;
+}
+
+export interface AdminDailyMetricDTO {
+  date: string;
+  value: number;
+}
+
+export interface AdminAnalyticsDTO {
+  totalUsers: number;
+  activeUsersLast30Days: number;
+  registrationsLast30Days: number;
+  totalRequests: number;
+  totalConversions: number;
+  requestsLast30Days: number;
+  conversionsLast30Days: number;
+  googleServiceClicks: number;
+  googleCategoryClicks: number;
+  itineraryAdds: number;
+  detailOpens: number;
+  pageViews: number;
+  searchEvents: number;
+  conversionRate: number;
+  googleConversionRate: number;
+  categoryDemand: AdminMetricEntryDTO[];
+  conversionByCategory: AdminMetricEntryDTO[];
+  topGoogleServiceClicks: AdminMetricEntryDTO[];
+  topViewedItems: AdminMetricEntryDTO[];
+  dailyRegistrations: AdminDailyMetricDTO[];
+  dailyGoogleClicks: AdminDailyMetricDTO[];
+  dailyRequests: AdminDailyMetricDTO[];
+  funnel: Record<string, number>;
+}
+
 export interface EstablishmentStatsDTO {
   establishmentId: number;
   establishmentName: string;
@@ -106,7 +145,7 @@ export interface Event {
   description: string;
   date: string;
   location: string;
-  photoUrl: string;
+  photoUrl?: string | null;
   category: string;
   externalBookingUrl?: string;
   latitude: number;
@@ -120,8 +159,8 @@ export interface Tour {
   name: string;
   description: string;
   category: string;
-  photoUrl: string;
-  price: number;
+  photoUrl?: string | null;
+  price?: number | null;
   partnership: string;
   latitude: number;
   longitude: number;
@@ -135,7 +174,7 @@ export interface TouristPoint {
   description: string;
   category: string;
   location: string;
-  photoUrl: string;
+  photoUrl?: string | null;
   accessType?: string;
   requiresTicket?: boolean;
   requiresGuide?: boolean;
@@ -149,18 +188,28 @@ export interface TouristPoint {
   longitude?: number;
 }
 
-export type EstablishmentType = 'RESTAURANT' | 'HOTEL';
+export type EstablishmentType =
+  | 'RESTAURANT'
+  | 'BAR'
+  | 'HOTEL'
+  | 'POUSADA'
+  | 'RESORT'
+  | 'CONVENIENCE'
+  | 'GAS_STATION'
+  | 'MARKET'
+  | 'FAIR'
+  | 'PHARMACY';
 
 export interface Establishment {
   id: number;
   name: string;
   description: string;
-  type: string;
+  type: EstablishmentType;
   foodType?: string;
-  averagePrice: number;
-  rating: number;
+  averagePrice?: number | null;
+  rating?: number | null;
   location: string;
-  photoUrl: string;
+  photoUrl?: string | null;
   instagramUrl?: string;
   websiteUrl?: string;
   openingHours?: string;

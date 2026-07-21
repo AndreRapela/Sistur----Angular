@@ -1,6 +1,17 @@
 @if (tour()) {
   <div class="min-h-screen bg-slate-50">
-    <div class="h-[50vh] bg-cover bg-center relative" [style.background-image]="'url(' + tour().photoUrl + ')'">
+    <div class="h-[50vh] bg-slate-900 relative overflow-hidden">
+      @if (tour().photoUrl) {
+        <img [src]="tour().photoUrl"
+             class="absolute inset-0 h-full w-full object-cover"
+             alt="{{ tour().name }}"
+             loading="eager">
+      } @else {
+        <div class="absolute inset-0 flex flex-col items-center justify-center gap-4 text-white/80">
+          <i class="pi pi-camera text-5xl text-emerald-300"></i>
+          <span class="text-xs font-black uppercase tracking-[0.22em]">Foto real pendente</span>
+        </div>
+      }
       <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end pb-16">
         <div class="container mx-auto px-4 md:px-8">
           <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">{{ tour().category }}</span>
@@ -32,7 +43,11 @@
           <div class="sticky top-24 flex flex-col gap-4 p-6 bg-white rounded-[24px] shadow-xl border border-slate-100">
             <div class="mb-2">
               <span class="text-slate-400 text-[13px] font-bold uppercase tracking-wider">Valor por pessoa</span>
-              <p class="text-[32px] font-black text-blue-600 m-0">R$ {{ tour().price | number:'1.2-2' }}</p>
+              @if (tour().price) {
+                <p class="text-[32px] font-black text-blue-600 m-0">A partir de R$ {{ tour().price | number:'1.2-2' }}</p>
+              } @else {
+                <p class="text-[32px] font-black text-blue-600 m-0">Consultar</p>
+              }
             </div>
             
             @if (tour().contactNumber) {
@@ -48,6 +63,12 @@
               (click)="toggleItinerary()">
               <i [class]="itineraryService.isInItinerary(tour().id, 'TOUR') ? 'pi pi-calendar-times' : 'pi pi-calendar-plus'"></i>
               {{ itineraryService.isInItinerary(tour().id, 'TOUR') ? 'Remover do Roteiro' : 'Adicionar ao Roteiro' }}
+            </button>
+
+            <button class="bg-white text-red-600 border border-red-200 px-4 py-3 rounded-xl font-bold hover:bg-red-50 w-full flex items-center justify-center gap-2"
+              title="Reservar/Comprar no Google"
+              (click)="openGoogleService()">
+              <i class="pi pi-google"></i> Reservar/Comprar no Google
             </button>
 
             @if (tour().latitude && tour().longitude) {

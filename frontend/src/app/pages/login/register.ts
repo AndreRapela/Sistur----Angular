@@ -38,7 +38,7 @@ export class RegisterComponent implements OnInit {
   onSubmit(event: Event) {
     event.preventDefault();
     if (!this.name || !this.email || !this.password) {
-      this.toastService.add({ severity: 'warn', summary: 'Aten��o', detail: 'Preencha todos os campos' });
+      this.toastService.add({ severity: 'warn', summary: 'Atenção', detail: 'Preencha todos os campos' });
       return;
     }
 

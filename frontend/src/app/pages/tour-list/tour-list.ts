@@ -23,11 +23,18 @@ export class TourListComponent implements OnInit {
   public itinerary = inject(ItineraryService);
   protected readonly String = String;
 
-  categories = ['Todos', 'Mergulho', 'Trilha', 'Barco', 'Histórico'];
   selectedCategory = signal('Todos');
   searchQuery = signal('');
   tours = signal<Tour[]>([]);
   loading = signal(true);
+  categories = computed(() => {
+    const values = this.tours()
+      .map(tour => tour.category)
+      .filter((category): category is string => Boolean(category))
+      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+    return ['Todos', ...Array.from(new Set(values))];
+  });
 
   filteredTours = computed(() => {
     const cat = this.selectedCategory();
@@ -66,6 +73,11 @@ export class TourListComponent implements OnInit {
     this.router.navigate(['/map']);
   }
 
+  openCategoryInGoogle() {
+    this.analytics.googleCategoryClick('TOUR', 'Passeios', '/tours');
+    window.open('https://www.google.com/maps/search/?api=1&query=passeios%20turisticos%20Fernando%20de%20Noronha', '_blank', 'noopener');
+  }
+
   onSearch(term: string) {
     this.searchQuery.set(term);
   }
@@ -77,6 +89,12 @@ export class TourListComponent implements OnInit {
   findOnMap(tour: Tour) {
     this.analytics.conversion('TOUR', 'MAP_CLICK', tour.id, `/tours/${tour.id}`);
     this.router.navigate(['/map'], { queryParams: { id: tour.id, type: 'TOUR' } });
+  }
+
+  openGoogleService(tour: Tour) {
+    const query = encodeURIComponent(`${tour.name} ${tour.partnership || ''} Fernando de Noronha`);
+    this.analytics.googleServiceClick('TOUR', tour.id, tour.name, `/tours/${tour.id}`);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank', 'noopener');
   }
 
   toggleItinerary(tour: Tour) {

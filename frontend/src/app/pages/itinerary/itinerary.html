@@ -1,4 +1,43 @@
 <div class="page-wrapper min-h-screen bg-white p-4 md:p-8 pb-32">
+  @if (step === 'LIST') {
+    <section class="max-w-5xl mx-auto py-10 md:py-14">
+      <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <span class="inline-block bg-primary/10 text-primary px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest mb-4">Meus roteiros</span>
+          <h1 class="text-4xl md:text-5xl font-black text-slate-800 tracking-tight m-0">Continue planejando</h1>
+          <p class="text-slate-500 font-medium text-lg mt-3">Escolha um roteiro salvo ou comece uma nova viagem por Noronha.</p>
+        </div>
+        <button type="button" (click)="createNew()" class="bg-blue-600 text-white px-5 py-3 rounded-2xl hover:bg-blue-700 font-black shadow-lg">
+          <i class="pi pi-plus mr-2"></i> Novo roteiro
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        @for (saved of savedItineraries; track saved.name) {
+          <article class="bg-white border border-slate-100 rounded-[28px] shadow-sm p-6 hover:shadow-xl transition-all cursor-pointer" (click)="loadItinerary(saved)">
+            <div class="flex items-start justify-between gap-4">
+              <div class="min-w-0">
+                <h2 class="text-2xl font-black text-slate-800 truncate">{{ saved.name }}</h2>
+                <p class="text-sm font-bold text-slate-400 mt-1">{{ saved.items?.length || 0 }} itens salvos</p>
+              </div>
+              <button type="button" (click)="deleteSavedItinerary(saved, $event)" title="Excluir roteiro salvo" class="w-10 h-10 rounded-xl bg-red-50 text-red-500 border border-red-100 hover:bg-red-100 transition-colors">
+                <i class="pi pi-trash"></i>
+              </button>
+            </div>
+            <div class="mt-5 flex flex-wrap gap-2">
+              @for (item of (saved.items || []).slice(0, 4); track item.type + '-' + item.id) {
+                <span class="px-3 py-1.5 rounded-full bg-slate-50 border border-slate-100 text-xs font-black text-slate-500">{{ item.name }}</span>
+              }
+            </div>
+            <button type="button" (click)="loadItinerary(saved); $event.stopPropagation()" class="mt-6 w-full bg-slate-900 text-white px-4 py-3 rounded-2xl font-black hover:bg-primary transition-colors">
+              Abrir roteiro
+            </button>
+          </article>
+        }
+      </div>
+    </section>
+  }
+
   <!-- WIZARD STEP 1: CONFIG (ROTEO STYLE) -->
   @if (step === 'SETUP') {
     <div class="max-w-2xl mx-auto py-12 md:py-16 animate-fade-in">
@@ -22,7 +61,7 @@
                 <h3 class="font-bold text-primary">Fernando de Noronha, PE</h3>
                 <p class="text-xs text-primary/70 font-medium">Brasil</p>
               </div>
-              <button class="ml-auto text-primary font-bold text-sm bg-white px-3 py-1 rounded-lg border border-primary/10 shadow-sm cursor-not-allowed opacity-50">Alterar</button>
+              <span class="ml-auto text-primary font-bold text-sm bg-white px-3 py-1 rounded-lg border border-primary/10 shadow-sm">Destino fixo</span>
             </div>
           </div>
 
@@ -42,27 +81,23 @@
               </div>
             </div>
           </div>
-
           <!-- Com quem? -->
           <div>
-             <label class="block text-xs font-black uppercase text-slate-400 mb-2 tracking-widest">Quem vai com você?</label>
+             <label class="block text-xs font-black uppercase text-slate-400 mb-2 tracking-widest">Quem vai com voce?</label>
              <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div class="flex flex-col items-center justify-center p-4 border-2 border-slate-100 rounded-2xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all text-slate-400 hover:text-primary group">
-                   <i class="pi pi-user text-2xl mb-2 group-hover:scale-110 transition-transform"></i>
-                   <h4 class="font-bold text-sm text-slate-700">Sozinho</h4>
-                </div>
-                <div class="flex flex-col items-center justify-center p-4 border-2 border-primary bg-primary/5 rounded-2xl cursor-pointer transition-all text-primary">
-                   <i class="pi pi-heart-fill text-2xl mb-2 scale-110"></i>
-                   <h4 class="font-bold text-sm text-slate-800">Casal</h4>
-                </div>
-                <div class="flex flex-col items-center justify-center p-4 border-2 border-slate-100 rounded-2xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all text-slate-400 hover:text-primary group">
-                   <i class="pi pi-users text-2xl mb-2 group-hover:scale-110 transition-transform"></i>
-                   <h4 class="font-bold text-sm text-slate-700">Amigos</h4>
-                </div>
-                <div class="flex flex-col items-center justify-center p-4 border-2 border-slate-100 rounded-2xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all text-slate-400 hover:text-primary group">
-                   <i class="pi pi-home text-2xl mb-2 group-hover:scale-110 transition-transform"></i>
-                   <h4 class="font-bold text-sm text-slate-700">Família</h4>
-                </div>
+                @for (party of travelPartyOptions; track party.value) {
+                  <button type="button"
+                          (click)="selectTravelParty(party.value)"
+                          [class.border-primary]="travelParty === party.value"
+                          [class.bg-primary/5]="travelParty === party.value"
+                          [class.text-primary]="travelParty === party.value"
+                          [class.border-slate-100]="travelParty !== party.value"
+                          [class.text-slate-400]="travelParty !== party.value"
+                          class="flex flex-col items-center justify-center p-4 border-2 rounded-2xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group">
+                     <i [class]="'pi ' + party.icon + ' text-2xl mb-2 group-hover:scale-110 transition-transform'"></i>
+                     <h4 class="font-bold text-sm" [class.text-slate-800]="travelParty === party.value" [class.text-slate-700]="travelParty !== party.value">{{ party.label }}</h4>
+                  </button>
+                }
              </div>
           </div>
 
@@ -276,7 +311,7 @@
 
                     <div class="flex gap-4">
                       <div class="w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden shrink-0">
-                        <img [ngSrc]="item.image || 'https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?auto=format&fit=crop&q=80&w=200'"
+                        <img [ngSrc]="item.image || 'assets/icons/icon.svg'"
                              width="80"
                              height="80"
                              sizes="(max-width: 768px) 64px, 80px"

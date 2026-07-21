@@ -32,7 +32,14 @@ export class TouristPointsComponent implements OnInit {
   loading = signal(true);
   points = signal<TouristPoint[]>([]);
 
-  categories = ['Todos', 'Praia', 'Mirante', 'Trilha', 'Histórico', 'Cultura', 'Mergulho', 'Educação', 'Surf'];
+  categories = computed(() => {
+    const values = this.points()
+      .map(point => point.category)
+      .filter((category): category is string => Boolean(category))
+      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+    return ['Todos', ...Array.from(new Set(values))];
+  });
 
   filteredPoints = computed(() => {
     const cat = this.selectedCategory();
@@ -91,6 +98,11 @@ export class TouristPointsComponent implements OnInit {
     this.router.navigate(['/map']);
   }
 
+  openCategoryInGoogle() {
+    this.analytics.googleCategoryClick('POINT', 'Pontos turisticos e praias', '/pontos-turisticos');
+    window.open('https://www.google.com/maps/search/?api=1&query=pontos%20turisticos%20praias%20Fernando%20de%20Noronha', '_blank', 'noopener');
+  }
+
   openDetail(point: TouristPoint) {
     this.analytics.conversion('TOURIST_POINT', 'DETAIL_OPEN', point.id, `/pontos-turisticos/${point.id}`);
     this.router.navigate(['/pontos-turisticos', point.id]);
@@ -99,6 +111,12 @@ export class TouristPointsComponent implements OnInit {
   openOnMap(point: TouristPoint) {
     this.analytics.conversion('TOURIST_POINT', 'MAP_CLICK', point.id, `/pontos-turisticos/${point.id}`);
     this.router.navigate(['/map'], { queryParams: { id: point.id, type: 'POINT' } });
+  }
+
+  openGoogleService(point: TouristPoint) {
+    const query = encodeURIComponent(`${point.name} ${point.location || 'Fernando de Noronha'}`);
+    this.analytics.googleServiceClick('TOURIST_POINT', point.id, point.name, `/pontos-turisticos/${point.id}`);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank', 'noopener');
   }
 
   toggleItinerary(point: TouristPoint) {

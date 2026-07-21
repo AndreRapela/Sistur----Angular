@@ -1,14 +1,16 @@
-﻿import { ToastService } from '../services/toast.service';
-﻿import { Injectable, signal, computed, inject } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from './auth.service';
+import { ToastService } from './toast.service';
 import { environment } from '../../environments/environment';
+
+export type ItineraryItemType = 'RESTAURANT' | 'HOTEL' | 'EVENT' | 'TOUR' | 'HIGHLIGHT';
 
 export interface ItineraryItem {
   id: number | string;
-  type: 'RESTAURANT' | 'HOTEL' | 'EVENT' | 'TOUR' | 'HIGHLIGHT';
+  type: ItineraryItemType;
   name: string;
-  image?: string;
+  image?: string | null;
   location?: string;
   category?: string;
   bestTime?: string;
@@ -17,20 +19,23 @@ export interface ItineraryItem {
   latitude?: number;
   longitude?: number;
   addedAt: Date;
-  day?: number; // 0 = Não definido, 1 = Dia 1, etc.
+  day?: number;
   time?: string;
-  notes?: string;  estimatedCost?: number;}
+  notes?: string;
+  estimatedCost?: number;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class ItineraryService {
   private toastService = inject(ToastService);
+  private auth = inject(AuthService);
+  private http = inject(HttpClient);
   private _items = signal<ItineraryItem[]>(this.loadItems());
 
   items = this._items.asReadonly();
 
-  // Cache para buscas rápidas (id+type -> boolean)
   private itemsMap = computed(() => {
     const map = new Map<string, boolean>();
     this._items().forEach(item => {
@@ -39,52 +44,31 @@ export class ItineraryService {
     return map;
   });
 
-  isInItinerary(id: number | string, type: string): boolean {
-    return this.itemsMap().has(`${type}:${id}`);
-  }
-
-  // Agrupamento por dia computado
   itemsByDay = computed(() => {
     const grouped: { [key: number]: ItineraryItem[] } = {};
-    this._items().forEach((item: ItineraryItem) => {
+    this._items().forEach(item => {
       const day = item.day || 0;
-      if (!grouped[day]) grouped[day] = [];
+      if (!grouped[day]) {
+        grouped[day] = [];
+      }
       grouped[day].push(item);
     });
     return grouped;
   });
 
-  // Custo total computado
-  totalCost = computed(() => {
-    return this._items().reduce((sum, item) => sum + (item.estimatedCost || 0), 0);
-  });
+  totalCost = computed(() => this._items().reduce((sum, item) => sum + (item.estimatedCost || 0), 0));
 
-  private auth = inject(AuthService);
-  private http = inject(HttpClient);
-
-  constructor() {}
-
-  private loadItems(): ItineraryItem[] {
-    const saved = localStorage.getItem('sistur_itinerary');
-    if (!saved) return [];
-    try {
-      return JSON.parse(saved);
-    } catch {
-      return [];
-    }
+  isInItinerary(id: number | string, type: string): boolean {
+    return this.itemsMap().has(`${type}:${id}`);
   }
 
-  toggleItem(item: Partial<ItineraryItem> & { id: number | string, type: any }) {
+  toggleItem(item: Partial<ItineraryItem> & { id: number | string; type: ItineraryItemType }) {
     const current = this._items();
     const index = current.findIndex(i => String(i.id) === String(item.id) && i.type === item.type);
 
     if (index > -1) {
       this._items.set(current.filter((_, i) => i !== index));
       this.toastService.add({ severity: 'info', summary: 'Removido', detail: `${item.name} removido do roteiro` });
-
-      if (this.auth.isAuthenticated()) {
-        // Opcional: Implementar DELETE no backend
-      }
     } else {
       const newItem: ItineraryItem = {
         id: item.id,
@@ -92,15 +76,22 @@ export class ItineraryService {
         name: item.name || 'Sem nome',
         image: item.image,
         location: item.location,
+        category: item.category,
+        bestTime: item.bestTime,
+        bestSeason: item.bestSeason,
+        idealWeather: item.idealWeather,
+        latitude: item.latitude,
+        longitude: item.longitude,
         addedAt: new Date(),
-        day: 0,
-        time: '',
-        notes: '',
-        estimatedCost: 0
+        day: item.day || 0,
+        time: item.time || '',
+        notes: item.notes || '',
+        estimatedCost: item.estimatedCost || 0
       };
       this._items.set([...current, newItem]);
       this.toastService.add({ severity: 'success', summary: 'Adicionado', detail: `${item.name} adicionado ao seu roteiro!` });
     }
+
     this.save();
   }
 
@@ -117,9 +108,7 @@ export class ItineraryService {
 
   reorderItems(reorderedArray: ItineraryItem[], day: number) {
     const current = this._items();
-    // Remove os itens do dia atual
     const filtered = current.filter(i => (i.day || 0) !== day);
-    // Adiciona na nova ordem
     this._items.set([...filtered, ...reorderedArray]);
     this.save();
   }
@@ -134,21 +123,24 @@ export class ItineraryService {
     this.save();
   }
 
-  saveToServer(name: string, isPublic: boolean = false) {
+  saveToServer(name: string, isPublic = false) {
     if (!this.auth.isAuthenticated()) {
       this.toastService.add({ severity: 'warn', summary: 'Atenção', detail: 'Faça login para salvar seu roteiro na nuvem' });
       return;
     }
 
     const payload = {
-      name: name,
-      isPublic: isPublic,
+      name,
+      isPublic,
       items: this._items().map(i => ({
         referenceId: i.id,
         type: i.type,
         name: i.name,
         image: i.image,
         location: i.location,
+        category: i.category,
+        latitude: i.latitude,
+        longitude: i.longitude,
         day: i.day || 0,
         time: i.time,
         notes: i.notes
@@ -162,9 +154,20 @@ export class ItineraryService {
     return this.http.get<any>(`${environment.apiUrl}/itineraries/share/${token}`);
   }
 
+  private loadItems(): ItineraryItem[] {
+    const saved = localStorage.getItem('sistur_itinerary');
+    if (!saved) {
+      return [];
+    }
+
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return [];
+    }
+  }
+
   private save() {
     localStorage.setItem('sistur_itinerary', JSON.stringify(this._items()));
   }
 }
-
-

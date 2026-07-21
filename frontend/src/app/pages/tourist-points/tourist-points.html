@@ -79,11 +79,15 @@
           <i class="pi pi-map"></i>
           <span class="hidden md:inline">Mapa</span>
         </button>
+        <button class="bg-white text-red-600 border border-red-100 px-4 py-3 rounded-2xl hover:bg-red-50 font-bold transition-all shadow-sm flex items-center gap-2" (click)="openCategoryInGoogle()" title="Ver categoria no Google">
+          <i class="pi pi-google"></i>
+          <span class="hidden md:inline">Google</span>
+        </button>
       </div>
     </div>
 
     <div class="mb-8 flex gap-3 overflow-x-auto pb-2 scrollbar-none">
-      @for (cat of categories; track cat) {
+      @for (cat of categories(); track cat) {
         <button [class]="selectedCategory() === cat ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg scale-105' : 'bg-white text-slate-500 border-slate-200'"
                 (click)="filterByCategory(cat)"
                 class="px-6 py-3 rounded-2xl border cursor-pointer font-black text-[14px] whitespace-nowrap transition-all duration-200 uppercase tracking-tighter">
@@ -99,7 +103,14 @@
         @for (point of filteredPoints(); track point.id) {
           <article class="bg-white rounded-[32px] overflow-hidden border border-slate-100 hover:border-emerald-400/40 transition-all duration-500 hover:shadow-[0_32px_64px_-16px_rgba(15,23,42,0.16)] flex flex-col group cursor-pointer" (click)="openDetail(point)">
             <div class="relative h-[250px] overflow-hidden">
-              <img [src]="point.photoUrl || 'assets/placeholder.jpg'" [alt]="point.name" title="{{point.name}}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+              @if (point.photoUrl) {
+                <img [src]="point.photoUrl" [alt]="point.name" title="{{point.name}}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+              } @else {
+                <div class="w-full h-full bg-slate-900 text-white flex flex-col items-center justify-center gap-3">
+                  <i class="pi pi-compass text-4xl text-emerald-300"></i>
+                  <span class="text-xs font-black uppercase tracking-[0.18em] text-white/70">Foto real pendente</span>
+                </div>
+              }
               <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-900/20 to-transparent"></div>
 
               <div class="absolute top-4 left-4 flex flex-wrap gap-2">
@@ -165,6 +176,12 @@
                         (click)="openOnMap(point); $event.stopPropagation()"
                         title="Encontrar no mapa">
                   <i class="pi pi-compass text-xl"></i>
+                </button>
+
+                <button class="w-[56px] h-[56px] shrink-0 rounded-2xl bg-red-50 border border-red-100 text-red-500 flex items-center justify-center transition-all duration-300 cursor-pointer hover:border-red-300 hover:text-red-600 hover:bg-white"
+                        (click)="openGoogleService(point); $event.stopPropagation()"
+                        title="Ver servicos no Google">
+                  <i class="pi pi-google text-xl"></i>
                 </button>
               </div>
             </div>

@@ -23,8 +23,6 @@ interface CultureCard {
   styles: []
 })
 export class CultureComponent {
-  heroImage = 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1600&q=80';
-
   timeline: TimelineItem[] = [
     {
       year: '1503',

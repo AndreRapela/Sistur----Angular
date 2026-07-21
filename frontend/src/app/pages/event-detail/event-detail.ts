@@ -62,6 +62,14 @@ export class EventDetailComponent implements OnInit {
     window.open(url, '_blank');
   }
 
+  openGoogleService() {
+    const event = this.event;
+    if (!event) return;
+    const query = encodeURIComponent(`${event.title} ${event.location || 'Fernando de Noronha'}`);
+    this.analytics.googleServiceClick('EVENT', event.id, event.title, `/events/${event.id}`);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank', 'noopener');
+  }
+
   openBookingLink() {
     const event = this.event;
     if (!event?.externalBookingUrl) return;

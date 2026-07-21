@@ -102,4 +102,15 @@ export class TouristPointDetailComponent implements OnInit {
     this.analytics.conversion('TOURIST_POINT', 'MAP_CLICK', point.id, `/pontos-turisticos/${point.id}`);
     this.router.navigate(['/map'], { queryParams: { id: point.id, type: 'POINT' } });
   }
+
+  openGoogleService() {
+    const point = this.point();
+    if (!point) {
+      return;
+    }
+
+    const query = encodeURIComponent(`${point.name} ${point.location || 'Fernando de Noronha'}`);
+    this.analytics.googleServiceClick('TOURIST_POINT', point.id, point.name, `/pontos-turisticos/${point.id}`);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank', 'noopener');
+  }
 }

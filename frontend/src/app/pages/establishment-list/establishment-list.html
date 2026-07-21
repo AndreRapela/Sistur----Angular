@@ -20,11 +20,15 @@
         <i class="pi pi-map"></i>
         <span class="hidden md:inline">Mapa</span>
       </button>
+      <button class="bg-white text-red-600 border border-red-100 px-4 py-3 rounded-xl hover:bg-red-50 font-bold transition-all shadow-sm flex items-center gap-2" (click)="openCategoryInGoogle()" title="Ver categoria no Google">
+        <i class="pi pi-google"></i>
+        <span class="hidden md:inline">Google</span>
+      </button>
     </div>
   </div>
 
   <div class="mb-8 flex gap-3 overflow-x-auto pb-2 scrollbar-none">
-    @for (cat of categories; track cat) {
+    @for (cat of categories(); track cat) {
       <button [class]="selectedCategory() === cat ? 'bg-blue-600 text-white border-blue-600 shadow-lg scale-105' : 'bg-white text-slate-500 border-slate-200'"
               (click)="filterByCategory(cat)"
               title="Filtrar por {{cat}}"
@@ -42,8 +46,15 @@
         @defer (on viewport) {
         <div class="bg-white rounded-[32px] overflow-hidden border border-slate-100 hover:border-blue-400/30 transition-all duration-500 hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] flex flex-col group cursor-pointer" (click)="viewDetails(est)">
           <div class="relative h-[280px] overflow-hidden">
-            <img [ngSrc]="est.photoUrl || 'assets/placeholder.jpg'" fill [alt]="est.name" title="{{est.name}}"
-                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+            @if (est.photoUrl) {
+              <img [ngSrc]="est.photoUrl" fill [alt]="est.name" title="{{est.name}}"
+                   class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+            } @else {
+              <div class="w-full h-full bg-slate-900 text-white flex flex-col items-center justify-center gap-3">
+                <i class="pi pi-building text-4xl text-sky-300"></i>
+                <span class="text-xs font-black uppercase tracking-[0.18em] text-white/70">Foto real pendente</span>
+              </div>
+            }
 
             <!-- Badge de Desconto (Duo Gourmet Style) -->
             @if (est.discountDescription) {
@@ -58,14 +69,16 @@
               </div>
             }
 
-            <div class="absolute top-4 right-4 bg-white/95 backdrop-blur px-3 py-1.5 rounded-2xl flex items-center gap-1.5 shadow-xl">
-              <i class="pi pi-star-fill text-yellow-400 text-sm"></i>
-              <span class="font-black text-slate-800 text-sm">{{est.rating || 'New'}}</span>
-            </div>
+            @if (est.rating) {
+              <div class="absolute top-4 right-4 bg-white/95 backdrop-blur px-3 py-1.5 rounded-2xl flex items-center gap-1.5 shadow-xl">
+                <i class="pi pi-star-fill text-yellow-400 text-sm"></i>
+                <span class="font-black text-slate-800 text-sm">{{est.rating}}</span>
+              </div>
+            }
 
-            @if (est.averagePrice) {
+            @if (est.averagePrice && est.averagePrice > 0) {
               <div class="absolute bottom-4 left-4 bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20">
-                <span class="text-white font-black text-sm">R$ {{est.averagePrice | number:'1.0-0'}}</span>
+                <span class="text-white font-black text-sm">Média R$ {{est.averagePrice | number:'1.0-0'}}</span>
               </div>
             }
           </div>
@@ -103,6 +116,12 @@
                         (click)="toggleItinerary(est); $event.stopPropagation()"
                         title="Adicionar ao Roteiro">
                   <i [class]="itinerary.isInItinerary(est.id, est.type) ? 'pi pi-calendar-times' : 'pi pi-calendar-plus'" class="text-xl"></i>
+                </button>
+
+                <button class="w-[56px] h-[56px] shrink-0 rounded-2xl bg-red-50 border border-red-100 text-red-500 flex items-center justify-center transition-all duration-300 cursor-pointer hover:border-red-300 hover:text-red-600 hover:bg-white"
+                        (click)="openGoogleService(est); $event.stopPropagation()"
+                        title="Reservar/Comprar no Google">
+                  <i class="pi pi-google text-xl"></i>
                 </button>
              </div>
           </div>

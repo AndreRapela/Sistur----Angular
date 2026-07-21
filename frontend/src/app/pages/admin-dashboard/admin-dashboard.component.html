@@ -1,71 +1,190 @@
-<div class="min-h-screen bg-slate-50 p-6 md:p-10">
-  <header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div class="min-h-screen bg-slate-50 px-4 py-6 md:px-8">
+  <header class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
     <div>
-      <span class="text-primary font-black text-[10px] uppercase tracking-[0.2em]">Painel Administrativo</span>
-      <h1 class="text-4xl font-black text-slate-800 tracking-tight mt-2">Visão Geral</h1>
+      <span class="text-[11px] font-black uppercase tracking-[0.22em] text-blue-600">Painel Administrativo</span>
+      <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-900 md:text-4xl">Inteligência de Noronha</h1>
+      <p class="mt-2 max-w-3xl text-sm font-medium leading-relaxed text-slate-500">
+        Demanda, cadastros e conversão para páginas do Google nos últimos 30 dias.
+      </p>
     </div>
-    <div class="flex gap-3">
-      <button class="px-6 py-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50 transition-all shadow-sm">
-        <i class="pi pi-download mr-2"></i> Relatórios
-      </button>
-      <button class="px-6 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
-        <i class="pi pi-plus mr-2"></i> Novo Registro
-      </button>
+
+    <div class="flex flex-wrap gap-2">
+      <a routerLink="/map" class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-black text-white no-underline shadow-sm hover:bg-blue-700">
+        <i class="pi pi-map"></i>
+        Mapa
+      </a>
+      <a routerLink="/tours" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700 no-underline hover:bg-slate-100">
+        <i class="pi pi-camera"></i>
+        Passeios
+      </a>
     </div>
   </header>
 
-  <!-- Stats Grid -->
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-    @for (stat of stats; track stat.label) {
-      <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 hover:shadow-xl transition-all group">
-        <div class="flex items-center justify-between mb-4">
-          <div [class]="'w-12 h-12 rounded-2xl flex items-center justify-center ' + stat.bgColor">
-            <i [class]="'pi ' + stat.icon + ' ' + stat.iconColor"></i>
-          </div>
-          <span class="text-[10px] font-black text-emerald-500 bg-emerald-50 px-2 py-1 rounded-lg">+{{stat.trend}}%</span>
-        </div>
-        <h3 class="text-slate-400 font-bold text-xs uppercase tracking-widest">{{stat.label}}</h3>
-        <p class="text-3xl font-black text-slate-800 mt-1 tracking-tight">{{stat.value}}</p>
-      </div>
-    }
-  </div>
+  @if (errorMessage) {
+    <div class="mb-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800">
+      {{ errorMessage }}
+    </div>
+  }
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-    <!-- Recent Activity -->
-    <div class="lg:col-span-2 bg-white rounded-[2.5rem] p-8 shadow-premium">
-      <h3 class="text-xl font-black text-slate-800 mb-6 tracking-tight">Atividades Recentes</h3>
-      <div class="space-y-6">
-        @for (act of activities; track act.id) {
-          <div class="flex items-center gap-4 p-4 hover:bg-slate-50 rounded-2xl transition-colors group">
-            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-black text-slate-400 group-hover:bg-primary group-hover:text-white transition-all">
-              {{act.user.charAt(0)}}
+  @if (loading) {
+    <div class="mb-5 rounded-lg border border-blue-100 bg-white px-4 py-3 text-sm font-bold text-blue-700">
+      <i class="pi pi-spin pi-spinner mr-2"></i>
+      Carregando métricas...
+    </div>
+  }
+
+  <section class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+    @for (stat of stats; track stat.label) {
+      <article class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="mb-4 flex items-start justify-between gap-3">
+          <div [class]="'grid h-11 w-11 place-items-center rounded-lg ' + stat.bg">
+            <i [class]="'pi ' + stat.icon + ' ' + stat.tone"></i>
+          </div>
+          <span class="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-black text-slate-500">30 dias</span>
+        </div>
+        <p class="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">{{ stat.label }}</p>
+        <strong class="mt-1 block text-3xl font-black tracking-tight text-slate-900">{{ stat.value }}</strong>
+        <span class="mt-2 block text-sm font-bold text-slate-500">{{ stat.helper }}</span>
+      </article>
+    }
+  </section>
+
+  <section class="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[1.25fr_.75fr]">
+    <article class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="mb-5 flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h2 class="text-xl font-black text-slate-900">Frequência por categoria</h2>
+          <p class="text-sm font-medium text-slate-500">Buscas, visualizações, mapa, roteiro e cliques Google.</p>
+        </div>
+        <strong class="text-sm font-black text-blue-600">{{ formatNumber(requestsLast30Days) }} interações</strong>
+      </div>
+
+      <div class="space-y-4">
+        @for (item of categoryDemand; track item.key) {
+          <div>
+            <div class="mb-1 flex items-center justify-between gap-3 text-sm">
+              <span class="font-black text-slate-700">{{ item.label }}</span>
+              <span class="font-bold text-slate-500">{{ formatNumber(item.value) }} · {{ formatPercent(item.rate) }}</span>
             </div>
-            <div class="flex-grow">
-              <p class="text-sm font-bold text-slate-700">
-                <span class="text-slate-900">{{act.user}}</span> {{act.action}} <span class="text-primary">{{act.target}}</span>
-              </p>
-              <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{act.time}}</span>
+            <div class="h-3 overflow-hidden rounded-full bg-slate-100">
+              <div class="h-full rounded-full bg-blue-600" [style.width]="barWidth(item.value, maxValue(categoryDemand))"></div>
             </div>
-            <button class="p-2 opacity-0 group-hover:opacity-100 transition-opacity" title="Ações"><i class="pi pi-ellipsis-h text-slate-400"></i></button>
+          </div>
+        } @empty {
+          <div class="rounded-lg border border-dashed border-slate-200 p-6 text-center text-sm font-bold text-slate-400">
+            Ainda não há eventos suficientes para ranquear categorias.
           </div>
         }
       </div>
-    </div>
+    </article>
 
-    <!-- Quick Actions -->
-    <div class="bg-primary rounded-[2.5rem] p-8 text-white shadow-xl shadow-primary/20">
-      <h3 class="text-xl font-black mb-6 tracking-tight">Ações Rápidas</h3>
-      <div class="grid grid-cols-1 gap-3">
-        <button class="w-full p-4 bg-white/10 hover:bg-white/20 rounded-2xl font-bold flex items-center gap-3 transition-all">
-          <i class="pi pi-users"></i> Gerenciar Usuários
-        </button>
-        <button class="w-full p-4 bg-white/10 hover:bg-white/20 rounded-2xl font-bold flex items-center gap-3 transition-all">
-          <i class="pi pi-map-marker"></i> Aprovar Locais
-        </button>
-        <button class="w-full p-4 bg-white/10 hover:bg-white/20 rounded-2xl font-bold flex items-center gap-3 transition-all">
-          <i class="pi pi-cog"></i> Configurações
-        </button>
+    <article class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="mb-5">
+        <h2 class="text-xl font-black text-slate-900">Funil Google</h2>
+        <p class="text-sm font-medium text-slate-500">Da exploração até a saída para compra, reserva ou serviço.</p>
       </div>
-    </div>
-  </div>
+
+      <div class="space-y-3">
+        @for (row of funnel; track row.label) {
+          <div class="flex items-center justify-between gap-4 rounded-lg border border-slate-100 bg-slate-50 px-4 py-3">
+            <div class="flex items-center gap-3">
+              <i [class]="'pi ' + row.icon + ' ' + row.tone"></i>
+              <span class="text-sm font-black text-slate-700">{{ row.label }}</span>
+            </div>
+            <strong class="text-lg font-black text-slate-900">{{ formatNumber(row.value) }}</strong>
+          </div>
+        }
+      </div>
+
+      <div class="mt-5 grid grid-cols-2 gap-3">
+        <div class="rounded-lg bg-red-50 p-4">
+          <span class="text-[10px] font-black uppercase tracking-[0.18em] text-red-500">Taxa Google</span>
+          <strong class="mt-1 block text-2xl font-black text-red-700">{{ formatPercent(googleConversionRate) }}</strong>
+        </div>
+        <div class="rounded-lg bg-amber-50 p-4">
+          <span class="text-[10px] font-black uppercase tracking-[0.18em] text-amber-600">Taxa geral</span>
+          <strong class="mt-1 block text-2xl font-black text-amber-700">{{ formatPercent(conversionRate) }}</strong>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section class="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
+    <article class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+      <h2 class="text-xl font-black text-slate-900">Mais enviados ao Google</h2>
+      <div class="mt-4 divide-y divide-slate-100">
+        @for (item of topGoogleServiceClicks; track item.key) {
+          <div class="grid grid-cols-[1fr_auto] items-center gap-3 py-3">
+            <div class="min-w-0">
+              <p class="truncate text-sm font-black text-slate-800">{{ item.label }}</p>
+              <div class="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
+                <div class="h-full rounded-full bg-red-500" [style.width]="barWidth(item.value, maxValue(topGoogleServiceClicks))"></div>
+              </div>
+            </div>
+            <strong class="text-sm font-black text-slate-900">{{ formatNumber(item.value) }}</strong>
+          </div>
+        } @empty {
+          <p class="rounded-lg border border-dashed border-slate-200 p-6 text-center text-sm font-bold text-slate-400">
+            Nenhum clique Google registrado ainda.
+          </p>
+        }
+      </div>
+    </article>
+
+    <article class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+      <h2 class="text-xl font-black text-slate-900">Mais vistos no app</h2>
+      <div class="mt-4 divide-y divide-slate-100">
+        @for (item of topViewedItems; track item.key) {
+          <div class="grid grid-cols-[1fr_auto] items-center gap-3 py-3">
+            <div class="min-w-0">
+              <p class="truncate text-sm font-black text-slate-800">{{ item.label }}</p>
+              <div class="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
+                <div class="h-full rounded-full bg-emerald-500" [style.width]="barWidth(item.value, maxValue(topViewedItems))"></div>
+              </div>
+            </div>
+            <strong class="text-sm font-black text-slate-900">{{ formatNumber(item.value) }}</strong>
+          </div>
+        } @empty {
+          <p class="rounded-lg border border-dashed border-slate-200 p-6 text-center text-sm font-bold text-slate-400">
+            Nenhuma visualizacao de item registrada ainda.
+          </p>
+        }
+      </div>
+    </article>
+  </section>
+
+  <section class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+    <article class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+      <h2 class="text-lg font-black text-slate-900">Cadastros diários</h2>
+      <div class="mt-5 flex h-36 items-end gap-1">
+        @for (day of dailyRegistrations; track day.date) {
+          <div class="group relative flex flex-1 items-end justify-center">
+            <div class="w-full rounded-t bg-blue-500" [style.height]="dailyHeight(day.value, maxValue(dailyRegistrations))" [title]="dailyLabel(day.date) + ': ' + formatNumber(day.value)"></div>
+          </div>
+        }
+      </div>
+    </article>
+
+    <article class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+      <h2 class="text-lg font-black text-slate-900">Cliques Google diários</h2>
+      <div class="mt-5 flex h-36 items-end gap-1">
+        @for (day of dailyGoogleClicks; track day.date) {
+          <div class="group relative flex flex-1 items-end justify-center">
+            <div class="w-full rounded-t bg-red-500" [style.height]="dailyHeight(day.value, maxValue(dailyGoogleClicks))" [title]="dailyLabel(day.date) + ': ' + formatNumber(day.value)"></div>
+          </div>
+        }
+      </div>
+    </article>
+
+    <article class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+      <h2 class="text-lg font-black text-slate-900">Interações diárias</h2>
+      <div class="mt-5 flex h-36 items-end gap-1">
+        @for (day of dailyRequests; track day.date) {
+          <div class="group relative flex flex-1 items-end justify-center">
+            <div class="w-full rounded-t bg-emerald-500" [style.height]="dailyHeight(day.value, maxValue(dailyRequests))" [title]="dailyLabel(day.date) + ': ' + formatNumber(day.value)"></div>
+          </div>
+        }
+      </div>
+    </article>
+  </section>
 </div>

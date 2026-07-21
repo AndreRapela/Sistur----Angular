@@ -1,0 +1,128 @@
+<div class="home-page">
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-shade"></div>
+
+    <div class="hero-content">
+      <p class="eyebrow">SisTur Noronha</p>
+      <h1>Planeje o dia na ilha com mapa, roteiro e lugares por perto.</h1>
+      <p class="hero-copy">
+        Encontre restaurantes, passeios, pontos turísticos, hospedagens e conveniências sem perder a visão do seu roteiro.
+      </p>
+
+      <form class="hero-search" (ngSubmit)="submitSearch()">
+        <label for="home-search" class="sr-only">Buscar lugar, praia, restaurante ou passeio</label>
+        <i class="pi pi-search"></i>
+        <input id="home-search"
+               name="homeSearch"
+               type="search"
+               [(ngModel)]="searchQuery"
+               placeholder="Buscar praia, restaurante, passeio..."
+               autocomplete="off">
+        <button type="submit">Buscar no mapa</button>
+      </form>
+
+      <div class="hero-actions">
+        <a routerLink="/map" class="primary-link">
+          <i class="pi pi-map"></i>
+          Abrir mapa
+        </a>
+        <a routerLink="/itinerary" class="secondary-link">
+          <i class="pi pi-calendar"></i>
+          Meu roteiro
+          @if (itinerary.items().length > 0) {
+            <span>{{ itinerary.items().length }}</span>
+          }
+        </a>
+      </div>
+    </div>
+
+    <aside class="trip-widget">
+      <div class="trip-widget-header">
+        <span>Seu plano</span>
+        <strong>{{ itinerary.items().length }}</strong>
+      </div>
+      <div class="mini-route">
+        <div class="route-dot active"></div>
+        <div class="route-line"></div>
+        <div class="route-dot"></div>
+        <div class="route-line"></div>
+        <div class="route-dot"></div>
+      </div>
+      <p>
+        @if (itinerary.items().length > 0) {
+          Você já tem lugares salvos. Organize por dia, ajuste horários e peça sugestão de percurso.
+        } @else {
+          Salve restaurantes, praias e passeios para montar uma viagem mais fácil de executar.
+        }
+      </p>
+      <a routerLink="/itinerary">Organizar roteiro</a>
+    </aside>
+  </section>
+
+  <section class="quick-grid" aria-label="Atalhos principais">
+    @for (action of quickActions; track action.label) {
+      <a [routerLink]="action.route"
+         [queryParams]="action.queryParams"
+         class="quick-card tone-{{ action.tone }}">
+        <span class="quick-icon"><i [class]="action.icon"></i></span>
+        <strong>{{ action.label }}</strong>
+        <small>{{ action.description }}</small>
+      </a>
+    }
+  </section>
+
+  <section class="planner-band">
+    <div>
+      <p class="eyebrow">Fluxo recomendado</p>
+      <h2>Descubra no mapa, salve no roteiro, execute por proximidade.</h2>
+    </div>
+
+    <div class="planner-links">
+      @for (link of plannerLinks; track link.label) {
+        <a [routerLink]="link.route">
+          <i [class]="link.icon"></i>
+          {{ link.label }}
+        </a>
+      }
+    </div>
+  </section>
+
+  <section class="discovery-section">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Comece por aqui</p>
+        <h2>Ideias rápidas para montar o primeiro dia</h2>
+      </div>
+      <a routerLink="/map">Ver tudo no mapa</a>
+    </div>
+
+    <div class="discovery-grid">
+      @for (card of discoveryCards; track card.id) {
+        <article class="discovery-card">
+          <div class="discovery-icon">
+            <i [class]="card.icon"></i>
+          </div>
+          <div class="card-content">
+            <span>{{ card.category }}</span>
+            <h3>{{ card.title }}</h3>
+            <p class="location"><i class="pi pi-map-marker"></i>{{ card.location }}</p>
+            <p>{{ card.note }}</p>
+            <div class="card-actions">
+              <button type="button" (click)="openMap(card)">
+                <i class="pi pi-map"></i>
+                Mapa
+              </button>
+              <button type="button"
+                      (click)="addDiscovery(card)"
+                      [class.saved]="itinerary.isInItinerary(card.id, card.type)">
+                <i [class]="itinerary.isInItinerary(card.id, card.type) ? 'pi pi-calendar-times' : 'pi pi-calendar-plus'"></i>
+                {{ itinerary.isInItinerary(card.id, card.type) ? 'Remover' : 'Salvar' }}
+              </button>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  </section>
+</div>

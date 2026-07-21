@@ -4,23 +4,22 @@ import { RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ApiService } from '../../services/api.service';
 import { AnalyticsService } from '../../services/analytics.service';
-import { AdminStatsDTO } from '../../models/tourism.models';
+import { AdminAnalyticsDTO, AdminDailyMetricDTO, AdminMetricEntryDTO, AdminStatsDTO } from '../../models/tourism.models';
 
 type DashboardStat = {
   label: string;
   value: string;
-  trend: number;
+  helper: string;
   icon: string;
-  iconColor: string;
-  bgColor: string;
+  tone: string;
+  bg: string;
 };
 
-type DashboardActivity = {
-  id: number;
-  user: string;
-  action: string;
-  target: string;
-  time: string;
+type FunnelRow = {
+  label: string;
+  value: number;
+  icon: string;
+  tone: string;
 };
 
 @Component({
@@ -35,17 +34,23 @@ export class AdminDashboardComponent implements OnInit {
   private analytics = inject(AnalyticsService);
   private cdr = inject(ChangeDetectorRef);
 
-  stats: DashboardStat[] = [
-    { label: 'Turistas cadastrados', value: '0', trend: 0, icon: 'pi-users', iconColor: 'text-primary', bgColor: 'bg-primary/10' },
-    { label: 'Ativos 30 dias', value: '0', trend: 0, icon: 'pi-clock', iconColor: 'text-secondary', bgColor: 'bg-secondary/10' },
-    { label: 'Cadastros 30 dias', value: '0', trend: 0, icon: 'pi-user-plus', iconColor: 'text-cta', bgColor: 'bg-cta/10' },
-    { label: 'Requisições', value: '0', trend: 0, icon: 'pi-chart-line', iconColor: 'text-nature', bgColor: 'bg-nature/10' },
-    { label: 'Conversões', value: '0', trend: 0, icon: 'pi-bolt', iconColor: 'text-amber-600', bgColor: 'bg-amber-50' }
-  ];
+  stats: DashboardStat[] = [];
+  categoryDemand: AdminMetricEntryDTO[] = [];
+  conversionByCategory: AdminMetricEntryDTO[] = [];
+  topGoogleServiceClicks: AdminMetricEntryDTO[] = [];
+  topViewedItems: AdminMetricEntryDTO[] = [];
+  dailyRegistrations: AdminDailyMetricDTO[] = [];
+  dailyGoogleClicks: AdminDailyMetricDTO[] = [];
+  dailyRequests: AdminDailyMetricDTO[] = [];
+  funnel: FunnelRow[] = [];
 
-  activities: DashboardActivity[] = [
-    { id: 1, user: 'Noronha', action: 'aguarda dados reais de uso', target: 'carregando métricas', time: 'Agora' }
-  ];
+  loading = true;
+  errorMessage = '';
+  requestsLast30Days = 0;
+  conversionsLast30Days = 0;
+  conversionRate = 0;
+  googleConversionRate = 0;
+  Math = Math;
 
   constructor(public auth: AuthService) {}
 
@@ -54,98 +59,163 @@ export class AdminDashboardComponent implements OnInit {
     this.loadStats();
   }
 
-  private loadStats() {
-    this.api.getAdminStats().subscribe({
-      next: ({ data }) => {
-        if (!data) {
-          return;
-        }
-
-        this.stats = [
-          {
-            label: 'Turistas cadastrados',
-            value: this.formatNumber(data.totalUsers),
-            trend: this.safeTrend(data.activeUsersLast30Days, data.totalUsers),
-            icon: 'pi-users',
-            iconColor: 'text-primary',
-            bgColor: 'bg-primary/10'
-          },
-          {
-            label: 'Ativos 30 dias',
-            value: this.formatNumber(data.activeUsersLast30Days),
-            trend: this.safeTrend(data.activeUsersLast30Days, data.totalUsers),
-            icon: 'pi-clock',
-            iconColor: 'text-secondary',
-            bgColor: 'bg-secondary/10'
-          },
-          {
-            label: 'Cadastros 30 dias',
-            value: this.formatNumber(data.registrationsLast30Days),
-            trend: this.safeTrend(data.registrationsLast30Days, data.totalUsers),
-            icon: 'pi-user-plus',
-            iconColor: 'text-cta',
-            bgColor: 'bg-cta/10'
-          },
-          {
-            label: 'Requisições',
-            value: this.formatNumber(data.totalRequests),
-            trend: this.safeTrend(data.totalRequests, data.totalUsers),
-            icon: 'pi-chart-line',
-            iconColor: 'text-nature',
-            bgColor: 'bg-nature/10'
-          },
-          {
-            label: 'Conversões',
-            value: this.formatNumber(data.totalConversions),
-            trend: this.safeTrend(data.totalConversions, data.totalRequests || 1),
-            icon: 'pi-bolt',
-            iconColor: 'text-amber-600',
-            bgColor: 'bg-amber-50'
-          }
-        ];
-
-        this.activities = this.buildActivities(data);
-        this.cdr.markForCheck();
-      },
-      error: () => this.cdr.markForCheck()
-    });
-  }
-
-  private buildActivities(stats: AdminStatsDTO): DashboardActivity[] {
-    const accessItems = Object.entries(stats.accessByEstablishment || {})
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
-      .map(([target, count], index) => ({
-        id: index + 1,
-        user: target,
-        action: 'recebeu',
-        target: `${this.formatNumber(count)} acessos`,
-        time: 'Últimos 30 dias'
-      }));
-
-    const conversionItems = Object.entries(stats.conversionByEstablishment || {})
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
-      .map(([target, count], index) => ({
-        id: index + 101,
-        user: target,
-        action: 'gerou',
-        target: `${this.formatNumber(count)} conversões`,
-        time: 'Últimos 30 dias'
-      }));
-
-    return [...accessItems, ...conversionItems].slice(0, 6);
-  }
-
-  private formatNumber(value: number): string {
+  formatNumber(value: number | null | undefined): string {
     return new Intl.NumberFormat('pt-BR').format(value ?? 0);
   }
 
-  private safeTrend(value: number, baseline: number): number {
-    if (!baseline) {
+  formatPercent(value: number | null | undefined): string {
+    return `${(value ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
+  }
+
+  maxValue(items: Array<{ value: number }>): number {
+    return Math.max(1, ...items.map(item => item.value || 0));
+  }
+
+  barWidth(value: number, max: number): string {
+    if (!value || max <= 0) {
+      return '0%';
+    }
+
+    return `${Math.max(8, Math.round((value / max) * 100))}%`;
+  }
+
+  dailyHeight(value: number, max: number): string {
+    if (!value || max <= 0) {
+      return '4px';
+    }
+
+    return `${Math.max(10, Math.round((value / max) * 100))}%`;
+  }
+
+  dailyLabel(date: string): string {
+    const parts = date.split('-');
+    return parts.length === 3 ? `${parts[2]}/${parts[1]}` : date;
+  }
+
+  private loadStats() {
+    this.loading = true;
+    this.errorMessage = '';
+
+    this.api.getAdminAnalytics().subscribe({
+      next: ({ data }) => {
+        if (data) {
+          this.applyOverview(data);
+        }
+        this.loading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => this.loadLegacyStats()
+    });
+  }
+
+  private loadLegacyStats() {
+    this.api.getAdminStats().subscribe({
+      next: ({ data }) => {
+        if (data) {
+          this.applyLegacyStats(data);
+        }
+        this.loading = false;
+        this.errorMessage = 'Resumo analítico avançado indisponível; exibindo métricas básicas.';
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.loading = false;
+        this.errorMessage = 'Não foi possível carregar as métricas administrativas.';
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  private applyOverview(data: AdminAnalyticsDTO) {
+    this.requestsLast30Days = data.requestsLast30Days;
+    this.conversionsLast30Days = data.conversionsLast30Days;
+    this.conversionRate = data.conversionRate;
+    this.googleConversionRate = data.googleConversionRate;
+    this.categoryDemand = data.categoryDemand || [];
+    this.conversionByCategory = data.conversionByCategory || [];
+    this.topGoogleServiceClicks = data.topGoogleServiceClicks || [];
+    this.topViewedItems = data.topViewedItems || [];
+    this.dailyRegistrations = data.dailyRegistrations || [];
+    this.dailyGoogleClicks = data.dailyGoogleClicks || [];
+    this.dailyRequests = data.dailyRequests || [];
+
+    this.stats = [
+      {
+        label: 'Usuários cadastrados',
+        value: this.formatNumber(data.totalUsers),
+        helper: `${this.formatNumber(data.registrationsLast30Days)} novos em 30 dias`,
+        icon: 'pi-users',
+        tone: 'text-blue-600',
+        bg: 'bg-blue-50'
+      },
+      {
+        label: 'Ativos 30 dias',
+        value: this.formatNumber(data.activeUsersLast30Days),
+        helper: `${this.formatNumber(data.requestsLast30Days)} interações recentes`,
+        icon: 'pi-clock',
+        tone: 'text-emerald-600',
+        bg: 'bg-emerald-50'
+      },
+      {
+        label: 'Cliques Google',
+        value: this.formatNumber(data.googleServiceClicks + data.googleCategoryClicks),
+        helper: `${this.formatPercent(data.googleConversionRate)} das interações`,
+        icon: 'pi-google',
+        tone: 'text-red-600',
+        bg: 'bg-red-50'
+      },
+      {
+        label: 'Conversões',
+        value: this.formatNumber(data.conversionsLast30Days),
+        helper: `${this.formatPercent(data.conversionRate)} nos últimos 30 dias`,
+        icon: 'pi-bolt',
+        tone: 'text-amber-600',
+        bg: 'bg-amber-50'
+      }
+    ];
+
+    this.funnel = [
+      { label: 'Visualizações', value: data.funnel?.['Visualizacoes'] || 0, icon: 'pi-eye', tone: 'text-slate-600' },
+      { label: 'Detalhes abertos', value: data.funnel?.['Aberturas de detalhe'] || 0, icon: 'pi-arrow-right', tone: 'text-blue-600' },
+      { label: 'Salvos no roteiro', value: data.funnel?.['Salvos no roteiro'] || 0, icon: 'pi-calendar-plus', tone: 'text-emerald-600' },
+      { label: 'Google serviços', value: (data.googleServiceClicks || 0) + (data.googleCategoryClicks || 0), icon: 'pi-external-link', tone: 'text-red-600' }
+    ];
+  }
+
+  private applyLegacyStats(data: AdminStatsDTO) {
+    this.requestsLast30Days = data.totalRequests;
+    this.conversionsLast30Days = data.totalConversions;
+    this.conversionRate = this.safeRate(data.totalConversions, data.totalRequests);
+    this.googleConversionRate = 0;
+    this.categoryDemand = [];
+    this.conversionByCategory = [];
+    this.topGoogleServiceClicks = [];
+    this.topViewedItems = Object.entries(data.accessByEstablishment || {})
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([label, value]) => ({ key: label, label, value, rate: this.safeRate(value, data.totalRequests) }));
+    this.dailyRegistrations = [];
+    this.dailyGoogleClicks = [];
+    this.dailyRequests = [];
+
+    this.stats = [
+      { label: 'Usuários cadastrados', value: this.formatNumber(data.totalUsers), helper: 'base total', icon: 'pi-users', tone: 'text-blue-600', bg: 'bg-blue-50' },
+      { label: 'Ativos 30 dias', value: this.formatNumber(data.activeUsersLast30Days), helper: 'usuários com atividade', icon: 'pi-clock', tone: 'text-emerald-600', bg: 'bg-emerald-50' },
+      { label: 'Requisições', value: this.formatNumber(data.totalRequests), helper: 'eventos registrados', icon: 'pi-chart-line', tone: 'text-slate-600', bg: 'bg-slate-100' },
+      { label: 'Conversões', value: this.formatNumber(data.totalConversions), helper: this.formatPercent(this.conversionRate), icon: 'pi-bolt', tone: 'text-amber-600', bg: 'bg-amber-50' }
+    ];
+
+    this.funnel = [
+      { label: 'Visualizações', value: data.totalRequests, icon: 'pi-eye', tone: 'text-slate-600' },
+      { label: 'Conversões', value: data.totalConversions, icon: 'pi-bolt', tone: 'text-amber-600' }
+    ];
+  }
+
+  private safeRate(value: number, total: number): number {
+    if (!total) {
       return 0;
     }
 
-    return Math.max(1, Math.min(99, Math.round((value / baseline) * 100)));
+    return Math.round((value * 10000) / total) / 100;
   }
 }

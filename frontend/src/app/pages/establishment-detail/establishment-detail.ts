@@ -72,6 +72,14 @@ export class EstablishmentDetailComponent implements OnInit {
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${establishment.latitude},${establishment.longitude}`, '_blank');
   }
 
+  openGoogleService() {
+    const establishment = this.est();
+    if (!establishment) return;
+    const query = encodeURIComponent(`${establishment.name} ${establishment.location || 'Fernando de Noronha'}`);
+    this.analytics.googleServiceClick('ESTABLISHMENT', establishment.id, establishment.name, `/establishments/${establishment.id}`);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank', 'noopener');
+  }
+
   openWebsite() {
     const establishment = this.est();
     if (!establishment?.websiteUrl) return;

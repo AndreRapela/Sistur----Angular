@@ -10,6 +10,8 @@ import { FormsModule } from '@angular/forms';
 import { environment } from '../../../environments/environment';
 import { RouteOptimizationRequestDTO, RouteOptimizationResponseDTO } from '../../models/tourism.models';
 
+type TravelParty = 'SOLO' | 'COUPLE' | 'FRIENDS' | 'FAMILY';
+
 @Component({
   selector: 'app-itinerary',
   standalone: true,
@@ -28,6 +30,14 @@ export class ItineraryPageComponent implements OnInit {
   endDate = this.minDate;
   weatherCondition = 'SUNNY';
   temperatureCelsius = 29;
+  travelParty: TravelParty = 'COUPLE';
+
+  travelPartyOptions: Array<{ label: string; value: TravelParty; icon: string }> = [
+    { label: 'Sozinho', value: 'SOLO', icon: 'pi-user' },
+    { label: 'Casal', value: 'COUPLE', icon: 'pi-heart-fill' },
+    { label: 'Amigos', value: 'FRIENDS', icon: 'pi-users' },
+    { label: 'Familia', value: 'FAMILY', icon: 'pi-home' }
+  ];
 
   dayKeys = computed(() => {
     return Object.keys(this.itinerary.itemsByDay())
@@ -144,6 +154,7 @@ export class ItineraryPageComponent implements OnInit {
 
   ngOnInit() {
     this.itineraryName = localStorage.getItem('sistur_active_itinerary_name') || '';
+    this.travelParty = (localStorage.getItem('sistur_travel_party') as TravelParty | null) || 'COUPLE';
     if (this.itinerary.items().length > 0) {
       if (!this.itineraryName) this.itineraryName = 'Meu Roteiro';
       this.step = 'PLANNING';
@@ -179,12 +190,31 @@ export class ItineraryPageComponent implements OnInit {
     }
   }
 
+  selectTravelParty(value: TravelParty) {
+    this.travelParty = value;
+    localStorage.setItem('sistur_travel_party', value);
+  }
+
   loadItinerary(savedItin: any) {
     this.itineraryName = savedItin.name;
+    this.startDate = savedItin.startDate || this.minDate;
+    this.endDate = savedItin.endDate || this.startDate;
+    this.travelParty = savedItin.travelParty || 'COUPLE';
+    this.isPublic = !!savedItin.isPublic;
     localStorage.setItem('sistur_active_itinerary_name', savedItin.name);
     // Quick load via service
     this.itinerary.loadItemsFromArray(savedItin.items);
     this.step = 'PLANNING';
+  }
+
+  deleteSavedItinerary(savedItin: any, event?: Event) {
+    event?.stopPropagation();
+    const saved = this.savedItineraries.filter(item => item.name !== savedItin.name);
+    this.savedItineraries = saved;
+    localStorage.setItem('sistur_saved_itineraries', JSON.stringify(saved));
+    if (saved.length === 0 && this.itinerary.items().length === 0) {
+      this.step = 'SETUP';
+    }
   }
 
   drop(event: CdkDragDrop<any[]>, newDay: number) {
@@ -215,6 +245,7 @@ export class ItineraryPageComponent implements OnInit {
 
   startPlanning() {
     localStorage.setItem('sistur_active_itinerary_name', this.itineraryName);
+    localStorage.setItem('sistur_travel_party', this.travelParty);
     this.step = 'PLANNING';
   }
 
@@ -224,6 +255,10 @@ export class ItineraryPageComponent implements OnInit {
     const itinData = {
       name: this.itineraryName,
       items: this.itinerary.items(),
+      startDate: this.startDate,
+      endDate: this.endDate,
+      travelParty: this.travelParty,
+      isPublic: this.isPublic,
       updatedAt: new Date().toISOString()
     };
     if (existingIndex >= 0) saved[existingIndex] = itinData;

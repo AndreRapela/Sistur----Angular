@@ -43,7 +43,7 @@
         </button>
       </form>
 
-      <div class="text-center my-6 relative">
+      <div *ngIf="googleSignInEnabled" class="text-center my-6 relative">
         <div class="absolute inset-0 flex items-center">
           <div class="w-full border-t border-slate-200"></div>
         </div>
@@ -52,7 +52,7 @@
         </div>
       </div>
 
-      <div class="flex justify-center mb-2 h-[44px] items-center">
+      <div *ngIf="googleSignInEnabled" class="flex justify-center mb-2 h-[44px] items-center">
          <div id="google-btn" class="transition-all duration-300 hover:scale-[1.02]"></div>
       </div>
 

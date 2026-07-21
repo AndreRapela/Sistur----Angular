@@ -3,6 +3,7 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { ApiService } from '../../services/api.service';
 import { AnalyticsService } from '../../services/analytics.service';
+import { ToastService } from '../../services/toast.service';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Establishment, EstablishmentType, ApiResponse, EstablishmentStatsDTO } from '../../models/tourism.models';
@@ -17,6 +18,7 @@ import { Establishment, EstablishmentType, ApiResponse, EstablishmentStatsDTO } 
 export class ClientDashboardComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private analytics = inject(AnalyticsService);
+  private toast = inject(ToastService);
   isEditing = false;
   myEst: Partial<Establishment> = {
     name: '',
@@ -95,6 +97,42 @@ export class ClientDashboardComponent implements OnInit {
       this.establishmentStats = res.data;
       this.cdr.markForCheck();
     });
+  }
+
+  toggleEditor() {
+    this.isEditing = !this.isEditing;
+  }
+
+  showMetrics() {
+    if (!this.myEst.id) {
+      this.toast.add({ severity: 'info', summary: 'Cadastre primeiro', detail: 'Salve seu estabelecimento para liberar as metricas.' });
+      this.isEditing = true;
+      return;
+    }
+
+    document.getElementById('partner-metrics')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  editPromotion() {
+    this.focusEditorField('discountDescription');
+  }
+
+  editPhoto() {
+    this.focusEditorField('photoUrl');
+  }
+
+  editHours() {
+    this.focusEditorField('openingHours');
+  }
+
+  private focusEditorField(fieldId: string) {
+    this.isEditing = true;
+    this.cdr.detectChanges();
+    window.setTimeout(() => {
+      const field = document.getElementById(fieldId);
+      field?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      (field as HTMLInputElement | HTMLTextAreaElement | null)?.focus();
+    }, 50);
   }
 
   saveEstablishment() {

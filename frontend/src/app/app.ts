@@ -1,19 +1,33 @@
-import { Component, inject } from '@angular/core';
-import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
-import { NavbarComponent } from './components/navbar/navbar';
-import { BottomNavComponent } from './components/bottom-nav/bottom-nav';
-import { ToastComponent } from './components/toast/toast';
 import { CommonModule } from '@angular/common';
-import { signal, computed } from '@angular/core';
-import { AuthService } from './services/auth.service';
+import { Component, computed, inject, signal } from '@angular/core';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
+import { BottomNavComponent } from './components/bottom-nav/bottom-nav';
+import { NavbarComponent } from './components/navbar/navbar';
+import { ToastComponent } from './components/toast/toast';
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [RouterOutlet, NavbarComponent, BottomNavComponent, ToastComponent, CommonModule],
   templateUrl: './app.html',
-  styles: []
+  styles: [`
+    .app-main {
+      min-height: 100vh;
+      padding-bottom: 86px;
+    }
+
+    .app-main.map-route {
+      padding-bottom: 0;
+    }
+
+    @media (min-width: 768px) {
+      .app-main {
+        padding-bottom: 0;
+      }
+    }
+  `]
 })
 export class AppComponent {
   title = 'SisTur';
@@ -22,38 +36,37 @@ export class AppComponent {
   private router = inject(Router);
 
   currentRoute = signal<string>('');
+  showSabat = false;
+  sabatMessage = signal('');
+  isTyping = false;
 
-  // Rotas onde navbar NÃO deve aparecer
   private hiddenNavbarRoutes = ['/login', '/register'];
 
   showNavbar = computed(() => {
-    const isAuth = this.auth.isAuthenticated();
     const currentRoute = this.currentRoute();
     const isHiddenRoute = this.hiddenNavbarRoutes.some(route => currentRoute.startsWith(route));
-
-    return isAuth && !isHiddenRoute;
+    return this.auth.isAuthenticated() && !isHiddenRoute;
   });
 
+  isMapRoute = computed(() => this.currentRoute().startsWith('/map') || this.currentRoute().startsWith('/conveniencias'));
+  showSabatButton = computed(() => this.showNavbar() && !this.isMapRoute());
+
+  private tips = [
+    'Experimente o pôr do sol na Praia do Meio hoje. A caminhada curta compensa bastante.',
+    'Dica de ouro: reserve o passeio de barco para as 9h para evitar ventos fortes.',
+    'Para jantar, compare restaurantes pelo mapa e salve o favorito antes de sair.',
+    'A trilha do Piquinho é melhor no início da manhã para fotos e temperatura mais amena.',
+    'Confira o roteiro antes de sair: organizar por proximidade evita deslocamentos desnecessários.'
+  ];
+
   constructor() {
-    // Atualizar a rota atual quando houver navegação
+    this.currentRoute.set(this.router.url);
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe((event: any) => {
         this.currentRoute.set(event.urlAfterRedirects || event.url);
       });
   }
-
-  showSabat = false;
-  sabatMessage = signal('');
-  isTyping = false;
-
-  private tips = [
-    "Experimente o pôr do sol na Praia do Meio hoje, está incrível!",
-    "Dica de ouro: Reserve o passeio de barco para as 9h para evitar ventos fortes.",
-    "O Restaurante do Zé está com uma moqueca especial hoje. Imperdível!",
-    "A trilha do Piquinho é melhor no início da manhã para fotos perfeitas.",
-    "Já conferiu o seu roteiro? Tem ótimos eventos musicais na vila hoje à noite!"
-  ];
 
   toggleSabat() {
     this.showSabat = !this.showSabat;
@@ -66,11 +79,10 @@ export class AppComponent {
     this.isTyping = true;
     this.sabatMessage.set('');
 
-    // Simulating AI typing
     setTimeout(() => {
       const randomTip = this.tips[Math.floor(Math.random() * this.tips.length)];
       this.sabatMessage.set(randomTip);
       this.isTyping = false;
-    }, 1500);
+    }, 900);
   }
 }

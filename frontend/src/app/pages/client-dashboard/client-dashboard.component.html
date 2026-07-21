@@ -5,10 +5,10 @@
       <h1 class="text-4xl font-black text-slate-800 tracking-tight mt-2">{{ myEst.id ? 'Gestão do Estabelecimento' : 'Cadastre seu Estabelecimento' }}</h1>
     </div>
     <div class="flex gap-3">
-      <button (click)="isEditing = !isEditing" class="px-6 py-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50 transition-all shadow-sm">
+      <button (click)="toggleEditor()" class="px-6 py-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50 transition-all shadow-sm">
         <i class="pi pi-pencil mr-2"></i> {{ isEditing ? 'Cancelar' : (myEst.id ? 'Editar Dados' : 'Cadastrar') }}
       </button>
-      <button class="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg hover:scale-105 active:scale-95 transition-all">
+      <button (click)="showMetrics()" class="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg hover:scale-105 active:scale-95 transition-all">
         <i class="pi pi-chart-bar mr-2"></i> Ver Métricas
       </button>
     </div>
@@ -20,15 +20,21 @@
       <form class="grid grid-cols-1 md:grid-cols-2 gap-6" (ngSubmit)="saveEstablishment()">
         <div class="space-y-2">
           <label class="text-xs font-bold text-slate-400 uppercase">Nome Comercial</label>
-          <input [(ngModel)]="myEst.name" name="name" title="Nome Comercial" placeholder="Digite o nome do seu negócio" class="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 font-medium">
+          <input id="name" [(ngModel)]="myEst.name" name="name" title="Nome Comercial" placeholder="Digite o nome do seu negócio" class="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 font-medium">
         </div>
         <div class="space-y-2">
           <label class="text-xs font-bold text-slate-400 uppercase">Tipo</label>
-          <select [(ngModel)]="myEst.type" name="type" title="Tipo de Estabelecimento" class="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 font-medium">
-            <option value="RESTAURANT">Restaurante / Bar</option>
-            <option value="HOTEL">Hospedagem</option>
-            <option value="ATTRACTION">Atração Turística</option>
-            <option value="SHOP">Comércio / Loja</option>
+          <select id="type" [(ngModel)]="myEst.type" name="type" title="Tipo de Estabelecimento" class="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 font-medium">
+            <option value="RESTAURANT">Restaurante</option>
+            <option value="BAR">Bar</option>
+            <option value="HOTEL">Hotel</option>
+            <option value="POUSADA">Pousada</option>
+            <option value="RESORT">Resort</option>
+            <option value="CONVENIENCE">Conveniência</option>
+            <option value="MARKET">Mercado</option>
+            <option value="GAS_STATION">Posto</option>
+            <option value="FAIR">Feira</option>
+            <option value="PHARMACY">Farmácia</option>
           </select>
         </div>
         <div class="md:col-span-2 space-y-2">
@@ -49,7 +55,7 @@
         </div>
         <div class="space-y-2">
           <label class="text-xs font-bold text-slate-400 uppercase">Foto principal</label>
-          <input [(ngModel)]="myEst.photoUrl" name="photoUrl" title="Foto principal" placeholder="https://..." class="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 font-medium">
+          <input id="photoUrl" [(ngModel)]="myEst.photoUrl" name="photoUrl" title="Foto principal" placeholder="https://..." class="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 font-medium">
         </div>
         <div class="space-y-2">
           <label class="text-xs font-bold text-slate-400 uppercase">Site</label>
@@ -61,7 +67,7 @@
         </div>
         <div class="space-y-2">
           <label class="text-xs font-bold text-slate-400 uppercase">Horário de funcionamento</label>
-          <input [(ngModel)]="myEst.openingHours" name="openingHours" title="Horário de funcionamento" placeholder="Seg-Sex 08h-18h" class="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 font-medium">
+          <input id="openingHours" [(ngModel)]="myEst.openingHours" name="openingHours" title="Horário de funcionamento" placeholder="Seg-Sex 08h-18h" class="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 font-medium">
         </div>
         <div class="md:col-span-2 space-y-2">
           <label class="text-xs font-bold text-slate-400 uppercase">Comodidades</label>
@@ -70,7 +76,7 @@
         <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="space-y-2">
             <label class="text-xs font-bold text-slate-400 uppercase">Oferta / Desconto</label>
-            <input [(ngModel)]="myEst.discountDescription" name="discountDescription" title="Oferta / Desconto" placeholder="Ex: 2x1 no jantar" class="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 font-medium">
+            <input id="discountDescription" [(ngModel)]="myEst.discountDescription" name="discountDescription" title="Oferta / Desconto" placeholder="Ex: 2x1 no jantar" class="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 font-medium">
           </div>
           <div class="space-y-2">
             <label class="text-xs font-bold text-slate-400 uppercase">Janela do desconto</label>
@@ -93,7 +99,7 @@
     <div class="lg:col-span-2 space-y-8">
       <div class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100 flex flex-col md:flex-row items-center gap-8">
         <div class="w-32 h-32 rounded-3xl overflow-hidden shadow-lg shrink-0 border-4 border-white">
-          <img [ngSrc]="myEst.photoUrl || 'assets/placeholder.jpg'"
+          <img [ngSrc]="myEst.photoUrl || 'assets/icons/icon.svg'"
                width="128"
                height="128"
                sizes="128px"
@@ -110,16 +116,16 @@
                 <i class="pi pi-check-circle"></i> VERIFICADO
              </div>
              <div class="flex items-center gap-2 px-4 py-2 bg-slate-50 text-slate-600 rounded-xl font-black text-xs">
-                <i class="pi pi-star-fill text-yellow-400"></i> {{myEst.rating || '0.0'}} ({{reviews.length}} avaliações)
+                <i class="pi pi-star-fill text-yellow-400"></i> {{myEst.rating || 'Sem nota'}} ({{reviews.length}} avaliações)
              </div>
            </div>
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-6">
+      <div id="partner-metrics" class="grid grid-cols-2 gap-6">
         <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
            <span class="text-slate-400 font-black text-[10px] uppercase tracking-widest">Avaliação Média</span>
-           <p class="text-4xl font-black text-slate-800 mt-2">{{myEst.rating || '0.0'}}</p>
+           <p class="text-4xl font-black text-slate-800 mt-2">{{myEst.rating || 'Sem nota'}}</p>
            <div class="w-full bg-slate-100 h-2 rounded-full mt-4 overflow-hidden">
              <div class="bg-yellow-400 h-full" [style.width.%]="(myEst.rating || 0) * 20"></div>
            </div>
@@ -179,13 +185,13 @@
       <div class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100">
          <h3 class="text-lg font-black text-slate-800 mb-6">Ações Rápidas</h3>
          <div class="space-y-3">
-           <button class="w-full p-4 hover:bg-blue-50 border border-slate-100 rounded-2xl font-bold flex items-center gap-3 transition-colors text-slate-700">
+           <button (click)="editPromotion()" class="w-full p-4 hover:bg-blue-50 border border-slate-100 rounded-2xl font-bold flex items-center gap-3 transition-colors text-slate-700">
              <i class="pi pi-megaphone text-orange-400"></i> Criar Promoção
            </button>
-           <button class="w-full p-4 hover:bg-blue-50 border border-slate-100 rounded-2xl font-bold flex items-center gap-3 transition-colors text-slate-700">
-             <i class="pi pi-images text-blue-400"></i> Gerenciar Galeria
+           <button (click)="editPhoto()" class="w-full p-4 hover:bg-blue-50 border border-slate-100 rounded-2xl font-bold flex items-center gap-3 transition-colors text-slate-700">
+             <i class="pi pi-images text-blue-400"></i> Atualizar foto
            </button>
-           <button class="w-full p-4 border border-blue-600/20 bg-blue-50/50 rounded-2xl font-bold flex items-center gap-3 transition-colors text-blue-700">
+           <button (click)="editHours()" class="w-full p-4 border border-blue-600/20 bg-blue-50/50 rounded-2xl font-bold flex items-center gap-3 transition-colors text-blue-700">
              <i class="pi pi-clock text-blue-600"></i> Definir Horários
            </button>
          </div>

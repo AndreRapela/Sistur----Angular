@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
 import { AnalyticsService } from '../../services/analytics.service';
+import { environment } from '../../../environments/environment';
 
 declare const google: any;
 
@@ -18,6 +19,7 @@ export class LoginComponent implements AfterViewInit, OnInit {
   loading = false;
   credentials = { email: '', password: '' };
   showPassword = false;
+  googleSignInEnabled = Boolean(environment.googleClientId?.trim());
 
   constructor(
     private authService: AuthService,
@@ -61,8 +63,12 @@ export class LoginComponent implements AfterViewInit, OnInit {
   }
 
   initializeGoogleSignIn() {
+    if (!this.googleSignInEnabled || typeof google === 'undefined' || !google?.accounts?.id) {
+      return;
+    }
+
     google.accounts.id.initialize({
-      client_id: '503417730999-526j17g68kcc961i8tndr83rveat8a8d.apps.googleusercontent.com',
+      client_id: environment.googleClientId,
       callback: this.handleGoogleCredentialResponse.bind(this)
     });
     google.accounts.id.renderButton(

@@ -1,66 +1,180 @@
-<div class="map-container-wrapper">
-  <div id="map" class="full-screen-map"></div>
-
-  <div class="map-overlay-top">
-    <div class="search-bar shadow-lg">
-      <label for="map-search" class="sr-only">Para onde você quer ir?</label>
-      <i class="pi pi-search text-primary"></i>
-      <input id="map-search" type="text" placeholder="Para onde você quer ir?" (input)="onSearch($event)" title="Buscar local no mapa">
+<div class="map-shell">
+  <aside class="map-panel">
+    <div class="panel-header">
+      <div>
+        <p class="eyebrow">Mapa SisTur</p>
+        <h1>Explore Noronha</h1>
+      </div>
+      <button class="icon-btn" type="button" (click)="requestUserLocation(true)" title="Usar minha localização">
+        <i class="pi pi-crosshairs"></i>
+      </button>
     </div>
 
-    <div class="category-filters-scroll mt-3 scroll-hide">
+    <div class="search-bar">
+      <label for="map-search" class="sr-only">Buscar restaurante, passeio ou ponto turístico</label>
+      <i class="pi pi-search"></i>
+      <input id="map-search" type="text" [value]="searchTerm" placeholder="Buscar no mapa..." (input)="onSearch($event)" title="Buscar no mapa">
+    </div>
+
+    <div class="status-row">
+      <span><i class="pi pi-map-marker"></i> {{ mapStatus }}</span>
+      <span [class.ready]="locationState === 'ready'"><i class="pi pi-location-arrow"></i> {{ locationMessage }}</span>
+    </div>
+
+    <div class="category-strip">
       @for (cat of categories; track cat.id) {
-        <button [class.active]="activeCategory === cat.id"
+        <button type="button"
+                [class.active]="activeCategory === cat.id"
                 (click)="filterByCategory(cat.id)"
-                class="filter-chip shadow-md"
-                title="Filtrar por {{cat.label}}">
-          <i [class]="cat.icon" [style.color]="activeCategory === cat.id ? 'white' : 'var(--primary)'"></i>
-          {{cat.label}}
+                class="category-chip"
+                title="Filtrar por {{ cat.label }}">
+          <i [class]="cat.icon"></i>
+          <span>{{ cat.label }}</span>
+          <strong>{{ countForCategory(cat.id) }}</strong>
         </button>
       }
     </div>
-  </div>
 
-  @if (selectedLocation) {
-    <div class="map-overlay-bottom">
-      <div class="location-detail-card p-4 bounce-in border-0 shadow-2xl">
-        <div class="d-flex gap-4">
-          <div class="detail-img-wrapper shadow-sm w-24 h-24 rounded-2xl overflow-hidden shrink-0">
-            <img [ngSrc]="selectedLocation.photoUrl || 'assets/placeholder.jpg'"
-                 width="96"
-                 height="96"
-                 sizes="96px"
+    @if (googlePlacesLoading) {
+      <div class="loading-line">
+        <i class="pi pi-spin pi-spinner"></i>
+        Buscando lugares complementares no Google Places...
+      </div>
+    }
+
+    <div class="result-summary">
+      <strong>{{ filteredData.length }}</strong>
+      <span>lugares encontrados</span>
+    </div>
+
+    <div class="google-category-card">
+      <div>
+        <span>Google Maps</span>
+        <strong>{{ activeCategoryName() }}</strong>
+      </div>
+      <button type="button" (click)="openCategoryInGoogle()" title="Ver categoria no Google Maps">
+        <i class="pi pi-google"></i>
+        Ver no Google
+      </button>
+    </div>
+
+    <div class="result-list">
+      @for (item of filteredData; track item.id) {
+        <button type="button"
+                class="result-item"
+                [class.selected]="selectedLocation?.id === item.id"
+                (click)="selectLocation(item)"
+                title="Selecionar {{ item.name }}">
+          <span class="result-icon pin-{{ item.mapSearchType.toLowerCase() }}">
+            <i [class]="getCategoryIcon(item.mapSearchType)"></i>
+          </span>
+          <span class="result-copy">
+            <strong>{{ item.name }}</strong>
+            <small>{{ item.location || item.category || 'Fernando de Noronha' }}</small>
+            <span class="meta">
+              <span>{{ sourceLabel(item) }}</span>
+              @if (item.rating) {
+                <span><i class="pi pi-star-fill"></i> {{ item.rating }}</span>
+              }
+            </span>
+          </span>
+        </button>
+      } @empty {
+        <div class="empty-state">
+          <i class="pi pi-search"></i>
+          <strong>Nenhum lugar encontrado</strong>
+          <span>Tente outra categoria ou remova a busca.</span>
+        </div>
+      }
+    </div>
+  </aside>
+
+  <section class="map-stage">
+    <div #mapCanvas class="full-screen-map"></div>
+
+    <div class="floating-actions">
+      <button type="button" (click)="requestUserLocation(true)" title="Centralizar minha localização">
+        <i class="pi pi-crosshairs"></i>
+      </button>
+      @if (selectedLocation) {
+        <button type="button" (click)="openInGoogleMaps()" title="Abrir no Google Maps">
+          <i class="pi pi-external-link"></i>
+        </button>
+      }
+    </div>
+
+    @if (selectedLocation) {
+      <article class="place-card">
+        <button class="close-btn" type="button" (click)="closeLocation()" title="Fechar detalhes">
+          <i class="pi pi-times"></i>
+        </button>
+
+        <div class="place-media">
+          @if (selectedLocation.photoUrl) {
+            <img [ngSrc]="selectedLocation.photoUrl"
+                 width="112"
+                 height="112"
+                 sizes="112px"
                  loading="lazy"
                  decoding="async"
-                 class="detail-img w-full h-full object-cover"
-                 [alt]="selectedLocation.name || selectedLocation.title"
-                 title="{{selectedLocation.name || selectedLocation.title}}">
-          </div>
-          <div class="flex-grow-1">
-            <h3 class="location-name">{{selectedLocation.name || selectedLocation.title}}</h3>
-            <p class="text-muted small m-0 d-flex align-items-center gap-1">
-              <i class="pi pi-map-marker text-primary"></i> {{selectedLocation.location}}
-            </p>
-
-            @if (routeSummary) {
-              <div class="mt-2 p-2 bg-light rounded text-sm d-flex gap-3 justify-content-center border">
-                <span class="d-flex align-items-center gap-1"><i class="pi pi-car text-primary"></i> {{ (routeSummary.distanceMeters / 1000).toFixed(1) }} km</span>
-                <span class="d-flex align-items-center gap-1"><i class="pi pi-clock text-primary"></i> {{ Math.round(routeSummary.durationSeconds / 60) }} min</span>
-                <span class="d-flex align-items-center gap-1"><i class="pi pi-bolt text-danger"></i> {{ Math.round(routeSummary.estimatedCalories) }} kcal</span>
-              </div>
-            }
-
-            <div class="mt-4 d-flex gap-2">
-              <button class="btn-primary-gradient flex-grow-1" (click)="getDirections()">
-                <i class="pi pi-directions mr-2"></i> Como chegar
-              </button>
-              <button class="btn-icon-light" (click)="closeLocation()" title="Fechar Detalhes">
-                <i class="pi pi-times"></i>
-              </button>
+                 [alt]="selectedLocation.name"
+                 title="{{ selectedLocation.name }}">
+          } @else {
+            <div class="media-fallback pin-{{ selectedLocation.mapSearchType.toLowerCase() }}">
+              <i [class]="getCategoryIcon(selectedLocation.mapSearchType)"></i>
             </div>
+          }
+        </div>
+
+        <div class="place-content">
+          <div class="place-title-row">
+            <div>
+              <p>{{ sourceLabel(selectedLocation) }} · {{ selectedLocation.category || 'Local' }}</p>
+              <h2>{{ selectedLocation.name }}</h2>
+            </div>
+            @if (selectedLocation.rating) {
+              <span class="rating"><i class="pi pi-star-fill"></i> {{ selectedLocation.rating }}</span>
+            }
+          </div>
+
+          <p class="place-address">
+            <i class="pi pi-map-marker"></i>
+            {{ selectedLocation.location || 'Fernando de Noronha' }}
+          </p>
+
+          @if (selectedLocation.description) {
+            <p class="place-description">{{ selectedLocation.description }}</p>
+          }
+
+          @if (routeSummary) {
+            <div class="route-summary">
+              <span><i class="pi pi-car"></i> {{ (routeSummary.distanceMeters / 1000).toFixed(1) }} km</span>
+              <span><i class="pi pi-clock"></i> {{ Math.max(1, Math.round(routeSummary.durationSeconds / 60)) }} min</span>
+              @if (routeSummary.estimatedCalories > 0) {
+                <span><i class="pi pi-bolt"></i> {{ Math.round(routeSummary.estimatedCalories) }} kcal</span>
+              }
+            </div>
+          }
+
+          <div class="place-actions">
+            <button class="primary-action" type="button" (click)="getDirections()">
+              <i class="pi pi-directions"></i>
+              Como chegar
+            </button>
+            <button class="secondary-action" type="button" (click)="togglePlan(selectedLocation)">
+              <i [class]="isInPlan(selectedLocation) ? 'pi pi-calendar-times' : 'pi pi-calendar-plus'"></i>
+              {{ isInPlan(selectedLocation) ? 'Remover' : 'Salvar' }}
+            </button>
+            <button class="secondary-action google-action" type="button" (click)="openInGoogleMaps(selectedLocation)">
+              <i class="pi pi-google"></i>
+              Google
+            </button>
+            <button class="icon-action" type="button" (click)="openDetails(selectedLocation)" title="Ver detalhes">
+              <i class="pi pi-arrow-right"></i>
+            </button>
           </div>
         </div>
-      </div>
-    </div>
-  }
+      </article>
+    }
+  </section>
 </div>

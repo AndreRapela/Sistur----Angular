@@ -27,12 +27,22 @@
             <button (click)="openMap()" class="px-5 py-3 rounded-2xl bg-emerald-400 text-slate-950 font-black shadow-xl shadow-emerald-500/20 hover:scale-[1.02] transition-transform border-none">
               Encontrar no mapa
             </button>
+            <button (click)="openGoogleService()" class="px-5 py-3 rounded-2xl bg-white/10 text-white font-black shadow-xl hover:bg-white/15 hover:scale-[1.02] transition-transform border border-white/10">
+              Ver servicos no Google
+            </button>
           </div>
         </div>
 
         <div class="relative">
           <div class="rounded-[32px] overflow-hidden border border-white/10 shadow-2xl shadow-black/30 aspect-[4/5] bg-white/5">
-            <img [src]="point()!.photoUrl" class="absolute inset-0 w-full h-full object-cover" alt="{{ point()!.name }}" title="{{ point()!.name }}" loading="eager">
+            @if (point()!.photoUrl) {
+              <img [src]="point()!.photoUrl" class="absolute inset-0 w-full h-full object-cover" alt="{{ point()!.name }}" title="{{ point()!.name }}" loading="eager">
+            } @else {
+              <div class="absolute inset-0 flex flex-col items-center justify-center gap-4 text-white/80">
+                <i class="pi pi-compass text-5xl text-emerald-300"></i>
+                <span class="text-xs font-black uppercase tracking-[0.22em]">Foto real pendente</span>
+              </div>
+            }
             <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
             <div class="absolute bottom-4 left-4 right-4">
               <div class="backdrop-blur-xl bg-black/30 border border-white/10 rounded-3xl p-4">
@@ -77,16 +87,18 @@
             <p class="text-slate-600 leading-relaxed text-[16px]">{{ point()!.historicalContext }}</p>
           </article>
 
-          <article class="bg-white rounded-[32px] p-7 md:p-8 border border-slate-100 shadow-sm">
-            <p class="text-[11px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">Galeria</p>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              @for (image of gallery(); track image) {
-                <div class="rounded-3xl overflow-hidden aspect-[4/3] border border-slate-100">
-                  <img [src]="image" class="absolute inset-0 w-full h-full object-cover" alt="{{ point()!.name }} imagem" title="{{ point()!.name }} imagem" loading="lazy">
-                </div>
-              }
-            </div>
-          </article>
+          @if (gallery().length > 0) {
+            <article class="bg-white rounded-[32px] p-7 md:p-8 border border-slate-100 shadow-sm">
+              <p class="text-[11px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">Galeria</p>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                @for (image of gallery(); track image) {
+                  <div class="relative rounded-3xl overflow-hidden aspect-[4/3] border border-slate-100">
+                    <img [src]="image" class="absolute inset-0 w-full h-full object-cover" alt="{{ point()!.name }} imagem" title="{{ point()!.name }} imagem" loading="lazy">
+                  </div>
+                }
+              </div>
+            </article>
+          }
         </div>
 
         <aside class="space-y-6 lg:sticky lg:top-24 self-start">
@@ -100,6 +112,10 @@
               <button (click)="openMap()" class="w-full bg-emerald-400 text-slate-950 font-black px-5 py-4 rounded-2xl hover:scale-[1.01] transition-transform flex items-center justify-center gap-3">
                 <i class="pi pi-compass"></i>
                 Encontrar no mapa
+              </button>
+              <button (click)="openGoogleService()" class="w-full bg-white/10 text-white font-black px-5 py-4 rounded-2xl hover:bg-white/15 hover:scale-[1.01] transition-transform flex items-center justify-center gap-3">
+                <i class="pi pi-google"></i>
+                Ver servicos no Google
               </button>
             </div>
           </div>

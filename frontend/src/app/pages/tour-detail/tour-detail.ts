@@ -75,4 +75,12 @@ export class TourDetailComponent implements OnInit {
     this.analytics.conversion('TOUR', 'MAP_CLICK', t.id, `/tours/${t.id}`);
     window.open(url, '_blank');
   }
+
+  openGoogleService() {
+    const t = this.tour();
+    if (!t) return;
+    const query = encodeURIComponent(`${t.name} ${t.partnership || ''} Fernando de Noronha`);
+    this.analytics.googleServiceClick('TOUR', t.id, t.name, `/tours/${t.id}`);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank', 'noopener');
+  }
 }

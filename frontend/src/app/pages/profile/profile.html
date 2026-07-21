@@ -5,7 +5,7 @@
       <!-- Avatar -->
       <div class="relative group">
         <div class="w-24 h-24 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-slate-100 p-1 bg-white shadow-sm">
-          <img [ngSrc]="auth.currentUser()?.photoUrl || 'assets/default-avatar.png'"
+          <img [ngSrc]="(editMode && tempUser.photoUrl ? tempUser.photoUrl : auth.currentUser()?.photoUrl) || 'assets/icons/icon.svg'"
                width="160"
                height="160"
                sizes="(max-width: 768px) 96px, 160px"
@@ -29,7 +29,6 @@
           <div class="flex gap-2">
             @if (!editMode) {
               <button (click)="toggleEdit()" class="bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg px-4 py-1.5 text-sm font-bold transition-colors">Editar perfil</button>
-              <button class="bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg p-1.5 text-sm transition-colors" title="Configurações"><i class="pi pi-cog"></i></button>
             } @else {
               <button (click)="saveProfile()" class="bg-primary text-white rounded-lg px-4 py-1.5 text-sm font-bold shadow-md">Salvar</button>
               <button (click)="toggleEdit()" class="bg-slate-50 rounded-lg px-4 py-1.5 text-sm font-bold border border-slate-200">Cancelar</button>
@@ -107,7 +106,7 @@
           <div class="grid grid-cols-2 md:grid-cols-3 gap-1 md:gap-8">
             @for (itin of itineraries(); track itin.id) {
               <div class="aspect-square relative group cursor-pointer overflow-hidden rounded-lg md:rounded-2xl shadow-sm border border-slate-100">
-                <img [ngSrc]="itin.photoUrl || 'https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?w=600&h=600&fit=crop'"
+                <img [ngSrc]="itin.photoUrl || 'assets/icons/icon.svg'"
                      width="600"
                      height="600"
                      sizes="(max-width: 768px) 50vw, 33vw"

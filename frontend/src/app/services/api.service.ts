@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Event, Tour, TouristPoint, Establishment, EstablishmentType, Page, ApiResponse, AdminStatsDTO, EstablishmentStatsDTO, RouteRequestDTO, RouteResponseDTO } from '../models/tourism.models';
+import { Event, Tour, TouristPoint, Establishment, EstablishmentType, Page, ApiResponse, AdminStatsDTO, AdminAnalyticsDTO, EstablishmentStatsDTO, RouteRequestDTO, RouteResponseDTO } from '../models/tourism.models';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -12,8 +12,14 @@ export class ApiService {
 
   constructor(private http: HttpClient) {}
 
+  private withPagination(params = new HttpParams(), size = 100): HttpParams {
+    return params
+      .set('page', '0')
+      .set('size', String(size));
+  }
+
   getEvents(category?: string): Observable<ApiResponse<Page<Event>>> {
-    let params = new HttpParams();
+    let params = this.withPagination();
     if (category) params = params.set('category', category);
     return this.http.get<ApiResponse<Page<Event>>>(`${this.apiUrl}/events`, { params });
   }
@@ -23,7 +29,7 @@ export class ApiService {
   }
 
   getTours(category?: string): Observable<ApiResponse<Page<Tour>>> {
-    let params = new HttpParams();
+    let params = this.withPagination();
     if (category) params = params.set('category', category);
     return this.http.get<ApiResponse<Page<Tour>>>(`${this.apiUrl}/tours`, { params });
   }
@@ -33,7 +39,7 @@ export class ApiService {
   }
 
   getTouristPoints(category?: string, search?: string): Observable<ApiResponse<Page<TouristPoint>>> {
-    let params = new HttpParams();
+    let params = this.withPagination();
     if (category) params = params.set('category', category);
     if (search) params = params.set('search', search);
 
@@ -45,11 +51,20 @@ export class ApiService {
   }
 
   getEstablishments(type: EstablishmentType, category?: string, search?: string): Observable<ApiResponse<Page<Establishment>>> {
-    let params = new HttpParams().set('type', type);
+    let params = this.withPagination(new HttpParams().set('type', type));
     if (category && category !== 'Todos') params = params.set('category', category);
     if (search) params = params.set('search', search);
 
     return this.http.get<ApiResponse<Page<Establishment>>>(`${this.apiUrl}/establishments`, { params });
+  }
+
+  getMapEstablishments(types: EstablishmentType[]): Observable<ApiResponse<Establishment[]>> {
+    let params = new HttpParams();
+    types.forEach(type => {
+      params = params.append('types', type);
+    });
+
+    return this.http.get<ApiResponse<Establishment[]>>(`${this.apiUrl}/establishments/map`, { params });
   }
 
   calculateRoute(request: RouteRequestDTO): Observable<ApiResponse<RouteResponseDTO>> {
@@ -74,6 +89,10 @@ export class ApiService {
 
   getAdminStats(): Observable<ApiResponse<AdminStatsDTO>> {
     return this.http.get<ApiResponse<AdminStatsDTO>>(`${this.apiUrl}/admin/stats`);
+  }
+
+  getAdminAnalytics(): Observable<ApiResponse<AdminAnalyticsDTO>> {
+    return this.http.get<ApiResponse<AdminAnalyticsDTO>>(`${this.apiUrl}/admin/stats/overview`);
   }
 
   getEstablishmentStats(id: number): Observable<ApiResponse<EstablishmentStatsDTO>> {
