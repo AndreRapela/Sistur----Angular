@@ -100,14 +100,55 @@
     <div class="discovery-grid">
       @for (card of discoveryCards; track card.id) {
         <article class="discovery-card">
-          <div class="discovery-icon">
-            <i [class]="card.icon"></i>
-          </div>
+          <a class="discovery-media"
+             [href]="googleUrl(card)"
+             target="_blank"
+             rel="noopener noreferrer"
+             (click)="trackGoogleOpen(card)"
+             [attr.aria-label]="'Ver ' + card.title + ' no Google'">
+            <img [src]="displayPhoto(card)"
+                 [alt]="card.title"
+                 width="800"
+                 height="500"
+                 loading="lazy"
+                 decoding="async"
+                 (error)="onPhotoError(card, $event)">
+            <span class="media-category">{{ card.category }}</span>
+            @if (detailsFor(card)) {
+              <span class="google-photo-label"><i class="pi pi-google"></i> Foto do Google</span>
+            }
+          </a>
+          <a class="photo-credit"
+             [href]="photoCreditUrl(card)"
+             target="_blank"
+             rel="noopener noreferrer">
+            Foto: {{ photoCredit(card) }}
+          </a>
           <div class="card-content">
-            <span>{{ card.category }}</span>
             <h3>{{ card.title }}</h3>
-            <p class="location"><i class="pi pi-map-marker"></i>{{ card.location }}</p>
-            <p>{{ card.note }}</p>
+            <p class="location"><i class="pi pi-map-marker"></i>{{ displayLocation(card) }}</p>
+            <p class="card-note">{{ card.note }}</p>
+            <p class="practical-info"><i class="pi pi-info-circle"></i>{{ card.practicalInfo }}</p>
+
+            <a class="google-summary"
+               [href]="googleUrl(card)"
+               target="_blank"
+               rel="noopener noreferrer"
+               (click)="trackGoogleOpen(card)"
+               [attr.aria-label]="'Abrir avaliações de ' + card.title + ' no Google'">
+              <strong>{{ displayRating(card) | number:'1.1-1' }}</strong>
+              <span class="rating-stars" [attr.aria-label]="displayRating(card) + ' de 5 estrelas'">
+                @for (position of starPositions; track position) {
+                  <i [class]="starIcon(displayRating(card), position)"></i>
+                }
+              </span>
+              <span class="review-copy">
+                <b>{{ formatReviewCount(displayReviewCount(card)) }}</b>
+                <small>{{ detailsFor(card) ? 'Atualizado pelo Google' : 'Ver no Google' }}</small>
+              </span>
+              <i class="pi pi-external-link google-external"></i>
+            </a>
+
             <div class="card-actions">
               <button type="button" (click)="openMap(card)">
                 <i class="pi pi-map"></i>

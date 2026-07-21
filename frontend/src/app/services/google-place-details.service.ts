@@ -1,6 +1,11 @@
 import { Injectable, inject } from '@angular/core';
-import { Establishment } from '../models/tourism.models';
 import { GoogleMapsLoaderService } from './google-maps-loader.service';
+
+export interface GooglePlaceLookup {
+  name: string;
+  googlePlaceId?: string;
+  googleQuery?: string;
+}
 
 export interface GooglePlaceDetails {
   placeId: string;
@@ -9,6 +14,7 @@ export interface GooglePlaceDetails {
   rating?: number;
   reviewCount?: number;
   googleMapsUrl?: string;
+  reviewsUrl?: string;
   websiteUrl?: string;
   contactNumber?: string;
   openingHours?: string[];
@@ -33,30 +39,31 @@ export class GooglePlaceDetailsService {
   private readonly loader = inject(GoogleMapsLoaderService);
   private readonly cache = new Map<string, Promise<GooglePlaceDetails | null>>();
 
-  getDetails(establishment: Establishment): Promise<GooglePlaceDetails | null> {
-    const cacheKey = establishment.googlePlaceId || this.normalize(establishment.name);
+  getDetails(placeLookup: GooglePlaceLookup): Promise<GooglePlaceDetails | null> {
+    const cacheKey = placeLookup.googlePlaceId
+      || this.normalize(placeLookup.googleQuery || placeLookup.name);
     const cached = this.cache.get(cacheKey);
     if (cached) {
       return cached;
     }
 
-    const request = this.fetchDetails(establishment).catch(() => null);
+    const request = this.fetchDetails(placeLookup).catch(() => null);
     this.cache.set(cacheKey, request);
     return request;
   }
 
-  private async fetchDetails(establishment: Establishment): Promise<GooglePlaceDetails | null> {
+  private async fetchDetails(placeLookup: GooglePlaceLookup): Promise<GooglePlaceDetails | null> {
     const google = await this.loader.load();
     const placesLibrary = await google.maps.importLibrary('places');
 
-    if (establishment.googlePlaceId) {
-      const place = new placesLibrary.Place({ id: establishment.googlePlaceId });
+    if (placeLookup.googlePlaceId) {
+      const place = new placesLibrary.Place({ id: placeLookup.googlePlaceId });
       await place.fetchFields({ fields: this.detailFields() });
       return this.toDetails(place);
     }
 
     const response = await placesLibrary.Place.searchByText({
-      textQuery: `${establishment.name}, Fernando de Noronha, Pernambuco`,
+      textQuery: `${placeLookup.googleQuery || placeLookup.name}, Fernando de Noronha, Pernambuco`,
       fields: this.detailFields(),
       locationRestriction: NORONHA_BOUNDS,
       language: 'pt-BR',
@@ -69,7 +76,7 @@ export class GooglePlaceDetailsService {
       return null;
     }
 
-    const expectedName = this.normalize(establishment.name);
+    const expectedName = this.normalize(placeLookup.name);
     const bestMatch = places.find((place: any) => {
       const candidate = this.normalize(this.googleText(place.displayName));
       return candidate === expectedName || candidate.includes(expectedName) || expectedName.includes(candidate);
@@ -87,6 +94,7 @@ export class GooglePlaceDetailsService {
       'rating',
       'userRatingCount',
       'googleMapsURI',
+      'googleMapsLinks',
       'websiteURI',
       'nationalPhoneNumber',
       'internationalPhoneNumber',
@@ -113,6 +121,9 @@ export class GooglePlaceDetailsService {
       rating: typeof place.rating === 'number' ? place.rating : undefined,
       reviewCount: typeof place.userRatingCount === 'number' ? place.userRatingCount : undefined,
       googleMapsUrl: place.googleMapsURI ? String(place.googleMapsURI) : undefined,
+      reviewsUrl: place.googleMapsLinks?.reviewsURI
+        ? String(place.googleMapsLinks.reviewsURI)
+        : undefined,
       websiteUrl: place.websiteURI ? String(place.websiteURI) : undefined,
       contactNumber: place.internationalPhoneNumber || place.nationalPhoneNumber || undefined,
       openingHours: Array.isArray(place.regularOpeningHours?.weekdayDescriptions)
