@@ -215,6 +215,16 @@ export interface Establishment {
   openingHours?: string;
   contactNumber?: string;
   amenities?: string;
+  googlePlaceId?: string;
+  googleMapsUrl?: string;
+  menuUrl?: string;
+  priceRange?: string;
+  popularDishes?: string;
+  bestVisitTime?: string;
+  weatherAdvice?: string;
+  reviewCount?: number | null;
+  dataSourceUrl?: string;
+  dataVerifiedAt?: string;
   discountDescription?: string;
   discountHours?: string;
   isPremiumExclusive?: boolean;

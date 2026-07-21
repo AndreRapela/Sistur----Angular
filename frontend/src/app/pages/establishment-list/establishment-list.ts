@@ -130,9 +130,20 @@ export class EstablishmentListComponent implements OnInit {
   }
 
   openGoogleService(est: Establishment) {
-    const query = encodeURIComponent(`${est.name} ${est.location || 'Fernando de Noronha'}`);
     this.analytics.googleServiceClick('ESTABLISHMENT', est.id, est.name, `/establishments/${est.id}`);
-    openExternalLink(`https://www.google.com/maps/search/?api=1&query=${query}`);
+    if (est.googleMapsUrl) {
+      openExternalLink(est.googleMapsUrl);
+      return;
+    }
+
+    const params = new URLSearchParams({
+      api: '1',
+      query: `${est.name}, Fernando de Noronha`
+    });
+    if (est.googlePlaceId) {
+      params.set('query_place_id', est.googlePlaceId);
+    }
+    openExternalLink(`https://www.google.com/maps/search/?${params.toString()}`);
   }
 
   toggleItinerary(est: Establishment) {

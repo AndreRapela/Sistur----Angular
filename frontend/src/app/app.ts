@@ -47,11 +47,11 @@ export class AppComponent {
   showNavbar = computed(() => {
     const currentRoute = this.currentRoute();
     const isHiddenRoute = this.hiddenNavbarRoutes.some(route => currentRoute.startsWith(route));
-    return this.auth.isAuthenticated() && !isHiddenRoute;
+    return !isHiddenRoute;
   });
 
   isMapRoute = computed(() => this.currentRoute().startsWith('/map') || this.currentRoute().startsWith('/conveniencias'));
-  showSabatButton = computed(() => this.showNavbar() && !this.isMapRoute());
+  showSabatButton = computed(() => this.auth.isAuthenticated() && !this.isMapRoute());
 
   private tips = [
     'Experimente o pôr do sol na Praia do Meio hoje. A caminhada curta compensa bastante.',

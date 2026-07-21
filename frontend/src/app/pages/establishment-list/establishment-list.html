@@ -76,9 +76,9 @@
               </div>
             }
 
-            @if (est.averagePrice && est.averagePrice > 0) {
-              <div class="absolute bottom-4 left-4 bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20">
-                <span class="text-white font-black text-sm">Média R$ {{est.averagePrice | number:'1.0-0'}}</span>
+            @if (est.priceRange || (est.averagePrice && est.averagePrice > 0)) {
+              <div class="absolute bottom-4 left-4 right-4 bg-black/45 backdrop-blur-md px-4 py-2 rounded-lg border border-white/20">
+                <span class="block line-clamp-2 text-white font-black text-sm leading-snug">{{ est.priceRange || ('Média R$ ' + (est.averagePrice | number:'1.0-0')) }}</span>
               </div>
             }
           </div>
@@ -94,6 +94,13 @@
                 </span>
              </div>
              <p class="text-[15px] text-slate-500 leading-relaxed mt-4 line-clamp-2 font-medium">{{est.description}}</p>
+
+             @if (est.popularDishes) {
+               <p class="mt-3 line-clamp-1 text-xs font-bold text-slate-600">
+                 <i class="pi pi-check-circle mr-1 text-emerald-500"></i>
+                 {{ est.popularDishes.split('|')[0] }}
+               </p>
+             }
 
              @if (est.discountDescription) {
                <div class="mt-4 rounded-2xl bg-amber-50 border border-amber-100 p-4">

@@ -1160,7 +1160,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       averagePrice: item.averagePrice,
       openingHours: item.openingHours,
       contactNumber: item.contactNumber,
-      websiteUrl: item.websiteUrl
+      websiteUrl: item.websiteUrl,
+      googleMapsUrl: item.googleMapsUrl
     };
   }
 
