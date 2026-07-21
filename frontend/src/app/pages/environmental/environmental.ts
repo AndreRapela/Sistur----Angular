@@ -50,13 +50,13 @@ export class EnvironmentalComponent {
       tone: 'from-sky-500 to-blue-500'
     },
     {
-      icon: 'pi pi-recycle',
+      icon: 'pi pi-refresh',
       title: 'Plástico Zero e Carbono Zero',
       text: 'A agenda ambiental da ilha incentiva redução de resíduos, proíbe descartáveis e prepara a transição para uma mobilidade cada vez mais limpa.',
       tone: 'from-amber-500 to-orange-500'
     },
     {
-      icon: 'pi pi-leaf',
+      icon: 'pi pi-sun',
       title: 'Visitação com limite inteligente',
       text: 'As trilhas e piscinas naturais são controladas por agendamento para reduzir impacto e manter a experiência boa para quem visita e para quem vive na ilha.',
       tone: 'from-lime-500 to-emerald-600'

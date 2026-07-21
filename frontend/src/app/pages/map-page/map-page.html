@@ -5,20 +5,31 @@
         <p class="eyebrow">Mapa SisTur</p>
         <h1>Explore Noronha</h1>
       </div>
-      <button class="icon-btn" type="button" (click)="requestUserLocation(true)" title="Usar minha localização">
-        <i class="pi pi-crosshairs"></i>
+      <button class="icon-btn" type="button" (click)="requestUserLocation(true)" title="Usar minha localização" aria-label="Usar minha localização">
+        <i class="pi pi-compass"></i>
       </button>
     </div>
 
     <div class="search-bar">
       <label for="map-search" class="sr-only">Buscar restaurante, passeio ou ponto turístico</label>
       <i class="pi pi-search"></i>
-      <input id="map-search" type="text" [value]="searchTerm" placeholder="Buscar no mapa..." (input)="onSearch($event)" title="Buscar no mapa">
+      <input id="map-search"
+             type="search"
+             [value]="searchTerm"
+             placeholder="Buscar no mapa..."
+             autocomplete="off"
+             (input)="onSearch($event)"
+             title="Buscar no mapa">
+      @if (searchTerm) {
+        <button class="clear-search" type="button" (click)="clearSearch()" title="Limpar busca" aria-label="Limpar busca">
+          <i class="pi pi-times"></i>
+        </button>
+      }
     </div>
 
     <div class="status-row">
       <span><i class="pi pi-map-marker"></i> {{ mapStatus }}</span>
-      <span [class.ready]="locationState === 'ready'"><i class="pi pi-location-arrow"></i> {{ locationMessage }}</span>
+      <span [class.ready]="locationState === 'ready'"><i class="pi pi-map-marker"></i> {{ locationMessage }}</span>
     </div>
 
     <div class="category-strip">
@@ -64,6 +75,7 @@
                 class="result-item"
                 [class.selected]="selectedLocation?.id === item.id"
                 (click)="selectLocation(item)"
+                [attr.aria-label]="'Selecionar ' + item.name"
                 title="Selecionar {{ item.name }}">
           <span class="result-icon pin-{{ item.mapSearchType.toLowerCase() }}">
             <i [class]="getCategoryIcon(item.mapSearchType)"></i>
@@ -90,14 +102,20 @@
   </aside>
 
   <section class="map-stage">
-    <div #mapCanvas class="full-screen-map"></div>
+    <div #mapCanvas class="full-screen-map" data-testid="noronha-map"></div>
+
+    <div class="zoom-status" aria-live="polite">
+      <i class="pi pi-map"></i>
+      <span>{{ zoomGuide }}</span>
+      <strong>{{ currentZoom.toFixed(0) }}</strong>
+    </div>
 
     <div class="floating-actions">
-      <button type="button" (click)="requestUserLocation(true)" title="Centralizar minha localização">
-        <i class="pi pi-crosshairs"></i>
+      <button type="button" (click)="requestUserLocation(true)" title="Centralizar minha localização" aria-label="Centralizar minha localização">
+        <i class="pi pi-compass"></i>
       </button>
       @if (selectedLocation) {
-        <button type="button" (click)="openInGoogleMaps()" title="Abrir no Google Maps">
+        <button type="button" (click)="openInGoogleMaps()" title="Abrir no Google Maps" aria-label="Abrir no Google Maps">
           <i class="pi pi-external-link"></i>
         </button>
       }
@@ -105,7 +123,7 @@
 
     @if (selectedLocation) {
       <article class="place-card">
-        <button class="close-btn" type="button" (click)="closeLocation()" title="Fechar detalhes">
+        <button class="close-btn" type="button" (click)="closeLocation()" title="Fechar detalhes" aria-label="Fechar detalhes">
           <i class="pi pi-times"></i>
         </button>
 
@@ -169,7 +187,7 @@
               <i class="pi pi-google"></i>
               Google
             </button>
-            <button class="icon-action" type="button" (click)="openDetails(selectedLocation)" title="Ver detalhes">
+            <button class="icon-action" type="button" (click)="openDetails(selectedLocation)" title="Ver detalhes" aria-label="Ver detalhes">
               <i class="pi pi-arrow-right"></i>
             </button>
           </div>

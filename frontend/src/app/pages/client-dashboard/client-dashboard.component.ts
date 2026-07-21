@@ -175,7 +175,7 @@ export class ClientDashboardComponent implements OnInit {
   badges = [
     { id: 1, name: 'Pioneiro', icon: 'pi-flag', color: 'bg-primary', unlocked: true, description: 'Um dos primeiros negócios cadastrados' },
     { id: 2, name: 'Favorito', icon: 'pi-heart-fill', color: 'bg-red-400', unlocked: true, description: 'Mais de 100 favoritos de turistas' },
-    { id: 3, name: 'Sustentável', icon: 'pi-leaf', color: 'bg-nature', unlocked: true, description: 'Selo de práticas eco-friendly' },
+    { id: 3, name: 'Sustentável', icon: 'pi-sun', color: 'bg-nature', unlocked: true, description: 'Selo de práticas eco-friendly' },
     { id: 4, name: 'Top Rated', icon: 'pi-star-fill', color: 'bg-yellow-400', unlocked: false, description: 'Média de avaliação acima de 4.8' },
     { id: 5, name: 'Verificado', icon: 'pi-check-circle', color: 'bg-emerald-500', unlocked: true, description: 'Identidade e localização verificadas' },
     { id: 6, name: 'Engajado', icon: 'pi-comments', color: 'bg-secondary', unlocked: false, description: 'Responde a 100% das avaliações' }

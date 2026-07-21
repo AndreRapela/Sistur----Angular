@@ -14,10 +14,6 @@ declare global {
 export class GoogleMapsLoaderService {
   private loadPromise?: Promise<any>;
 
-  isConfigured(): boolean {
-    return Boolean(environment.googleMapsApiKey?.trim());
-  }
-
   load(): Promise<any> {
     if (typeof window === 'undefined' || typeof document === 'undefined') {
       return Promise.reject(new Error('Google Maps indisponível fora do navegador.'));
@@ -37,7 +33,15 @@ export class GoogleMapsLoaderService {
     }
 
     this.loadPromise = new Promise((resolve, reject) => {
-      window.sisTurGoogleMapsLoaded = () => resolve(window.google);
+      const timeoutId = window.setTimeout(() => {
+        this.loadPromise = undefined;
+        reject(new Error('Tempo limite ao carregar Google Maps.'));
+      }, 4500);
+
+      window.sisTurGoogleMapsLoaded = () => {
+        window.clearTimeout(timeoutId);
+        resolve(window.google);
+      };
 
       const existingScript = document.querySelector<HTMLScriptElement>('script[data-sistur-google-maps]');
       if (existingScript) {
@@ -50,7 +54,7 @@ export class GoogleMapsLoaderService {
         v: 'weekly',
         language: 'pt-BR',
         region: 'BR',
-        libraries: 'places,geometry',
+        loading: 'async',
         callback: 'sisTurGoogleMapsLoaded'
       });
 
@@ -60,6 +64,7 @@ export class GoogleMapsLoaderService {
       script.defer = true;
       script.setAttribute('data-sistur-google-maps', 'true');
       script.onerror = () => {
+        window.clearTimeout(timeoutId);
         this.loadPromise = undefined;
         reject(new Error('Falha ao carregar Google Maps.'));
       };

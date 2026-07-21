@@ -66,7 +66,7 @@ export class CultureComponent {
       tone: 'from-rose-500 to-pink-500'
     },
     {
-      icon: 'pi pi-utensils',
+      icon: 'pi pi-shop',
       title: 'Gastronomia com identidade',
       text: 'Peixes, frutos do mar, receitas simples e produtos locais ajudam a contar a história da ilha sem pedir protagonismo demais.',
       tone: 'from-emerald-500 to-teal-500'

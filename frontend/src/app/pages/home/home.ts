@@ -55,7 +55,7 @@ export class HomeComponent {
     {
       label: 'Onde comer',
       description: 'Todos os restaurantes e bares cadastrados ou encontrados.',
-      icon: 'pi pi-utensils',
+      icon: 'pi pi-shop',
       route: '/map',
       queryParams: { category: 'RESTAURANT' },
       tone: 'orange'
@@ -79,7 +79,7 @@ export class HomeComponent {
 
   plannerLinks = [
     { label: 'Pontos turísticos', icon: 'pi pi-compass', route: '/pontos-turisticos' },
-    { label: 'Restaurantes', icon: 'pi pi-utensils', route: '/restaurants' },
+    { label: 'Restaurantes', icon: 'pi pi-shop', route: '/restaurants' },
     { label: 'Hospedagem', icon: 'pi pi-home', route: '/hotels' },
     { label: 'Roteiro', icon: 'pi pi-calendar', route: '/itinerary' }
   ];
@@ -101,7 +101,7 @@ export class HomeComponent {
       title: 'Jantar na Vila',
       category: 'Gastronomia',
       location: 'Vila dos Remédios',
-      icon: 'pi pi-utensils',
+      icon: 'pi pi-shop',
       type: 'RESTAURANT',
       route: '/map',
       queryParams: { category: 'RESTAURANT', q: 'vila' },

@@ -55,7 +55,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      transition: opacity 0.5s ease;
+      transition: opacity 0.16s ease;
     }
 
     .spinner {
@@ -99,16 +99,5 @@
     <h2>SisTur</h2>
   </div>
   <app-root></app-root>
-  <script>
-    window.addEventListener('load', function() {
-      setTimeout(function() {
-        var loader = document.getElementById('initial-loader');
-        if (loader) {
-          loader.style.opacity = '0';
-          setTimeout(function() { loader.remove(); }, 500);
-        }
-      }, 300);
-    });
-  </script>
 </body>
 </html>

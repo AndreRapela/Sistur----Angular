@@ -4,6 +4,7 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
+  NgZone,
   OnDestroy,
   OnInit,
   ViewChild,
@@ -12,14 +13,16 @@ import {
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { Title } from '@angular/platform-browser';
-import { forkJoin, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { merge, of } from 'rxjs';
+import { catchError, map, timeout } from 'rxjs/operators';
 import * as L from 'leaflet';
+import Supercluster from 'supercluster';
 import { ApiService } from '../../services/api.service';
 import { AnalyticsService } from '../../services/analytics.service';
 import { GoogleMapsLoaderService } from '../../services/google-maps-loader.service';
 import { ItineraryService } from '../../services/itinerary.service';
 import { openExternalLink } from '../../utils/external-link';
+import { NORONHA_MAP_BOOTSTRAP } from './map-bootstrap.data';
 import {
   Establishment,
   EstablishmentType,
@@ -30,9 +33,8 @@ import {
   TouristPoint
 } from '../../models/tourism.models';
 
-type MapProvider = 'GOOGLE' | 'LEAFLET';
 type MapCategoryId = 'ALL' | 'RESTAURANT' | 'HOTEL' | 'EVENT' | 'TOUR' | 'BEACH' | 'POINT' | 'CONVENIENCE';
-type MapSource = 'SISTUR' | 'GOOGLE_PLACES';
+type MapSource = 'SISTUR' | 'GOOGLE_PLACES' | 'CURATED';
 type LocationState = 'idle' | 'loading' | 'ready' | 'denied';
 
 interface MapCategory {
@@ -61,6 +63,12 @@ interface MapLocation {
   websiteUrl?: string;
   googleMapsUrl?: string;
 }
+
+interface MapClusterPoint {
+  locationId: string;
+}
+
+type MapBounds = [west: number, south: number, east: number, north: number];
 
 const NORONHA_CENTER = { lat: -3.8415, lng: -32.4116 };
 const NORONHA_BOUNDS = {
@@ -108,6 +116,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private router = inject(Router);
   private titleService = inject(Title);
   private cdr = inject(ChangeDetectorRef);
+  private ngZone = inject(NgZone);
   private googleLoader = inject(GoogleMapsLoaderService);
   private analytics = inject(AnalyticsService);
   public itinerary = inject(ItineraryService);
@@ -121,6 +130,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private google?: any;
   private googleMap?: any;
   private googleMarkers: any[] = [];
+  private googleMapListeners: any[] = [];
   private googleUserMarker?: any;
   private googleUserAccuracyCircle?: any;
   private googleRoutePolyline?: any;
@@ -133,14 +143,29 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private googleTextSearchLocations: MapLocation[] = [];
   private googlePlacesLoadingFor = new Set<MapCategoryId>();
   private searchRequestTimer?: ReturnType<typeof setTimeout>;
+  private markerRenderFrame?: number;
+  private localSearchFrame?: number;
+  private googleSearchRequestId = 0;
+  private readonly clusterIndex = new Supercluster<MapClusterPoint, Record<string, never>>({
+    minZoom: 0,
+    maxZoom: 16,
+    minPoints: 2,
+    radius: 54,
+    nodeSize: 64
+  });
+  private locationById = new Map<string, MapLocation>();
+  private locationCatalog: MapLocation[] = [];
+  private locationsByCategory = new Map<MapCategoryId, MapLocation[]>();
+  private readonly leafletViewportHandler = () => this.scheduleMarkerRender();
 
   Math = Math;
   activeCategory: MapCategoryId = 'ALL';
   selectedLocation: MapLocation | null = null;
   routeSummary: RouteResponseDTO | null = null;
   searchTerm = '';
-  mapProvider: MapProvider = 'LEAFLET';
   mapStatus = 'Carregando mapa...';
+  currentZoom = 14;
+  zoomGuide = 'Aproxime o mapa para separar os lugares.';
   googlePlacesLoading = false;
   locationState: LocationState = 'idle';
   locationMessage = 'Use sua posição para calcular rotas reais.';
@@ -148,7 +173,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   categories: MapCategory[] = [
     { id: 'ALL', label: 'Tudo', icon: 'pi pi-map' },
-    { id: 'RESTAURANT', label: 'Restaurantes', icon: 'pi pi-utensils', googleQueries: ['restaurantes em Fernando de Noronha'] },
+    { id: 'RESTAURANT', label: 'Restaurantes', icon: 'pi pi-shop', googleQueries: ['restaurantes em Fernando de Noronha'] },
     { id: 'TOUR', label: 'Passeios', icon: 'pi pi-camera', googleQueries: ['passeios turísticos em Fernando de Noronha', 'agências de turismo em Fernando de Noronha'] },
     { id: 'BEACH', label: 'Praias', icon: 'pi pi-sun', googleQueries: ['praias em Fernando de Noronha', 'baías em Fernando de Noronha'] },
     { id: 'POINT', label: 'Turísticos', icon: 'pi pi-compass', googleQueries: ['pontos turísticos em Fernando de Noronha', 'atrações em Fernando de Noronha'] },
@@ -157,8 +182,21 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     { id: 'EVENT', label: 'Eventos', icon: 'pi pi-calendar' }
   ];
 
-  allData: MapLocation[] = [];
+  allData: MapLocation[] = NORONHA_MAP_BOOTSTRAP.map(location => ({
+    ...location,
+    source: 'CURATED' as const
+  }));
   filteredData: MapLocation[] = [];
+  categoryCounts: Record<MapCategoryId, number> = {
+    ALL: 0,
+    RESTAURANT: 0,
+    HOTEL: 0,
+    EVENT: 0,
+    TOUR: 0,
+    BEACH: 0,
+    POINT: 0,
+    CONVENIENCE: 0
+  };
 
   ngOnInit() {
     this.titleService.setTitle('Mapa inteligente de Noronha - SisTur');
@@ -177,13 +215,25 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       clearTimeout(this.searchRequestTimer);
     }
 
+    if (this.markerRenderFrame !== undefined) {
+      cancelAnimationFrame(this.markerRenderFrame);
+    }
+
+    if (this.localSearchFrame !== undefined) {
+      cancelAnimationFrame(this.localSearchFrame);
+    }
+
     if (this.watchId !== undefined && navigator.geolocation) {
       navigator.geolocation.clearWatch(this.watchId);
     }
 
     if (this.leafletMap) {
+      this.leafletMap.off('moveend', this.leafletViewportHandler);
       this.leafletMap.remove();
     }
+
+    this.googleMapListeners.forEach(listener => listener.remove());
+    this.googleMapListeners = [];
   }
 
   filterByCategory(type: MapCategoryId) {
@@ -199,9 +249,21 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onSearch(event: globalThis.Event) {
     const input = event.target as HTMLInputElement;
-    this.searchTerm = input.value.toLowerCase();
-    this.updateMarkers();
+    this.searchTerm = input.value;
+    this.queueLocalSearchUpdate();
     this.queueGoogleTextSearch();
+    this.cdr.markForCheck();
+  }
+
+  clearSearch() {
+    if (!this.searchTerm) {
+      return;
+    }
+
+    this.searchTerm = '';
+    this.googleSearchRequestId++;
+    this.googleTextSearchLocations = [];
+    this.updateMarkers();
     this.cdr.markForCheck();
   }
 
@@ -210,6 +272,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.routeSummary = null;
     this.clearRoute();
     this.focusLocation(location, 16);
+    this.scheduleMarkerRender();
     this.cdr.markForCheck();
   }
 
@@ -217,6 +280,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedLocation = null;
     this.routeSummary = null;
     this.clearRoute();
+    this.scheduleMarkerRender();
     this.cdr.markForCheck();
   }
 
@@ -302,7 +366,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    if (location.source === 'GOOGLE_PLACES') {
+    if (location.source === 'GOOGLE_PLACES' || location.source === 'CURATED') {
       this.openInGoogleMaps(location);
       return;
     }
@@ -348,11 +412,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   countForCategory(category: MapCategoryId): number {
-    return this.getDataForCategory(category).length;
+    return this.categoryCounts[category];
   }
 
   sourceLabel(location: MapLocation): string {
-    return location.source === 'GOOGLE_PLACES' ? 'Google Places' : 'SisTur';
+    if (location.source === 'GOOGLE_PLACES') return 'Google Places';
+    if (location.source === 'CURATED') return 'Guia SisTur';
+    return 'SisTur';
   }
 
   getCategoryIcon(category: MapCategoryId | undefined): string {
@@ -384,19 +450,14 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     try {
       const google = await this.googleLoader.load();
       this.setupGoogleMap(google);
-      this.mapProvider = 'GOOGLE';
       this.mapStatus = 'Google Maps ativo';
     } catch {
       this.setupLeafletMap();
-      this.mapProvider = 'LEAFLET';
-      this.mapStatus = this.googleLoader.isConfigured()
-        ? 'Mapa local ativo; Google Maps não carregou.'
-        : 'Mapa local ativo; configure googleMapsApiKey para usar Google Maps/Places.';
+      this.mapStatus = 'Mapa detalhado de Noronha ativo';
     }
 
     this.updateMarkers();
     this.applyInitialSelection(this.pendingInitialParams);
-    this.requestUserLocation(false);
     void this.ensureGooglePlacesForCategory(this.activeCategory);
     void this.ensureGooglePlacesForSearch();
     this.cdr.markForCheck();
@@ -408,17 +469,33 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       center: NORONHA_CENTER,
       zoom: 14,
       minZoom: 12,
+      maxZoom: 20,
+      mapTypeId: google.maps.MapTypeId.ROADMAP,
+      backgroundColor: '#e8eaed',
       mapTypeControl: false,
       fullscreenControl: false,
       streetViewControl: true,
       clickableIcons: true,
       gestureHandling: 'greedy',
       zoomControl: true,
+      zoomControlOptions: {
+        position: google.maps.ControlPosition.RIGHT_BOTTOM
+      },
+      streetViewControlOptions: {
+        position: google.maps.ControlPosition.RIGHT_BOTTOM
+      },
       restriction: {
         latLngBounds: NORONHA_BOUNDS,
         strictBounds: false
       }
     });
+
+    this.ngZone.runOutsideAngular(() => {
+      this.googleMapListeners.push(
+        this.googleMap.addListener('idle', () => this.scheduleMarkerRender())
+      );
+    });
+
     this.directionsService = new google.maps.DirectionsService();
     this.directionsRenderer = new google.maps.DirectionsRenderer({
       map: this.googleMap,
@@ -436,50 +513,59 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.leafletMap = L.map(this.mapCanvas.nativeElement, {
       zoomControl: false,
       minZoom: 12,
+      maxZoom: 20,
+      preferCanvas: true,
       maxBounds: NORONHA_LEAFLET_BOUNDS,
       maxBoundsViscosity: 0.8
     }).setView([NORONHA_CENTER.lat, NORONHA_CENTER.lng], 14);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap &copy; CARTO'
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap &copy; CARTO',
+      maxZoom: 20,
+      updateWhenIdle: true,
+      updateWhenZooming: false,
+      keepBuffer: 2,
+      crossOrigin: true
     }).addTo(this.leafletMap);
 
     L.control.zoom({ position: 'bottomright' }).addTo(this.leafletMap);
     this.markersLayer.addTo(this.leafletMap);
     this.routeLayer.addTo(this.leafletMap);
+    this.ngZone.runOutsideAngular(() => {
+      this.leafletMap?.on('moveend', this.leafletViewportHandler);
+    });
   }
 
   private loadAllData() {
-    forkJoin({
-      establishments: this.api.getMapEstablishments(MAP_ESTABLISHMENT_TYPES).pipe(
+    merge(
+      this.api.getMapEstablishments(MAP_ESTABLISHMENT_TYPES).pipe(
         map(res => res.data || []),
-        catchError(() => this.loadEstablishmentTypes(MAP_ESTABLISHMENT_TYPES))
+        timeout(7000),
+        catchError(() => of([] as Establishment[])),
+        map(items => items.map(item => this.establishmentToLocation(item, this.mapCategoryForEstablishment(item.type))))
       ),
-      events: this.api.getEvents().pipe(map(res => res.data?.content || []), catchError(() => of([] as Event[]))),
-      tours: this.api.getTours().pipe(map(res => res.data?.content || []), catchError(() => of([] as Tour[]))),
-      points: this.api.getTouristPoints().pipe(map(res => res.data?.content || []), catchError(() => of([] as TouristPoint[])))
-    }).subscribe(({ establishments, events, tours, points }) => {
-      this.allData = this.dedupeLocations([
-        ...establishments.map(item => this.establishmentToLocation(item, this.mapCategoryForEstablishment(item.type))),
-        ...events.map(item => this.eventToLocation(item)),
-        ...tours.map(item => this.tourToLocation(item)),
-        ...points.map(item => this.pointToLocation(item))
-      ]).filter(location => this.isLocationInsideNoronha(location));
+      this.api.getEvents().pipe(
+        map(res => (res.data?.content || []).map(item => this.eventToLocation(item))),
+        timeout(7000),
+        catchError(() => of([] as MapLocation[]))
+      ),
+      this.api.getTours().pipe(
+        map(res => (res.data?.content || []).map(item => this.tourToLocation(item))),
+        timeout(7000),
+        catchError(() => of([] as MapLocation[]))
+      ),
+      this.api.getTouristPoints().pipe(
+        map(res => (res.data?.content || []).map(item => this.pointToLocation(item))),
+        timeout(7000),
+        catchError(() => of([] as MapLocation[]))
+      )
+    ).subscribe(group => {
+      this.allData = this.dedupeLocations([...this.allData, ...group])
+        .filter(location => this.isLocationInsideNoronha(location));
       this.updateMarkers();
       this.applyInitialSelection(this.pendingInitialParams);
       this.cdr.markForCheck();
     });
-  }
-
-  private loadEstablishmentTypes(types: EstablishmentType[]) {
-    return forkJoin(
-      types.map(type =>
-        this.api.getEstablishments(type).pipe(
-          map(res => res.data?.content || []),
-          catchError(() => of([] as Establishment[]))
-        )
-      )
-    ).pipe(map(groups => groups.flat()));
   }
 
   private mapCategoryForEstablishment(type: EstablishmentType): MapCategoryId {
@@ -543,6 +629,18 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }, 450);
   }
 
+  private queueLocalSearchUpdate() {
+    if (this.localSearchFrame !== undefined) {
+      cancelAnimationFrame(this.localSearchFrame);
+    }
+
+    this.localSearchFrame = requestAnimationFrame(() => {
+      this.localSearchFrame = undefined;
+      this.updateMarkers();
+      this.cdr.markForCheck();
+    });
+  }
+
   private async ensureGooglePlacesForSearch() {
     const query = this.searchTerm.trim();
     if (query.length < 3 || !this.googleMap || !this.google?.maps?.importLibrary) {
@@ -554,6 +652,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const cacheKey = `${this.activeCategory}:${query}`;
+    const requestId = ++this.googleSearchRequestId;
     const cached = this.googleTextSearchCache.get(cacheKey);
     if (cached) {
       this.googleTextSearchLocations = cached;
@@ -583,6 +682,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         .filter((place: MapLocation | null): place is MapLocation => Boolean(place))
         .filter((place: MapLocation) => this.isLocationInsideNoronha(place));
 
+      if (requestId !== this.googleSearchRequestId || cacheKey !== `${this.activeCategory}:${this.searchTerm.trim()}`) {
+        return;
+      }
+
       this.googleTextSearchLocations = this.dedupeLocations(mapped);
       this.googleTextSearchCache.set(cacheKey, this.googleTextSearchLocations);
       this.updateMarkers();
@@ -595,66 +698,249 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private updateMarkers() {
-    this.clearMarkers();
+    this.rebuildLocationCatalog();
     const visible = this.getVisibleData();
     this.filteredData = visible;
+    this.locationById = new Map(visible.map(location => [location.id, location]));
 
-    visible.forEach(location => {
-      if (!this.hasCoordinates(location)) {
+    const points: Array<Supercluster.PointFeature<MapClusterPoint>> = visible.flatMap(location => {
+      const coordinates = this.coordinatesFor(location);
+      if (!coordinates) {
+        return [];
+      }
+
+      return [{
+        type: 'Feature' as const,
+        properties: { locationId: location.id },
+        geometry: {
+          type: 'Point' as const,
+          coordinates: [coordinates.lng, coordinates.lat]
+        }
+      }];
+    });
+
+    this.clusterIndex.load(points);
+    this.scheduleMarkerRender();
+  }
+
+  private rebuildLocationCatalog() {
+    const googleData = [...this.googlePlacesCache.values()].flat();
+    this.locationCatalog = this.dedupeLocations([
+      ...this.allData,
+      ...googleData,
+      ...this.googleTextSearchLocations
+    ]);
+    this.locationsByCategory.clear();
+
+    this.categories.forEach(category => {
+      const locations = category.id === 'ALL'
+        ? this.locationCatalog
+        : this.locationCatalog.filter(item => item.mapSearchType === category.id);
+      this.locationsByCategory.set(category.id, locations);
+      this.categoryCounts[category.id] = locations.length;
+    });
+  }
+
+  private scheduleMarkerRender() {
+    if (this.markerRenderFrame !== undefined) {
+      return;
+    }
+
+    this.markerRenderFrame = requestAnimationFrame(() => {
+      this.markerRenderFrame = undefined;
+      this.renderMarkersForViewport();
+    });
+  }
+
+  private renderMarkersForViewport() {
+    const view = this.currentMapView();
+    if (!view) {
+      return;
+    }
+
+    this.clearMarkers();
+    this.currentZoom = view.zoom;
+    this.zoomGuide = view.zoom < 14
+      ? 'Visao geral da ilha'
+      : view.zoom < 17
+        ? 'Lugares separados por area'
+        : 'Nomes e estruturas locais';
+
+    const zoom = Math.max(0, Math.min(20, Math.floor(view.zoom)));
+    const features = this.clusterIndex.getClusters(view.bounds, zoom);
+    const showLabels = view.zoom >= 17;
+
+    features.forEach(feature => {
+      const [lng, lat] = feature.geometry.coordinates;
+      if ('cluster' in feature.properties && feature.properties.cluster) {
+        this.renderClusterMarker(
+          lat,
+          lng,
+          feature.properties.cluster_id,
+          feature.properties.point_count,
+          String(feature.properties.point_count_abbreviated)
+        );
         return;
       }
 
-      if (this.googleMap && this.google) {
-        const marker = new this.google.maps.Marker({
-          position: { lat: Number(location.latitude), lng: Number(location.longitude) },
-          map: this.googleMap,
-          title: location.name,
-          icon: this.googleMarkerIcon(location.mapSearchType)
-        });
-        marker.addListener('click', () => this.selectLocation(location));
-        this.googleMarkers.push(marker);
-        return;
-      }
-
-      if (this.leafletMap) {
-        const marker = L.marker([Number(location.latitude), Number(location.longitude)], {
-          icon: this.createLeafletIcon(location.mapSearchType)
-        }).on('click', () => this.selectLocation(location));
-        this.markersLayer.addLayer(marker);
+      const location = this.locationById.get(feature.properties.locationId);
+      if (location) {
+        this.renderPlaceMarker(location, lat, lng, showLabels);
       }
     });
+
+    this.cdr.markForCheck();
+  }
+
+  private renderClusterMarker(
+    lat: number,
+    lng: number,
+    clusterId: number,
+    count: number,
+    countLabel: string
+  ) {
+    const size = count >= 50 ? 25 : count >= 10 ? 22 : 19;
+    const openCluster = () => this.expandCluster(clusterId, lat, lng);
+
+    if (this.googleMap && this.google) {
+      const marker = new this.google.maps.Marker({
+        position: { lat, lng },
+        map: this.googleMap,
+        title: `${count} lugares nesta area`,
+        optimized: true,
+        zIndex: 500 + count,
+        label: {
+          text: countLabel,
+          color: '#ffffff',
+          fontSize: '12px',
+          fontWeight: '800'
+        },
+        icon: {
+          path: this.google.maps.SymbolPath.CIRCLE,
+          scale: size,
+          fillColor: '#1a73e8',
+          fillOpacity: 0.94,
+          strokeColor: '#ffffff',
+          strokeWeight: 3
+        }
+      });
+      marker.addListener('click', openCluster);
+      this.googleMarkers.push(marker);
+      return;
+    }
+
+    if (this.leafletMap) {
+      const diameter = size * 2;
+      const marker = L.marker([lat, lng], {
+        title: `${count} lugares nesta area`,
+        icon: L.divIcon({
+          html: `<div class="map-cluster" style="--cluster-size:${diameter}px">${this.escapeHtml(countLabel)}</div>`,
+          className: 'map-cluster-icon',
+          iconSize: [diameter, diameter],
+          iconAnchor: [size, size]
+        })
+      }).on('click', openCluster);
+      this.markersLayer.addLayer(marker);
+    }
+  }
+
+  private renderPlaceMarker(location: MapLocation, lat: number, lng: number, showLabel: boolean) {
+    const selected = this.selectedLocation?.id === location.id;
+
+    if (this.googleMap && this.google) {
+      const marker = new this.google.maps.Marker({
+        position: { lat, lng },
+        map: this.googleMap,
+        title: location.name,
+        optimized: !showLabel,
+        zIndex: selected ? 1000 : 100,
+        label: showLabel ? {
+          text: this.compactLabel(location.name),
+          className: 'sistur-google-place-label',
+          color: '#202124',
+          fontSize: '12px',
+          fontWeight: '700'
+        } : undefined,
+        icon: this.googleMarkerIcon(location.mapSearchType, showLabel, selected)
+      });
+      marker.addListener('click', () => this.ngZone.run(() => this.selectLocation(location)));
+      this.googleMarkers.push(marker);
+      return;
+    }
+
+    if (this.leafletMap) {
+      const labelOnLeft = showLabel && lng > this.leafletMap.getCenter().lng;
+      const marker = L.marker([lat, lng], {
+        title: location.name,
+        riseOnHover: true,
+        zIndexOffset: selected ? 1000 : 0,
+        icon: this.createLeafletIcon(location.mapSearchType, location.name, showLabel, selected, labelOnLeft)
+      }).on('click', () => this.ngZone.run(() => this.selectLocation(location)));
+      this.markersLayer.addLayer(marker);
+    }
+  }
+
+  private expandCluster(clusterId: number, lat: number, lng: number) {
+    let targetZoom = Math.min(18, this.currentZoom + 2);
+    try {
+      targetZoom = Math.min(18, this.clusterIndex.getClusterExpansionZoom(clusterId));
+    } catch {
+      // The index may have changed while the user was clicking the cluster.
+    }
+
+    if (this.googleMap) {
+      this.googleMap.panTo({ lat, lng });
+      this.googleMap.setZoom(targetZoom);
+      return;
+    }
+
+    this.leafletMap?.setView([lat, lng], targetZoom, { animate: true });
+  }
+
+  private currentMapView(): { bounds: MapBounds; zoom: number } | null {
+    if (this.googleMap) {
+      const bounds = this.googleMap.getBounds();
+      if (!bounds) {
+        return null;
+      }
+
+      const southWest = bounds.getSouthWest();
+      const northEast = bounds.getNorthEast();
+      return {
+        bounds: [southWest.lng(), southWest.lat(), northEast.lng(), northEast.lat()],
+        zoom: Number(this.googleMap.getZoom() || 14)
+      };
+    }
+
+    if (this.leafletMap) {
+      const bounds = this.leafletMap.getBounds();
+      return {
+        bounds: [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()],
+        zoom: this.leafletMap.getZoom()
+      };
+    }
+
+    return null;
   }
 
   private getVisibleData(): MapLocation[] {
     const data = this.getDataForCategory(this.activeCategory);
-    const query = this.searchTerm.trim();
+    const query = this.normalizeSearch(this.searchTerm);
 
     if (!query) {
       return data;
     }
 
     return data.filter(item => {
-      const haystack = [item.name, item.description, item.location, item.category]
+      const haystack = this.normalizeSearch([item.name, item.description, item.location, item.category]
         .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
+        .join(' '));
       return haystack.includes(query);
     });
   }
 
   private getDataForCategory(category: MapCategoryId): MapLocation[] {
-    const googleData = category === 'ALL'
-      ? [...this.googlePlacesCache.values()].flat()
-      : (this.googlePlacesCache.get(category) || []);
-    const searchData = category === 'ALL'
-      ? this.googleTextSearchLocations
-      : this.googleTextSearchLocations.filter(item => item.mapSearchType === category);
-
-    const localData = category === 'ALL'
-      ? this.allData
-      : this.allData.filter(item => item.mapSearchType === category);
-
-    return this.dedupeLocations([...localData, ...googleData, ...searchData]);
+    return this.locationsByCategory.get(category) || [];
   }
 
   private clearMarkers() {
@@ -1112,24 +1398,34 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.categories.find(item => item.id === category)?.label || 'Local';
   }
 
-  private googleMarkerIcon(category: MapCategoryId) {
+  private googleMarkerIcon(category: MapCategoryId, showLabel = false, selected = false) {
     const color = this.colorForCategory(category);
     return {
       path: this.google.maps.SymbolPath.CIRCLE,
-      scale: 10,
+      scale: selected ? 13 : 10,
       fillColor: color,
       fillOpacity: 1,
       strokeColor: '#ffffff',
-      strokeWeight: 3
+      strokeWeight: selected ? 4 : 3,
+      labelOrigin: showLabel ? new this.google.maps.Point(0, -23) : undefined
     };
   }
 
-  private createLeafletIcon(type: MapCategoryId) {
+  private createLeafletIcon(
+    type: MapCategoryId,
+    name: string,
+    showLabel: boolean,
+    selected: boolean,
+    labelOnLeft: boolean
+  ) {
+    const label = showLabel
+      ? `<span class="marker-label">${this.escapeHtml(this.compactLabel(name))}</span>`
+      : '';
     return L.divIcon({
-      html: `<div class="marker-pin pin-${type.toLowerCase()}"><i class="${this.iconForCategory(type)}"></i></div>`,
+      html: `<div class="map-marker-shell${showLabel ? ' has-label' : ''}${selected ? ' is-selected' : ''}${labelOnLeft ? ' label-left' : ''}"><div class="marker-pin pin-${type.toLowerCase()}"><i class="${this.iconForCategory(type)}"></i></div>${label}</div>`,
       className: 'custom-div-icon',
       iconSize: [36, 36],
-      iconAnchor: [18, 18]
+      iconAnchor: [18, 32]
     });
   }
 
@@ -1158,12 +1454,39 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       const key = `${location.mapSearchType}:${this.slug(location.name)}`;
       const existing = seen.get(key);
 
-      if (!existing || existing.source === 'GOOGLE_PLACES') {
+      if (!existing || this.sourcePriority(location.source) > this.sourcePriority(existing.source)) {
         seen.set(key, location);
       }
     });
 
     return [...seen.values()];
+  }
+
+  private sourcePriority(source: MapSource): number {
+    if (source === 'SISTUR') return 3;
+    if (source === 'CURATED') return 2;
+    return 1;
+  }
+
+  private compactLabel(value: string): string {
+    return value.length > 28 ? `${value.slice(0, 27).trim()}...` : value;
+  }
+
+  private normalizeSearch(value: string): string {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+  }
+
+  private escapeHtml(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 
   private slug(value: string): string {
