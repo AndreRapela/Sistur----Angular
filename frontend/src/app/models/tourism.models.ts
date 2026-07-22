@@ -160,8 +160,25 @@ export interface Tour {
   description: string;
   category: string;
   photoUrl?: string | null;
+  photoCredit?: string;
   price?: number | null;
+  rating?: number | null;
+  reviewCount?: number | null;
+  reviewSource?: string;
+  reviewUrl?: string;
   partnership: string;
+  contactNumber?: string;
+  duration?: string;
+  schedule?: string;
+  meetingPoint?: string;
+  itinerary?: string;
+  includedItems?: string;
+  excludedItems?: string;
+  requirements?: string;
+  bookingUrl?: string;
+  googleMapsUrl?: string;
+  sourceUrl?: string;
+  dataVerifiedAt?: string;
   latitude: number;
   longitude: number;
   discountDescription?: string; // Ex: "Compre 1 prato principal e ganhe outro"

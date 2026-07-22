@@ -93,8 +93,13 @@ export class TourListComponent implements OnInit {
   }
 
   openGoogleService(tour: Tour) {
-    const query = encodeURIComponent(`${tour.name} ${tour.partnership || ''} Fernando de Noronha`);
     this.analytics.googleServiceClick('TOUR', tour.id, tour.name, `/tours/${tour.id}`);
+    if (tour.googleMapsUrl) {
+      openExternalLink(tour.googleMapsUrl);
+      return;
+    }
+
+    const query = encodeURIComponent(`${tour.name} ${tour.partnership || ''} Fernando de Noronha`);
     openExternalLink(`https://www.google.com/maps/search/?api=1&query=${query}`);
   }
 

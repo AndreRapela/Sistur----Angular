@@ -1,98 +1,237 @@
-@if (tour()) {
-  <div class="min-h-screen bg-slate-50">
-    <div class="h-[50vh] bg-slate-900 relative overflow-hidden">
-      @if (tour().photoUrl) {
-        <img [src]="tour().photoUrl"
+@if (tour(); as currentTour) {
+  <main class="min-h-screen bg-slate-50">
+    <header class="relative min-h-[430px] overflow-hidden bg-slate-900 md:min-h-[500px]">
+      @if (heroPhoto()) {
+        <img [src]="heroPhoto()"
              class="absolute inset-0 h-full w-full object-cover"
-             alt="{{ tour().name }}"
-             loading="eager">
-      } @else {
-        <div class="absolute inset-0 flex flex-col items-center justify-center gap-4 text-white/80">
-          <i class="pi pi-camera text-5xl text-emerald-300"></i>
-          <span class="text-xs font-black uppercase tracking-[0.22em]">Foto real pendente</span>
-        </div>
+             [alt]="currentTour.name"
+             width="1600"
+             height="900"
+             loading="eager"
+             fetchpriority="high">
       }
-      <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end pb-16">
-        <div class="container mx-auto px-4 md:px-8">
-          <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">{{ tour().category }}</span>
-          <h1 class="text-4xl md:text-6xl font-black text-white m-0 drop-shadow-md">{{ tour().name }}</h1>
-          <p class="text-white opacity-90 mt-2 flex items-center gap-2 font-medium">
-            <i class="pi pi-users font-bold"></i> Oferecido por: {{ tour().partnership || 'Operador Local' }}
+      <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-black/10"></div>
+
+      <div class="relative mx-auto flex min-h-[430px] max-w-7xl flex-col justify-end px-4 pb-10 md:min-h-[500px] md:px-8 md:pb-14">
+        <div class="max-w-4xl">
+          <span class="inline-flex rounded-md bg-white/95 px-2.5 py-1 text-xs font-black uppercase text-blue-700">
+            {{ currentTour.category }}
+          </span>
+          <h1 class="mt-3 text-4xl font-black leading-tight text-white drop-shadow-md md:text-6xl">{{ currentTour.name }}</h1>
+          <p class="mt-3 flex items-center gap-2 text-base font-bold text-white/90 md:text-lg">
+            <i class="pi pi-verified"></i>
+            Operado por {{ currentTour.partnership || 'operadora local' }}
+          </p>
+
+          @if (hasReviews() && displayRating(); as rating) {
+            <button type="button"
+                    class="mt-4 inline-flex items-center gap-2 border-0 bg-transparent p-0 text-left text-white"
+                    (click)="openReviews()"
+                    [title]="'Ver avaliações no ' + displayReviewSource()">
+              <strong class="text-xl font-black">{{ rating | number:'1.1-1' }}</strong>
+              <span class="flex gap-1 text-amber-400" [attr.aria-label]="rating + ' de 5 estrelas'">
+                @for (position of starPositions; track position) {
+                  <i [class]="starIcon(rating, position)"></i>
+                }
+              </span>
+              <span class="text-sm font-bold text-white/85">
+                {{ formatReviewCount(displayReviewCount()) }} no {{ displayReviewSource() }}
+              </span>
+              <i class="pi pi-external-link text-xs"></i>
+            </button>
+          }
+        </div>
+
+        @if (currentTour.sourceUrl) {
+          <button type="button"
+                  class="absolute bottom-3 right-4 border-0 bg-black/55 px-2 py-1 text-[10px] font-bold text-white/85 backdrop-blur md:right-8"
+                  (click)="openSource()"
+                  title="Abrir a fonte da foto">
+            Foto: {{ photoCredit() }} <i class="pi pi-external-link ml-1"></i>
+          </button>
+        }
+      </div>
+    </header>
+
+    <section class="border-b border-slate-200 bg-white">
+      <div class="mx-auto grid max-w-7xl grid-cols-2 gap-px bg-slate-200 md:grid-cols-4">
+        <div class="bg-white px-4 py-5 md:px-6">
+          <span class="text-[10px] font-black uppercase text-slate-400">Duração</span>
+          <p class="mt-1 flex items-start gap-2 text-sm font-black text-slate-800">
+            <i class="pi pi-clock mt-0.5 text-blue-600"></i>{{ currentTour.duration || 'Consulte a operadora' }}
+          </p>
+        </div>
+        <div class="bg-white px-4 py-5 md:px-6">
+          <span class="text-[10px] font-black uppercase text-slate-400">Horário</span>
+          <p class="mt-1 flex items-start gap-2 text-sm font-black text-slate-800">
+            <i class="pi pi-calendar mt-0.5 text-blue-600"></i>{{ currentTour.schedule || 'A confirmar' }}
+          </p>
+        </div>
+        <div class="bg-white px-4 py-5 md:px-6">
+          <span class="text-[10px] font-black uppercase text-slate-400">Transporte</span>
+          <p class="mt-1 flex items-start gap-2 text-sm font-black text-slate-800">
+            <i class="pi pi-car mt-0.5 text-blue-600"></i>Veículo 4x4
+          </p>
+        </div>
+        <div class="bg-white px-4 py-5 md:px-6">
+          <span class="text-[10px] font-black uppercase text-slate-400">Embarque</span>
+          <p class="mt-1 flex items-start gap-2 text-sm font-black text-slate-800">
+            <i class="pi pi-map-marker mt-0.5 text-blue-600"></i>{{ currentTour.meetingPoint || 'A combinar' }}
           </p>
         </div>
       </div>
-    </div>
+    </section>
 
-    <div class="container mx-auto px-4 py-12">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <div class="lg:col-span-2">
-          <section class="mb-8 bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100">
-            <h2 class="text-2xl font-extrabold mb-4 text-slate-800">Descrição do Passeio</h2>
-            <p class="text-slate-600 leading-relaxed whitespace-pre-wrap text-[16px]">{{ tour().description }}</p>
-          </section>
+    <div class="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-4 py-10 md:px-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:py-14">
+      <div class="min-w-0">
+        <section class="border-b border-slate-200 pb-9">
+          <p class="text-xs font-black uppercase text-blue-600">Experiência verificada</p>
+          <h2 class="mt-2 text-3xl font-black text-slate-900">Sobre este Ilha Tour</h2>
+          <p class="mt-4 text-base leading-8 text-slate-600">{{ currentTour.description }}</p>
+        </section>
 
-          <section class="p-6 md:p-8 bg-amber-50 rounded-3xl border border-amber-200 mt-8 shadow-sm">
-            <h3 class="font-extrabold text-[20px] mb-4 text-amber-900 flex items-center gap-2">
-              <i class="pi pi-info-circle text-[22px] font-bold"></i> O que levar?
-            </h3>
-            <p class="text-amber-800 font-medium leading-relaxed">Recomendamos protetor solar, água, roupas leves e calçados confortáveis. Não esqueça a câmera para registrar as belezas de Noronha!</p>
-          </section>
-        </div>
-
-        <div class="lg:col-span-1">
-          <div class="sticky top-24 flex flex-col gap-4 p-6 bg-white rounded-[24px] shadow-xl border border-slate-100">
-            <div class="mb-2">
-              <span class="text-slate-400 text-[13px] font-bold uppercase tracking-wider">Valor por pessoa</span>
-              @if (tour().price) {
-                <p class="text-[32px] font-black text-blue-600 m-0">A partir de R$ {{ tour().price | number:'1.2-2' }}</p>
-              } @else {
-                <p class="text-[32px] font-black text-blue-600 m-0">Consultar</p>
+        @if (itineraryStops().length) {
+          <section class="border-b border-slate-200 py-9">
+            <h2 class="text-2xl font-black text-slate-900">Roteiro previsto</h2>
+            <p class="mt-2 text-sm leading-6 text-slate-500">A ordem das paradas pode mudar conforme o clima, o mar e as regras de acesso.</p>
+            <ol class="mt-6 grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
+              @for (stop of itineraryStops(); track stop) {
+                <li class="flex items-start gap-3 border-t border-slate-100 pt-3 text-sm font-bold leading-6 text-slate-700">
+                  <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-black text-blue-700">{{ $index + 1 }}</span>
+                  <span>{{ stop }}</span>
+                </li>
               }
+            </ol>
+          </section>
+        }
+
+        @if (includedItems().length || excludedItems().length) {
+          <section class="grid grid-cols-1 gap-8 border-b border-slate-200 py-9 md:grid-cols-2">
+            <div>
+              <h2 class="text-xl font-black text-slate-900">O que está incluído</h2>
+              <ul class="mt-4 space-y-3">
+                @for (item of includedItems(); track item) {
+                  <li class="flex items-start gap-3 text-sm font-semibold leading-6 text-slate-600">
+                    <i class="pi pi-check-circle mt-1 text-emerald-500"></i><span>{{ item }}</span>
+                  </li>
+                }
+              </ul>
             </div>
-            
-            @if (tour().contactNumber) {
-              <button class="bg-blue-600 text-white px-4 py-3 rounded-xl font-bold hover:bg-blue-700 w-full flex items-center justify-center gap-2" 
-                title="Agendar pelo WhatsApp"
-                (click)="openWhatsApp()">
-                <i class="pi pi-whatsapp"></i> Agendar via WhatsApp
-              </button>
+            <div>
+              <h2 class="text-xl font-black text-slate-900">Não está incluído</h2>
+              <ul class="mt-4 space-y-3">
+                @for (item of excludedItems(); track item) {
+                  <li class="flex items-start gap-3 text-sm font-semibold leading-6 text-slate-600">
+                    <i class="pi pi-minus-circle mt-1 text-slate-400"></i><span>{{ item }}</span>
+                  </li>
+                }
+              </ul>
+            </div>
+          </section>
+        }
+
+        <section class="mt-9 border border-amber-200 bg-amber-50 px-5 py-6 md:px-7">
+          <h2 class="flex items-center gap-2 text-xl font-black text-amber-900">
+            <i class="pi pi-info-circle"></i> Antes de reservar
+          </h2>
+          <ul class="mt-4 space-y-3">
+            @for (item of requirements(); track item) {
+              <li class="flex items-start gap-3 text-sm font-bold leading-6 text-amber-900/85">
+                <i class="pi pi-circle-fill mt-2 text-[6px]"></i><span>{{ item }}</span>
+              </li>
             }
+          </ul>
+        </section>
 
-            <button class="bg-secondary text-white px-4 py-3 rounded-xl font-bold hover:opacity-90 w-full flex items-center justify-center gap-2" 
-              title="{{ itineraryService.isInItinerary(tour().id, 'TOUR') ? 'Remover do roteiro' : 'Adicionar ao roteiro' }}"
-              (click)="toggleItinerary()">
-              <i [class]="itineraryService.isInItinerary(tour().id, 'TOUR') ? 'pi pi-calendar-times' : 'pi pi-calendar-plus'"></i>
-              {{ itineraryService.isInItinerary(tour().id, 'TOUR') ? 'Remover do Roteiro' : 'Adicionar ao Roteiro' }}
-            </button>
-
-            <button class="bg-white text-red-600 border border-red-200 px-4 py-3 rounded-xl font-bold hover:bg-red-50 w-full flex items-center justify-center gap-2"
-              title="Reservar/Comprar no Google"
-              (click)="openGoogleService()">
-              <i class="pi pi-google"></i> Reservar/Comprar no Google
-            </button>
-
-            @if (tour().latitude && tour().longitude) {
-              <button class="bg-white text-blue-600 border border-blue-600 px-4 py-3 rounded-xl font-bold hover:bg-blue-50 w-full flex items-center justify-center gap-2" 
-                title="Como chegar (Google Maps)"
-                (click)="openGoogleMaps()">
-                <i class="pi pi-map"></i> Como Chegar
-              </button>
-
-              <div class="mt-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                <h4 class="text-xs font-bold uppercase text-slate-400 mb-3 tracking-wider">Localização e Rota</h4>
-                <div class="rounded-xl overflow-hidden shadow-inner h-64">
-                   <app-map [lat]="tour().latitude" [lng]="tour().longitude" [destinationName]="tour().name"></app-map>
-                </div>
-              </div>
-            }
-          </div>
-        </div>
+        @if (currentTour.sourceUrl) {
+          <p class="mt-5 text-xs leading-5 text-slate-500">
+            Informações e preço conferidos em {{ currentTour.dataVerifiedAt | date:'dd/MM/yyyy':'UTC' }} na página da operadora.
+            <button type="button" class="border-0 bg-transparent p-0 font-black text-blue-700 underline" (click)="openSource()">Consultar fonte oficial</button>.
+          </p>
+        }
       </div>
+
+      <aside>
+        <div class="sticky top-24 border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50">
+          <span class="text-xs font-black uppercase text-slate-400">Valor por pessoa</span>
+          @if (currentTour.price) {
+            <p class="mt-1 text-4xl font-black text-blue-700">R$ {{ currentTour.price | number:'1.2-2' }}</p>
+            <p class="mt-2 text-xs font-semibold leading-5 text-slate-500">Preço inicial publicado pela operadora. Confirme data, disponibilidade e forma de pagamento.</p>
+          } @else {
+            <p class="mt-1 text-3xl font-black text-blue-700">Consultar</p>
+          }
+
+          @if (hasReviews() && displayRating(); as rating) {
+            <button type="button"
+                    class="mt-5 flex w-full items-center gap-2 border-y border-slate-200 bg-white py-3 text-left"
+                    (click)="openReviews()"
+                    title="Abrir avaliações">
+              <strong class="text-lg font-black text-amber-700">{{ rating | number:'1.1-1' }}</strong>
+              <span class="flex gap-0.5 text-xs text-amber-500">
+                @for (position of starPositions; track position) {
+                  <i [class]="starIcon(rating, position)"></i>
+                }
+              </span>
+              <span class="min-w-0 flex-1 text-xs font-bold text-slate-600">
+                {{ formatReviewCount(displayReviewCount()) }}<br>
+                <small class="font-black text-blue-700">Ver no {{ displayReviewSource() }}</small>
+              </span>
+              <i class="pi pi-external-link text-xs text-slate-400"></i>
+            </button>
+          }
+
+          <div class="mt-5 flex flex-col gap-3">
+            @if (currentTour.bookingUrl) {
+              <button type="button"
+                      class="flex w-full items-center justify-center gap-2 bg-blue-700 px-4 py-3.5 font-black text-white hover:bg-blue-800"
+                      (click)="openBooking()"
+                      title="Reservar na página oficial da operadora">
+                <i class="pi pi-external-link"></i> Reservar com a Alga
+              </button>
+            }
+
+            @if (currentTour.contactNumber || googleDetails()?.contactNumber) {
+              <button type="button"
+                      class="flex w-full items-center justify-center gap-2 border border-emerald-500 bg-white px-4 py-3 font-black text-emerald-700 hover:bg-emerald-50"
+                      (click)="openWhatsApp()"
+                      title="Falar com a operadora no WhatsApp">
+                <i class="pi pi-whatsapp"></i> Falar com a operadora
+              </button>
+            }
+
+            <button type="button"
+                    class="flex w-full items-center justify-center gap-2 border border-slate-200 bg-white px-4 py-3 font-black text-slate-800 hover:border-blue-300 hover:bg-blue-50"
+                    (click)="toggleItinerary()"
+                    [title]="itineraryService.isInItinerary(currentTour.id, 'TOUR') ? 'Remover do roteiro' : 'Adicionar ao roteiro'">
+              <i [class]="itineraryService.isInItinerary(currentTour.id, 'TOUR') ? 'pi pi-calendar-times' : 'pi pi-calendar-plus'"></i>
+              {{ itineraryService.isInItinerary(currentTour.id, 'TOUR') ? 'Remover do roteiro' : 'Adicionar ao roteiro' }}
+            </button>
+
+            <button type="button"
+                    class="flex w-full items-center justify-center gap-2 border border-red-200 bg-white px-4 py-3 font-black text-red-600 hover:bg-red-50"
+                    (click)="openGoogleService()"
+                    title="Ver informações da operadora no Google">
+              <i class="pi pi-google"></i> Informações no Google
+            </button>
+          </div>
+
+          @if (hasFixedMeetingPoint()) {
+            <div class="mt-6 border-t border-slate-200 pt-5">
+              <button type="button" class="mb-4 flex w-full items-center justify-center gap-2 border border-blue-600 bg-white px-4 py-3 font-black text-blue-700 hover:bg-blue-50" (click)="openGoogleMaps()">
+                <i class="pi pi-map"></i> Como chegar
+              </button>
+              <div class="h-56 overflow-hidden border border-slate-200">
+                <app-map [lat]="currentTour.latitude" [lng]="currentTour.longitude" [destinationName]="currentTour.name"></app-map>
+              </div>
+            </div>
+          }
+        </div>
+      </aside>
     </div>
-  </div>
+  </main>
 } @else {
-  <div class="container mx-auto py-20 text-center flex flex-col items-center justify-center min-h-[50vh]">
+  <div class="container mx-auto flex min-h-[50vh] flex-col items-center justify-center py-20 text-center">
     <i class="pi pi-spin pi-spinner text-5xl text-primary"></i>
-    <p class="mt-6 text-slate-500 font-medium text-lg">Buscando as informações...</p>
+    <p class="mt-6 text-lg font-medium text-slate-500">Buscando as informações...</p>
   </div>
 }
