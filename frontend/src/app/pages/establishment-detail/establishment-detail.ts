@@ -50,6 +50,7 @@ export class EstablishmentDetailComponent implements OnInit {
     const type = this.est()?.type;
     if (['HOTEL', 'POUSADA', 'RESORT'].includes(type || '')) return '/hotels';
     if (['RESTAURANT', 'BAR'].includes(type || '')) return '/restaurants';
+    if (['CONVENIENCE', 'GAS_STATION', 'MARKET', 'FAIR', 'PHARMACY'].includes(type || '')) return '/conveniencias';
     return '/map';
   });
   readonly openingHours = computed(() => {
@@ -62,6 +63,7 @@ export class EstablishmentDetailComponent implements OnInit {
   readonly popularDishes = computed(() => this.splitValues(this.est()?.popularDishes));
   readonly amenities = computed(() => this.splitValues(this.est()?.amenities, ','));
   readonly priceLabel = computed(() => this.est()?.priceRange || this.googlePriceLabel(this.googleDetails()?.priceLevel));
+  readonly priceFallbackLabel = computed(() => this.isFoodVenue() ? 'Consulte o cardápio' : 'Consulte no local');
   readonly weatherLabel = computed(() => this.formatWeather(this.weather()));
   readonly visitSuggestion = computed(() => this.buildVisitSuggestion());
   readonly tasteSuggestion = computed(() => this.buildTasteSuggestion());
@@ -78,7 +80,7 @@ export class EstablishmentDetailComponent implements OnInit {
       return;
     }
 
-    this.analytics.pageView(`/establishments/${id}`, 'ESTABLISHMENT', id);
+    this.analytics.pageView(this.detailPath(id), 'ESTABLISHMENT', id);
     this.loadWeather();
     this.loadEstablishment(id);
   }
@@ -100,7 +102,7 @@ export class EstablishmentDetailComponent implements OnInit {
       'ESTABLISHMENT',
       wasAdded ? 'ITINERARY_REMOVE' : 'ITINERARY_ADD',
       establishment.id,
-      `/establishments/${establishment.id}`
+      this.detailPath(establishment.id)
     );
   }
 
@@ -109,7 +111,7 @@ export class EstablishmentDetailComponent implements OnInit {
     const contact = this.contactNumber();
     if (!establishment || !contact) return;
 
-    this.analytics.conversion('ESTABLISHMENT', 'PHONE_CLICK', establishment.id, `/establishments/${establishment.id}`);
+    this.analytics.conversion('ESTABLISHMENT', 'PHONE_CLICK', establishment.id, this.detailPath(establishment.id));
     openExternalLink(`tel:${contact.replace(/[^+\d]/g, '')}`);
   }
 
@@ -129,7 +131,7 @@ export class EstablishmentDetailComponent implements OnInit {
       params.set('destination', `${establishment.name}, Fernando de Noronha`);
     }
 
-    this.analytics.conversion('ESTABLISHMENT', 'DIRECTIONS_CLICK', establishment.id, `/establishments/${establishment.id}`);
+    this.analytics.conversion('ESTABLISHMENT', 'DIRECTIONS_CLICK', establishment.id, this.detailPath(establishment.id));
     openExternalLink(`https://www.google.com/maps/dir/?${params.toString()}`);
   }
 
@@ -137,7 +139,7 @@ export class EstablishmentDetailComponent implements OnInit {
     const establishment = this.est();
     if (!establishment) return;
 
-    this.analytics.googleServiceClick('ESTABLISHMENT', establishment.id, establishment.name, `/establishments/${establishment.id}`);
+    this.analytics.googleServiceClick('ESTABLISHMENT', establishment.id, establishment.name, this.detailPath(establishment.id));
     if (this.googleMapsUrl()) {
       openExternalLink(this.googleMapsUrl());
       return;
@@ -157,7 +159,7 @@ export class EstablishmentDetailComponent implements OnInit {
   openWebsite(): void {
     const establishment = this.est();
     if (!establishment || !this.websiteUrl()) return;
-    this.analytics.conversion('ESTABLISHMENT', 'WEBSITE_CLICK', establishment.id, `/establishments/${establishment.id}`);
+    this.analytics.conversion('ESTABLISHMENT', 'WEBSITE_CLICK', establishment.id, this.detailPath(establishment.id));
     openExternalLink(this.websiteUrl());
   }
 
@@ -165,14 +167,14 @@ export class EstablishmentDetailComponent implements OnInit {
     const establishment = this.est();
     const menuUrl = establishment?.menuUrl;
     if (!establishment || !menuUrl) return;
-    this.analytics.conversion('ESTABLISHMENT', 'MENU_CLICK', establishment.id, `/establishments/${establishment.id}`);
+    this.analytics.conversion('ESTABLISHMENT', 'MENU_CLICK', establishment.id, this.detailPath(establishment.id));
     openExternalLink(menuUrl);
   }
 
   openInstagram(): void {
     const establishment = this.est();
     if (!establishment?.instagramUrl) return;
-    this.analytics.conversion('ESTABLISHMENT', 'INSTAGRAM_CLICK', establishment.id, `/establishments/${establishment.id}`);
+    this.analytics.conversion('ESTABLISHMENT', 'INSTAGRAM_CLICK', establishment.id, this.detailPath(establishment.id));
     openExternalLink(establishment.instagramUrl);
   }
 
@@ -210,6 +212,13 @@ export class EstablishmentDetailComponent implements OnInit {
     return Number.isNaN(date.getTime())
       ? ''
       : new Intl.DateTimeFormat('pt-BR', { month: 'short', year: 'numeric' }).format(date);
+  }
+
+  private detailPath(id: number): string {
+    const section = this.route.snapshot.url[0]?.path;
+    return ['restaurants', 'hotels', 'conveniencias'].includes(section)
+      ? `/${section}/${id}`
+      : `/establishments/${id}`;
   }
 
   private loadEstablishment(id: number): void {

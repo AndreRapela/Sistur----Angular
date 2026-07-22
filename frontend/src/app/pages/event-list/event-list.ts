@@ -72,7 +72,7 @@ export class EventListComponent implements OnInit {
 
   goToMap() {
     this.analytics.conversion('EVENT', 'MAP_CLICK', 'events', '/events');
-    this.router.navigate(["/map"]);
+    this.router.navigate(['/map'], { queryParams: { category: 'EVENT' } });
   }
 
   openCategoryInGoogle() {

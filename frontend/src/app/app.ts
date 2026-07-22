@@ -53,7 +53,7 @@ export class AppComponent {
     return !isHiddenRoute;
   });
 
-  isMapRoute = computed(() => this.currentRoute().startsWith('/map') || this.currentRoute().startsWith('/conveniencias'));
+  isMapRoute = computed(() => this.currentRoute().startsWith('/map'));
   showSabatButton = computed(() => this.auth.isAuthenticated() && !this.isMapRoute());
 
   private tips = [

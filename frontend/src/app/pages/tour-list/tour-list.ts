@@ -71,7 +71,7 @@ export class TourListComponent implements OnInit {
 
   goToMap() {
     this.analytics.conversion('TOUR', 'MAP_CLICK', 'tours', '/tours');
-    this.router.navigate(['/map']);
+    this.router.navigate(['/map'], { queryParams: { category: 'TOUR' } });
   }
 
   openCategoryInGoogle() {

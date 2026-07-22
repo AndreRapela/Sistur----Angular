@@ -2,7 +2,7 @@
   <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
     <div>
       <h1 class="font-black text-[28px] md:text-4xl text-slate-800 tracking-tight m-0">{{ title }}</h1>
-      <p class="text-slate-500 mt-1">Descubra as melhores opções em Fernando de Noronha</p>
+      <p class="text-slate-500 mt-1">{{ subtitle }}</p>
     </div>
     <div class="flex gap-2 w-full md:w-auto">
       <div class="relative flex-1 md:w-64">
@@ -12,7 +12,7 @@
                type="text"
                [ngModel]="searchQuery()"
                (ngModelChange)="onSearchChange($event)"
-               placeholder="Buscar por nome..."
+               [placeholder]="searchPlaceholder"
                title="Buscar por nome"
                class="w-full pl-11 pr-4 py-3 rounded-xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500 bg-white outline-none transition-all font-medium text-sm">
       </div>
@@ -40,15 +40,44 @@
 
   @if (loading()) {
     <app-skeleton-list></app-skeleton-list>
+  } @else if (errorMessage()) {
+    <div class="min-h-[360px] grid place-items-center border-y border-slate-200 bg-white px-6 text-center">
+      <div class="max-w-md">
+        <i class="pi pi-exclamation-circle text-4xl text-slate-300"></i>
+        <h2 class="mt-4 text-xl font-black text-slate-900">Locais indisponíveis</h2>
+        <p class="mt-2 text-sm font-medium leading-relaxed text-slate-500">{{ errorMessage() }}</p>
+        <button type="button" (click)="loadData()" class="mt-5 rounded-lg border-0 bg-blue-600 px-5 py-3 text-sm font-black text-white hover:bg-blue-700">
+          Tentar novamente
+        </button>
+      </div>
+    </div>
+  } @else if (!establishments().length) {
+    <div class="min-h-[320px] grid place-items-center border-y border-slate-200 bg-white px-6 text-center">
+      <div class="max-w-md">
+        <i class="pi pi-search text-4xl text-slate-300"></i>
+        <h2 class="mt-4 text-xl font-black text-slate-900">Nenhum local encontrado</h2>
+        <p class="mt-2 text-sm font-medium text-slate-500">Tente outro nome ou selecione “Todos”.</p>
+      </div>
+    </div>
   } @else {
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       @for (est of establishments(); track est.id) {
         @defer (on viewport) {
         <div class="bg-white rounded-[32px] overflow-hidden border border-slate-100 hover:border-blue-400/30 transition-all duration-500 hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] flex flex-col group cursor-pointer" (click)="viewDetails(est)">
-          <div class="relative h-[280px] overflow-hidden">
+          <div class="relative overflow-hidden" [ngClass]="mapCategory === 'CONVENIENCE' ? 'h-[180px]' : 'h-[280px]'">
             @if (est.photoUrl) {
               <img [ngSrc]="est.photoUrl" fill [alt]="est.name" title="{{est.name}}"
                    class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+            } @else if (mapCategory === 'CONVENIENCE') {
+              <div class="flex h-full items-center gap-4 bg-slate-900 px-6 text-white">
+                <span class="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-white/15 bg-white/10 text-sky-300">
+                  <i [class]="convenienceIcon(est.type)" class="text-2xl"></i>
+                </span>
+                <span class="min-w-0">
+                  <span class="block text-[10px] font-black uppercase tracking-widest text-sky-300">Serviço na ilha</span>
+                  <strong class="mt-1 block text-lg font-black leading-tight text-white">{{ est.foodType || establishmentTypeLabel(est.type) }}</strong>
+                </span>
+              </div>
             } @else {
               <div class="w-full h-full bg-slate-900 text-white flex flex-col items-center justify-center gap-3">
                 <i class="pi pi-building text-4xl text-sky-300"></i>
@@ -114,23 +143,29 @@
                </div>
              }
 
-             <div class="mt-auto pt-8 flex gap-3">
-                <button class="flex-1 bg-slate-900 text-white border-none py-4 px-6 rounded-2xl font-black text-sm cursor-pointer hover:bg-blue-600 transition-all duration-300 shadow-xl shadow-slate-100" (click)="viewDetails(est); $event.stopPropagation()">
-                  Explorar
+             <div class="mt-auto grid grid-cols-3 gap-3 pt-8 sm:grid-cols-[minmax(0,1fr)_56px_56px_56px]">
+                <button class="col-span-3 min-h-[56px] bg-slate-900 text-white border-none py-4 px-6 rounded-2xl font-black text-sm cursor-pointer hover:bg-blue-600 transition-all duration-300 shadow-xl shadow-slate-100 sm:col-span-1" (click)="viewDetails(est); $event.stopPropagation()">
+                  Ver detalhes
                 </button>
 
-                <button class="w-[56px] h-[56px] shrink-0 rounded-2xl bg-slate-50 border border-slate-100 text-slate-400 flex items-center justify-center transition-all duration-300 cursor-pointer hover:border-blue-400 hover:text-blue-600 hover:bg-white"
-                        [class.bg-blue-50]="itinerary.isInItinerary(est.id, est.type)"
-                        [class.text-blue-600]="itinerary.isInItinerary(est.id, est.type)"
-                        [class.border-blue-200]="itinerary.isInItinerary(est.id, est.type)"
+                <button class="h-[56px] min-w-0 rounded-2xl bg-slate-50 border border-slate-100 text-slate-400 flex items-center justify-center transition-all duration-300 cursor-pointer hover:border-blue-400 hover:text-blue-600 hover:bg-white"
+                        (click)="findOnMap(est); $event.stopPropagation()"
+                        title="Encontrar no mapa">
+                  <i class="pi pi-map text-xl"></i>
+                </button>
+
+                <button class="h-[56px] min-w-0 rounded-2xl bg-slate-50 border border-slate-100 text-slate-400 flex items-center justify-center transition-all duration-300 cursor-pointer hover:border-blue-400 hover:text-blue-600 hover:bg-white"
+                        [class.bg-blue-50]="itinerary.isInItinerary(est.id, itineraryType(est.type))"
+                        [class.text-blue-600]="itinerary.isInItinerary(est.id, itineraryType(est.type))"
+                        [class.border-blue-200]="itinerary.isInItinerary(est.id, itineraryType(est.type))"
                         (click)="toggleItinerary(est); $event.stopPropagation()"
                         title="Adicionar ao Roteiro">
-                  <i [class]="itinerary.isInItinerary(est.id, est.type) ? 'pi pi-calendar-times' : 'pi pi-calendar-plus'" class="text-xl"></i>
+                  <i [class]="itinerary.isInItinerary(est.id, itineraryType(est.type)) ? 'pi pi-calendar-times' : 'pi pi-calendar-plus'" class="text-xl"></i>
                 </button>
 
-                <button class="w-[56px] h-[56px] shrink-0 rounded-2xl bg-red-50 border border-red-100 text-red-500 flex items-center justify-center transition-all duration-300 cursor-pointer hover:border-red-300 hover:text-red-600 hover:bg-white"
+                <button class="h-[56px] min-w-0 rounded-2xl bg-red-50 border border-red-100 text-red-500 flex items-center justify-center transition-all duration-300 cursor-pointer hover:border-red-300 hover:text-red-600 hover:bg-white"
                         (click)="openGoogleService(est); $event.stopPropagation()"
-                        title="Reservar/Comprar no Google">
+                        [title]="googleActionTitle()">
                   <i class="pi pi-google text-xl"></i>
                 </button>
              </div>

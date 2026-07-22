@@ -400,13 +400,13 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const routes: Record<MapCategoryId, string> = {
       ALL: '/map',
-      RESTAURANT: '/establishments',
-      HOTEL: '/establishments',
+      RESTAURANT: '/restaurants',
+      HOTEL: '/hotels',
       EVENT: '/events',
       TOUR: '/tours',
       BEACH: '/pontos-turisticos',
       POINT: '/pontos-turisticos',
-      CONVENIENCE: '/establishments'
+      CONVENIENCE: '/conveniencias'
     };
 
     this.router.navigate([routes[location.mapSearchType], id]);
@@ -507,11 +507,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private applyRoutePreset() {
-    const currentPath = this.activatedRoute.snapshot.routeConfig?.path;
-    if (currentPath === 'conveniencias') {
-      this.activeCategory = 'CONVENIENCE';
-    }
-
     const query = this.pendingInitialParams['q'] || this.pendingInitialParams['search'];
     if (typeof query === 'string') {
       this.searchTerm = query.trim().toLowerCase();

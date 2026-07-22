@@ -10,8 +10,8 @@ export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
   { path: 'client-dashboard', redirectTo: 'client/dashboard', pathMatch: 'full' },
   { path: 'admin-dashboard', redirectTo: 'admin/dashboard', pathMatch: 'full' },
-  { path: 'restaurant/:id', redirectTo: 'establishments/:id', pathMatch: 'full' },
-  { path: 'hotel/:id', redirectTo: 'establishments/:id', pathMatch: 'full' },
+  { path: 'restaurant/:id', redirectTo: 'restaurants/:id', pathMatch: 'full' },
+  { path: 'hotel/:id', redirectTo: 'hotels/:id', pathMatch: 'full' },
   { path: 'home', loadComponent: () => import('./pages/home/home').then(m => m.HomeComponent) },
   { path: 'login', loadComponent: () => import('./pages/login/login').then(m => m.LoginComponent), canActivate: [authGuard] },
   { path: 'register', loadComponent: () => import('./pages/login/register').then(m => m.RegisterComponent), canActivate: [authGuard] },
@@ -24,8 +24,8 @@ export const routes: Routes = [
   { path: 'tours', loadComponent: () => import('./pages/tour-list/tour-list').then(m => m.TourListComponent), data: { preload: true, preloadDelay: 2200 } },
   { path: 'restaurants', loadComponent: () => import('./pages/establishment-list/establishment-list').then(m => m.EstablishmentListComponent), data: { preload: true, preloadDelay: 1600 } },
   { path: 'hotels', loadComponent: () => import('./pages/establishment-list/establishment-list').then(m => m.EstablishmentListComponent) },
+  { path: 'conveniencias', loadComponent: () => import('./pages/establishment-list/establishment-list').then(m => m.EstablishmentListComponent), data: { preload: true, preloadDelay: 2400 } },
   { path: 'map', loadComponent: () => import('./pages/map-page/map-page').then(m => m.MapPageComponent), data: { preload: true, preloadDelay: 900 } },
-  { path: 'conveniencias', loadComponent: () => import('./pages/map-page/map-page').then(m => m.MapPageComponent) },
   { path: 'itinerary', loadComponent: () => import('./pages/itinerary/itinerary').then(m => m.ItineraryPageComponent), data: { preload: true, preloadDelay: 2600 } },
   { path: 'itinerary-shared/:token', loadComponent: () => import('./pages/itinerary-shared/itinerary-shared').then(m => m.ItinerarySharedComponent) },
   { path: 'profile', loadComponent: () => import('./pages/profile/profile').then(m => m.ProfilePageComponent), canActivate: [roleGuard(allUserRoles)] },
@@ -34,6 +34,9 @@ export const routes: Routes = [
   // Páginas de Detalhes
   { path: 'events/:id', loadComponent: () => import('./pages/event-detail/event-detail').then(m => m.EventDetailComponent), canActivate: [roleGuard(eventAccessRoles)] },
   { path: 'tours/:id', loadComponent: () => import('./pages/tour-detail/tour-detail').then(m => m.TourDetailComponent) },
+  { path: 'restaurants/:id', loadComponent: () => import('./pages/establishment-detail/establishment-detail').then(m => m.EstablishmentDetailComponent) },
+  { path: 'hotels/:id', loadComponent: () => import('./pages/establishment-detail/establishment-detail').then(m => m.EstablishmentDetailComponent) },
+  { path: 'conveniencias/:id', loadComponent: () => import('./pages/establishment-detail/establishment-detail').then(m => m.EstablishmentDetailComponent) },
   { path: 'establishments/:id', loadComponent: () => import('./pages/establishment-detail/establishment-detail').then(m => m.EstablishmentDetailComponent) },
 
   // Rotas Protegidas - Admin
