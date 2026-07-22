@@ -9,15 +9,15 @@ SPA Angular do SisTur para experiencia turistica em Fernando de Noronha.
 
 ## Configuracao
 
-Use `src/environments/environment.example.ts` como referencia para preencher:
+Defina a variavel de ambiente abaixo no terminal local ou no servico de deploy:
 
-```ts
-apiUrl: 'https://<backend>/api',
-googleClientId: '<client-id-google-ou-vazio>',
-googleMapsApiKey: '<google-maps-browser-key>'
+```text
+GOOGLE_MAPS_API_KEY=<chave-browser-do-google-maps>
 ```
 
-Sem `googleMapsApiKey`, o app usa o mapa local Leaflet como fallback. Com a chave, a pagina de mapa ativa Google Maps, Places e rotas reais.
+`npm run start` e `npm run build` geram `public/runtime-config.js` sem versionar a chave. Sem a variavel, o app usa o mapa local Leaflet como fallback. Com a chave, a pagina de mapa ativa Google Maps, Places, fotos, avaliacoes, horarios e rotas reais.
+
+Restrinja a chave no Google Cloud aos dominios publicados do SisTur e a `http://localhost:4200/*` durante o desenvolvimento.
 
 ## Execucao local
 

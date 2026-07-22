@@ -5,6 +5,9 @@ declare global {
   interface Window {
     google?: any;
     sisTurGoogleMapsLoaded?: () => void;
+    SISTUR_CONFIG?: {
+      googleMapsApiKey?: string;
+    };
   }
 }
 
@@ -19,7 +22,8 @@ export class GoogleMapsLoaderService {
       return Promise.reject(new Error('Google Maps indisponível fora do navegador.'));
     }
 
-    const apiKey = environment.googleMapsApiKey?.trim();
+    const apiKey = window.SISTUR_CONFIG?.googleMapsApiKey?.trim()
+      || environment.googleMapsApiKey?.trim();
     if (!apiKey) {
       return Promise.reject(new Error('Chave do Google Maps não configurada.'));
     }

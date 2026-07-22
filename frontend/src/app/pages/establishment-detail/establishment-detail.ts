@@ -8,6 +8,7 @@ import { AuthService } from '../../services/auth.service';
 import { AnalyticsService } from '../../services/analytics.service';
 import {
   GooglePlaceDetails,
+  GooglePlaceReview,
   GooglePlaceDetailsService
 } from '../../services/google-place-details.service';
 import { NoronhaWeather, NoronhaWeatherService } from '../../services/noronha-weather.service';
@@ -37,6 +38,7 @@ export class EstablishmentDetailComponent implements OnInit {
   readonly loading = signal(true);
   readonly googleLoading = signal(false);
   readonly errorMessage = signal('');
+  readonly reviewStars = [1, 2, 3, 4, 5];
 
   readonly isPremium = computed(() => this.authService.currentUser()?.role === 'PREMIUM_TOURIST');
   readonly isFoodVenue = computed(() => ['RESTAURANT', 'BAR'].includes(this.est()?.type || ''));
@@ -46,6 +48,9 @@ export class EstablishmentDetailComponent implements OnInit {
   readonly websiteUrl = computed(() => this.googleDetails()?.websiteUrl || this.est()?.websiteUrl || '');
   readonly googleMapsUrl = computed(() => this.googleDetails()?.googleMapsUrl || this.est()?.googleMapsUrl || '');
   readonly heroPhotoUrl = computed(() => this.googleDetails()?.photoUrl || this.est()?.photoUrl || '');
+  readonly googleReviews = computed(() => (this.googleDetails()?.reviews || [])
+    .filter(review => Boolean(review.text))
+    .slice(0, 3));
   readonly backRoute = computed(() => {
     const type = this.est()?.type;
     if (['HOTEL', 'POUSADA', 'RESORT'].includes(type || '')) return '/hotels';
@@ -184,6 +189,28 @@ export class EstablishmentDetailComponent implements OnInit {
 
   openPhotoAttribution(): void {
     openExternalLink(this.googleDetails()?.photoAttribution?.url);
+  }
+
+  openGoogleReviews(): void {
+    const establishment = this.est();
+    const url = this.googleDetails()?.reviewsUrl || this.googleMapsUrl();
+    if (!establishment || !url) return;
+
+    this.analytics.conversion('ESTABLISHMENT', 'GOOGLE_REVIEWS_CLICK', establishment.id, this.detailPath(establishment.id));
+    openExternalLink(url);
+  }
+
+  openGoogleReview(review: GooglePlaceReview): void {
+    const establishment = this.est();
+    const url = review.googleMapsUrl || review.authorUrl || this.googleDetails()?.reviewsUrl;
+    if (!establishment || !url) return;
+
+    this.analytics.conversion('ESTABLISHMENT', 'GOOGLE_REVIEW_CLICK', establishment.id, this.detailPath(establishment.id));
+    openExternalLink(url);
+  }
+
+  openProviderAttribution(url?: string): void {
+    openExternalLink(url);
   }
 
   typeLabel(type: EstablishmentType): string {

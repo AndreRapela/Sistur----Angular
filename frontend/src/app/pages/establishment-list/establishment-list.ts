@@ -7,8 +7,10 @@ import { finalize } from 'rxjs/operators';
 import { ApiService } from '../../services/api.service';
 import { ItineraryService } from '../../services/itinerary.service';
 import { AnalyticsService } from '../../services/analytics.service';
+import { GooglePlaceDetails } from '../../services/google-place-details.service';
 import { Establishment, EstablishmentType } from '../../models/tourism.models';
 import { SkeletonListComponent } from '../../components/skeleton-list/skeleton-list';
+import { GooglePlaceEnrichmentDirective } from '../../directives/google-place-enrichment.directive';
 import { openExternalLink } from '../../utils/external-link';
 
 type EstablishmentListCategory = 'RESTAURANT' | 'HOTEL' | 'CONVENIENCE';
@@ -16,7 +18,7 @@ type EstablishmentListCategory = 'RESTAURANT' | 'HOTEL' | 'CONVENIENCE';
 @Component({
   selector: 'app-establishment-list',
   standalone: true,
-  imports: [CommonModule, SkeletonListComponent, FormsModule, NgOptimizedImage],
+  imports: [CommonModule, SkeletonListComponent, FormsModule, NgOptimizedImage, GooglePlaceEnrichmentDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './establishment-list.html'
 })
@@ -40,6 +42,7 @@ export class EstablishmentListComponent implements OnInit {
   selectedCategory = signal('Todos');
   searchQuery = signal('');
   private allEstablishments = signal<Establishment[]>([]);
+  readonly googleDetailsById = signal<Record<number, GooglePlaceDetails>>({});
   establishments = computed(() => {
     const category = this.selectedCategory().toLowerCase();
     const query = this.normalize(this.searchQuery());
@@ -109,6 +112,62 @@ export class EstablishmentListComponent implements OnInit {
     this.router.navigate([`/${this.pagePath}`, est.id]);
   }
 
+  storeGoogleDetails(establishmentId: number, details: GooglePlaceDetails | null): void {
+    if (!details) return;
+    this.googleDetailsById.update(current => ({ ...current, [establishmentId]: details }));
+  }
+
+  detailsFor(establishmentId: number): GooglePlaceDetails | undefined {
+    return this.googleDetailsById()[establishmentId];
+  }
+
+  photoUrlFor(establishment: Establishment): string {
+    return this.detailsFor(establishment.id)?.photoUrl || establishment.photoUrl || '';
+  }
+
+  ratingFor(establishment: Establishment): number | null {
+    return this.detailsFor(establishment.id)?.rating ?? establishment.rating ?? null;
+  }
+
+  reviewCountFor(establishment: Establishment): number | null {
+    return this.detailsFor(establishment.id)?.reviewCount ?? establishment.reviewCount ?? null;
+  }
+
+  openingLabelFor(establishment: Establishment): string {
+    const details = this.detailsFor(establishment.id);
+    const todayHours = details?.todayOpeningHours;
+    if (typeof details?.isOpen === 'boolean') {
+      return `${details.isOpen ? 'Aberto agora' : 'Fechado agora'}${todayHours ? ` · ${todayHours}` : ''}`;
+    }
+    return todayHours || establishment.openingHours || 'Horário não publicado no Google';
+  }
+
+  priceLabelFor(establishment: Establishment): string {
+    if (establishment.priceRange) return establishment.priceRange;
+    if (establishment.averagePrice && establishment.averagePrice > 0) {
+      return `Média de R$ ${new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 }).format(establishment.averagePrice)}`;
+    }
+
+    const priceLevel = (this.detailsFor(establishment.id)?.priceLevel || '').replace('PRICE_LEVEL_', '');
+    const labels: Record<string, string> = {
+      FREE: 'Gratuito no Google',
+      INEXPENSIVE: 'Faixa econômica no Google',
+      MODERATE: 'Faixa moderada no Google',
+      EXPENSIVE: 'Faixa alta no Google',
+      VERY_EXPENSIVE: 'Faixa premium no Google'
+    };
+    return labels[priceLevel] || '';
+  }
+
+  formatReviewCount(value: number | null): string {
+    return value === null ? '' : new Intl.NumberFormat('pt-BR').format(value);
+  }
+
+  openPhotoAttribution(details: GooglePlaceDetails, event: Event): void {
+    event.stopPropagation();
+    openExternalLink(details.photoAttribution?.url);
+  }
+
   goToMap() {
     this.analytics.conversion('ESTABLISHMENT', 'MAP_CLICK', this.mapCategory, `/${this.pagePath}`);
     this.router.navigate(['/map'], { queryParams: { category: this.mapCategory } });
@@ -133,8 +192,9 @@ export class EstablishmentListComponent implements OnInit {
 
   openGoogleService(est: Establishment) {
     this.analytics.googleServiceClick('ESTABLISHMENT', est.id, est.name, `/${this.pagePath}/${est.id}`);
-    if (est.googleMapsUrl) {
-      openExternalLink(est.googleMapsUrl);
+    const liveGoogleUrl = this.detailsFor(est.id)?.googleMapsUrl;
+    if (liveGoogleUrl || est.googleMapsUrl) {
+      openExternalLink(liveGoogleUrl || est.googleMapsUrl);
       return;
     }
 
@@ -155,7 +215,7 @@ export class EstablishmentListComponent implements OnInit {
       id: est.id,
       type,
       name: est.name,
-      image: est.photoUrl,
+      image: this.photoUrlFor(est),
       location: est.location
     });
     this.analytics.conversion('ESTABLISHMENT', wasAdded ? 'ITINERARY_REMOVE' : 'ITINERARY_ADD', est.id, `/${this.pagePath}/${est.id}`);

@@ -63,10 +63,14 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       @for (est of establishments(); track est.id) {
         @defer (on viewport) {
-        <div class="bg-white rounded-[32px] overflow-hidden border border-slate-100 hover:border-blue-400/30 transition-all duration-500 hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] flex flex-col group cursor-pointer" (click)="viewDetails(est)">
+        <article
+          class="group flex cursor-pointer flex-col overflow-hidden rounded-lg border border-slate-200 bg-white transition duration-300 hover:border-blue-300 hover:shadow-xl"
+          [appGooglePlaceEnrichment]="est"
+          (googlePlaceLoaded)="storeGoogleDetails(est.id, $event)"
+          (click)="viewDetails(est)">
           <div class="relative overflow-hidden" [ngClass]="mapCategory === 'CONVENIENCE' ? 'h-[180px]' : 'h-[280px]'">
-            @if (est.photoUrl) {
-              <img [ngSrc]="est.photoUrl" fill [alt]="est.name" title="{{est.name}}"
+            @if (photoUrlFor(est)) {
+              <img [ngSrc]="photoUrlFor(est)" fill [alt]="est.name" title="{{est.name}}"
                    class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
             } @else if (mapCategory === 'CONVENIENCE') {
               <div class="flex h-full items-center gap-4 bg-slate-900 px-6 text-white">
@@ -81,8 +85,24 @@
             } @else {
               <div class="w-full h-full bg-slate-900 text-white flex flex-col items-center justify-center gap-3">
                 <i class="pi pi-building text-4xl text-sky-300"></i>
-                <span class="text-xs font-black uppercase tracking-[0.18em] text-white/70">Foto real pendente</span>
+                <span class="text-xs font-black uppercase tracking-widest text-white/70">Foto não publicada no Google</span>
               </div>
+            }
+
+            @if (detailsFor(est.id)?.photoAttribution; as attribution) {
+              @if (attribution.url) {
+                <button
+                  type="button"
+                  (click)="openPhotoAttribution(detailsFor(est.id)!, $event)"
+                  class="absolute left-3 top-3 border-0 bg-black/70 px-2 py-1 text-[10px] font-bold text-white backdrop-blur"
+                  title="Abrir crédito da foto">
+                  Foto: {{ attribution.name }} · Google
+                </button>
+              } @else {
+                <span class="absolute left-3 top-3 bg-black/70 px-2 py-1 text-[10px] font-bold text-white backdrop-blur">
+                  Foto: {{ attribution.name }} · Google
+                </span>
+              }
             }
 
             <!-- Badge de Desconto (Duo Gourmet Style) -->
@@ -98,16 +118,16 @@
               </div>
             }
 
-            @if (est.rating) {
-              <div class="absolute top-4 right-4 bg-white/95 backdrop-blur px-3 py-1.5 rounded-2xl flex items-center gap-1.5 shadow-xl">
+            @if (ratingFor(est); as rating) {
+              <div class="absolute right-3 top-3 flex items-center gap-1.5 rounded-lg bg-white/95 px-3 py-1.5 shadow-lg backdrop-blur">
                 <i class="pi pi-star-fill text-yellow-400 text-sm"></i>
-                <span class="font-black text-slate-800 text-sm">{{est.rating}}</span>
+                <span class="font-black text-slate-800 text-sm">{{ rating | number:'1.1-1' }}</span>
               </div>
             }
 
-            @if (est.priceRange || (est.averagePrice && est.averagePrice > 0)) {
+            @if (priceLabelFor(est); as priceLabel) {
               <div class="absolute bottom-4 left-4 right-4 bg-black/45 backdrop-blur-md px-4 py-2 rounded-lg border border-white/20">
-                <span class="block line-clamp-2 text-white font-black text-sm leading-snug">{{ est.priceRange || ('Média R$ ' + (est.averagePrice | number:'1.0-0')) }}</span>
+                <span class="block line-clamp-2 text-white font-black text-sm leading-snug">{{ priceLabel }}</span>
               </div>
             }
           </div>
@@ -123,6 +143,32 @@
                 </span>
              </div>
              <p class="text-[15px] text-slate-500 leading-relaxed mt-4 line-clamp-2 font-medium">{{est.description}}</p>
+
+             <div class="mt-5 border-y border-slate-100 py-4">
+               <p class="flex items-start gap-2 text-sm font-bold leading-relaxed text-slate-700">
+                 <i
+                   class="pi pi-clock mt-0.5 shrink-0"
+                   [class.text-emerald-500]="detailsFor(est.id)?.isOpen === true"
+                   [class.text-rose-500]="detailsFor(est.id)?.isOpen === false"
+                   [class.text-slate-400]="detailsFor(est.id)?.isOpen === undefined"></i>
+                 <span>{{ openingLabelFor(est) }}</span>
+               </p>
+
+               @if (ratingFor(est); as rating) {
+                 <button
+                   type="button"
+                   (click)="openGoogleService(est); $event.stopPropagation()"
+                   class="mt-3 flex w-full items-center gap-2 border-0 bg-transparent p-0 text-left text-sm font-black text-blue-700 hover:underline"
+                   title="Abrir informações e avaliações no Google">
+                   <i class="pi pi-google"></i>
+                   <span>{{ rating | number:'1.1-1' }} no Google</span>
+                   @if (reviewCountFor(est); as reviewCount) {
+                     <span class="font-bold text-slate-500">· {{ formatReviewCount(reviewCount) }} avaliações</span>
+                   }
+                   <i class="pi pi-external-link ml-auto text-xs"></i>
+                 </button>
+               }
+             </div>
 
              @if (est.popularDishes) {
                <p class="mt-3 flex items-start gap-1.5 text-xs font-bold leading-relaxed text-slate-600">
@@ -144,17 +190,17 @@
              }
 
              <div class="mt-auto grid grid-cols-3 gap-3 pt-8 sm:grid-cols-[minmax(0,1fr)_56px_56px_56px]">
-                <button class="col-span-3 min-h-[56px] bg-slate-900 text-white border-none py-4 px-6 rounded-2xl font-black text-sm cursor-pointer hover:bg-blue-600 transition-all duration-300 shadow-xl shadow-slate-100 sm:col-span-1" (click)="viewDetails(est); $event.stopPropagation()">
+                <button class="col-span-3 min-h-[56px] bg-slate-900 text-white border-none py-4 px-6 rounded-lg font-black text-sm cursor-pointer hover:bg-blue-600 transition-all duration-300 shadow-lg shadow-slate-100 sm:col-span-1" (click)="viewDetails(est); $event.stopPropagation()">
                   Ver detalhes
                 </button>
 
-                <button class="h-[56px] min-w-0 rounded-2xl bg-slate-50 border border-slate-100 text-slate-400 flex items-center justify-center transition-all duration-300 cursor-pointer hover:border-blue-400 hover:text-blue-600 hover:bg-white"
+                <button class="h-[56px] min-w-0 rounded-lg bg-slate-50 border border-slate-100 text-slate-400 flex items-center justify-center transition-all duration-300 cursor-pointer hover:border-blue-400 hover:text-blue-600 hover:bg-white"
                         (click)="findOnMap(est); $event.stopPropagation()"
                         title="Encontrar no mapa">
                   <i class="pi pi-map text-xl"></i>
                 </button>
 
-                <button class="h-[56px] min-w-0 rounded-2xl bg-slate-50 border border-slate-100 text-slate-400 flex items-center justify-center transition-all duration-300 cursor-pointer hover:border-blue-400 hover:text-blue-600 hover:bg-white"
+                <button class="h-[56px] min-w-0 rounded-lg bg-slate-50 border border-slate-100 text-slate-400 flex items-center justify-center transition-all duration-300 cursor-pointer hover:border-blue-400 hover:text-blue-600 hover:bg-white"
                         [class.bg-blue-50]="itinerary.isInItinerary(est.id, itineraryType(est.type))"
                         [class.text-blue-600]="itinerary.isInItinerary(est.id, itineraryType(est.type))"
                         [class.border-blue-200]="itinerary.isInItinerary(est.id, itineraryType(est.type))"
@@ -163,16 +209,16 @@
                   <i [class]="itinerary.isInItinerary(est.id, itineraryType(est.type)) ? 'pi pi-calendar-times' : 'pi pi-calendar-plus'" class="text-xl"></i>
                 </button>
 
-                <button class="h-[56px] min-w-0 rounded-2xl bg-red-50 border border-red-100 text-red-500 flex items-center justify-center transition-all duration-300 cursor-pointer hover:border-red-300 hover:text-red-600 hover:bg-white"
+                <button class="h-[56px] min-w-0 rounded-lg bg-red-50 border border-red-100 text-red-500 flex items-center justify-center transition-all duration-300 cursor-pointer hover:border-red-300 hover:text-red-600 hover:bg-white"
                         (click)="openGoogleService(est); $event.stopPropagation()"
                         [title]="googleActionTitle()">
                   <i class="pi pi-google text-xl"></i>
                 </button>
              </div>
           </div>
-        </div>
+        </article>
         } @placeholder {
-          <div class="bg-slate-50 rounded-[32px] border border-slate-100 h-[450px] animate-pulse"></div>
+          <div class="h-[520px] animate-pulse rounded-lg border border-slate-100 bg-slate-50"></div>
         }
       }
     </div>

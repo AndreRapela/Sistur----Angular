@@ -278,7 +278,7 @@ export class HomeComponent implements OnInit {
 
   private async enrichDiscoveryCards(): Promise<void> {
     await Promise.all(this.discoveryCards.map(async card => {
-      const details = await this.googlePlaces.getDetails({
+      const details = await this.googlePlaces.getSummary({
         name: card.title,
         googleQuery: card.googleQuery
       });
