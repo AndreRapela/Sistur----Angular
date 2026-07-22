@@ -1,10 +1,10 @@
-<nav class="hidden md:flex h-[75px] bg-white/95 backdrop-blur-md px-10 items-center justify-between sticky top-0 z-50 transition-all border-b border-slate-100">
+<nav class="hidden md:flex h-[75px] bg-white/95 backdrop-blur-md px-5 xl:px-10 items-center justify-between sticky top-0 z-50 transition-all border-b border-slate-100">
   <a routerLink="/home" class="flex flex-col leading-none cursor-pointer group no-underline">
     <span class="text-[26px] font-[950] text-primary tracking-[-1.5px] group-hover:scale-105 transition-transform">SisTur</span>
     <span class="text-[11px] text-slate-500 font-bold uppercase tracking-[1px] mt-[2px]">Noronha</span>
   </a>
 
-  <div class="flex items-center gap-7">
+  <div class="flex items-center gap-5 xl:gap-7">
     <a routerLink="/home" routerLinkActive="text-primary -translate-y-[1px]" [routerLinkActiveOptions]="{exact: true}" class="no-underline text-slate-600 font-bold text-[15px] cursor-pointer transition-all hover:text-primary hover:-translate-y-[1px]">Início</a>
     <a routerLink="/map" routerLinkActive="text-primary -translate-y-[1px]" class="no-underline text-slate-600 font-bold text-[15px] cursor-pointer transition-all hover:text-primary hover:-translate-y-[1px]">Mapa</a>
     <a routerLink="/roteiros" routerLinkActive="text-primary -translate-y-[1px]" class="flex items-center gap-1 no-underline text-slate-600 font-bold text-[15px] cursor-pointer transition-all hover:text-primary hover:-translate-y-[1px]">
@@ -20,8 +20,8 @@
     </a>
 
     <div class="relative py-5 group">
-      <span class="no-underline text-slate-600 font-bold text-[15px] cursor-pointer transition-all group-hover:text-primary group-hover:-translate-y-[1px]">Descubra <i class="pi pi-chevron-down text-xs"></i></span>
-      <div class="absolute top-[100%] left-0 bg-white min-w-[220px] shadow-2xl rounded-xl p-2 hidden opacity-0 transition-all group-hover:block group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto">
+      <button type="button" class="border-0 bg-transparent p-0 text-slate-600 font-bold text-[15px] cursor-pointer transition-all group-hover:text-primary group-focus-within:text-primary">Descubra <i class="pi pi-chevron-down text-xs"></i></button>
+      <div class="absolute top-[100%] left-0 bg-white min-w-[220px] shadow-2xl rounded-xl p-2 hidden opacity-0 transition-all group-hover:block group-hover:opacity-100 group-focus-within:block group-focus-within:opacity-100">
         <a routerLink="/restaurants" class="block p-3 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors no-underline font-bold text-[15px]"><i class="pi pi-shop w-5"></i> Onde comer</a>
         <a routerLink="/hotels" class="block p-3 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors no-underline font-bold text-[15px]"><i class="pi pi-home w-5"></i> Onde ficar</a>
         <a routerLink="/pontos-turisticos" class="block p-3 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors no-underline font-bold text-[15px]"><i class="pi pi-compass w-5"></i> Pontos turísticos</a>
@@ -30,8 +30,15 @@
         @if (!auth.isFreeTier()) {
           <a routerLink="/events" class="block p-3 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors no-underline font-bold text-[15px]"><i class="pi pi-calendar-plus w-5"></i> Eventos</a>
         }
+      </div>
+    </div>
+
+    <div class="relative py-5 group">
+      <button type="button" class="border-0 bg-transparent p-0 text-slate-600 font-bold text-[15px] cursor-pointer transition-all group-hover:text-primary group-focus-within:text-primary">A Ilha <i class="pi pi-chevron-down text-xs"></i></button>
+      <div class="absolute top-[100%] right-0 bg-white min-w-[250px] shadow-2xl rounded-xl p-2 hidden opacity-0 transition-all group-hover:block group-hover:opacity-100 group-focus-within:block group-focus-within:opacity-100">
         <a routerLink="/culture" class="block p-3 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors no-underline font-bold text-[15px]"><i class="pi pi-palette w-5"></i> Cultura e história</a>
         <a routerLink="/environmental" class="block p-3 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors no-underline font-bold text-[15px]"><i class="pi pi-globe w-5"></i> Ambiental</a>
+        <a routerLink="/home" fragment="clima-seguranca" class="block p-3 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors no-underline font-bold text-[15px]"><i class="pi pi-sun w-5"></i> Clima e segurança</a>
       </div>
     </div>
   </div>

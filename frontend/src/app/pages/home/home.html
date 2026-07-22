@@ -1,4 +1,6 @@
 <div class="home-page">
+  <app-weather-safety></app-weather-safety>
+
   <section class="hero">
     <div class="hero-bg"></div>
     <div class="hero-shade"></div>
@@ -85,6 +87,38 @@
           {{ link.label }}
         </a>
       }
+    </div>
+  </section>
+
+  <section class="island-guide-band" aria-labelledby="island-guide-title">
+    <div class="island-guide-inner">
+      <div class="island-guide-copy">
+        <p class="eyebrow">A ilha além do roteiro</p>
+        <h2 id="island-guide-title">Entenda Noronha antes de apenas visitá-la.</h2>
+        <p>História, cultura e conservação têm contexto próprio, separado da busca por restaurantes, passeios e serviços.</p>
+      </div>
+
+      <nav class="island-guide-links" aria-label="Conheça Fernando de Noronha">
+        <a routerLink="/culture">
+          <span class="guide-icon culture"><i class="pi pi-palette"></i></span>
+          <span>
+            <small>Memória e identidade</small>
+            <strong>Cultura e história</strong>
+            <em>Fortes, Vila dos Remédios, fé e vida local.</em>
+          </span>
+          <i class="pi pi-arrow-right"></i>
+        </a>
+
+        <a routerLink="/environmental">
+          <span class="guide-icon environment"><i class="pi pi-globe"></i></span>
+          <span>
+            <small>Conservação e visita responsável</small>
+            <strong>Ambiental</strong>
+            <em>Parque, regras, maré e cuidados com a ilha.</em>
+          </span>
+          <i class="pi pi-arrow-right"></i>
+        </a>
+      </nav>
     </div>
   </section>
 

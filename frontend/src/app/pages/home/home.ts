@@ -12,6 +12,7 @@ import {
   GooglePlaceDetails,
   GooglePlaceDetailsService
 } from '../../services/google-place-details.service';
+import { WeatherSafetyComponent } from '../../components/weather-safety/weather-safety';
 
 interface QuickAction {
   label: string;
@@ -47,7 +48,7 @@ interface DiscoveryCard {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, WeatherSafetyComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './home.html',
   styleUrls: ['./home.css']
@@ -78,16 +79,14 @@ export class HomeComponent implements OnInit {
       label: 'Onde comer',
       description: 'Todos os restaurantes e bares cadastrados ou encontrados.',
       icon: 'pi pi-shop',
-      route: '/map',
-      queryParams: { category: 'RESTAURANT' },
+      route: '/restaurants',
       tone: 'orange'
     },
     {
       label: 'Passeios',
       description: 'Experiências, trilhas, barco, mergulho e agências locais.',
       icon: 'pi pi-camera',
-      route: '/map',
-      queryParams: { category: 'TOUR' },
+      route: '/tours',
       tone: 'green'
     },
     {
