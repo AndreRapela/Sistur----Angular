@@ -1,5 +1,6 @@
 <div class="map-shell">
   <aside class="map-panel">
+    <div class="panel-controls">
     <div class="panel-header">
       <div>
         <p class="eyebrow">Mapa SisTur</p>
@@ -68,6 +69,7 @@
         Ver no Google
       </button>
     </div>
+    </div>
 
     <div class="result-list">
       @for (item of filteredData; track item.id) {
@@ -83,10 +85,21 @@
           <span class="result-copy">
             <strong>{{ item.name }}</strong>
             <small>{{ item.location || item.category || 'Fernando de Noronha' }}</small>
+            @if (item.description) {
+              <span class="result-description">{{ item.description }}</span>
+            }
             <span class="meta">
               <span>{{ sourceLabel(item) }}</span>
               @if (item.rating) {
-                <span><i class="pi pi-star-fill"></i> {{ item.rating }}</span>
+                <span>
+                  <i class="pi pi-star-fill"></i> {{ item.rating }}
+                  @if (item.reviewCount) { · {{ item.reviewCount | number:'1.0-0' }} }
+                </span>
+              }
+              @if (item.averagePrice && item.averagePrice > 0) {
+                <span>R$ {{ item.averagePrice | number:'1.0-0' }}</span>
+              } @else if (item.priceRange) {
+                <span>{{ item.priceRange }}</span>
               }
             </span>
           </span>
@@ -104,10 +117,30 @@
   <section class="map-stage">
     <div #mapCanvas class="full-screen-map" data-testid="noronha-map"></div>
 
-    <div class="zoom-status" aria-live="polite">
-      <i class="pi pi-map"></i>
-      <span>{{ zoomGuide }}</span>
-      <strong>{{ currentZoom.toFixed(0) }}</strong>
+    <div class="map-toolbar">
+      <div class="zoom-status" aria-live="polite">
+        <i class="pi pi-map"></i>
+        <span>{{ zoomGuide }}</span>
+        <strong>{{ currentZoom.toFixed(0) }}</strong>
+      </div>
+
+      <div class="map-type-switch" role="group" aria-label="Tipo de mapa">
+        <button type="button"
+                [class.active]="mapViewMode === 'STREET'"
+                (click)="setMapView('STREET')"
+                title="Mostrar mapa de ruas">
+          <i class="pi pi-map"></i>
+          Mapa
+        </button>
+        <button type="button"
+                [class.active]="mapViewMode === 'SATELLITE'"
+                [disabled]="!satelliteAvailable"
+                (click)="setMapView('SATELLITE')"
+                [title]="satelliteAvailable ? 'Mostrar satélite com ruas' : 'Satélite indisponível nesta conexão'">
+          <i class="pi pi-image"></i>
+          Satélite
+        </button>
+      </div>
     </div>
 
     <div class="floating-actions">
@@ -129,10 +162,9 @@
 
         <div class="place-media">
           @if (selectedLocation.photoUrl) {
-            <img [ngSrc]="selectedLocation.photoUrl"
+            <img [src]="selectedLocation.photoUrl"
                  width="112"
                  height="112"
-                 sizes="112px"
                  loading="lazy"
                  decoding="async"
                  [alt]="selectedLocation.name"
@@ -151,7 +183,13 @@
               <h2>{{ selectedLocation.name }}</h2>
             </div>
             @if (selectedLocation.rating) {
-              <span class="rating"><i class="pi pi-star-fill"></i> {{ selectedLocation.rating }}</span>
+              <span class="rating">
+                <i class="pi pi-star-fill"></i>
+                {{ selectedLocation.rating }}
+                @if (selectedLocation.reviewCount) {
+                  <small>{{ selectedLocation.reviewCount | number:'1.0-0' }} avaliações</small>
+                }
+              </span>
             }
           </div>
 
@@ -162,6 +200,61 @@
 
           @if (selectedLocation.description) {
             <p class="place-description">{{ selectedLocation.description }}</p>
+          }
+
+          <div class="place-facts">
+            @if (selectedLocation.averagePrice && selectedLocation.averagePrice > 0) {
+              <span><i class="pi pi-wallet"></i><b>Preço médio</b> R$ {{ selectedLocation.averagePrice | number:'1.0-0' }}</span>
+            } @else if (selectedLocation.priceRange) {
+              <span><i class="pi pi-wallet"></i><b>Faixa de preço</b> {{ selectedLocation.priceRange }}</span>
+            }
+            @if (selectedLocation.openingHours) {
+              <span><i class="pi pi-clock"></i><b>Horários</b> {{ compactDetails(selectedLocation.openingHours, 100) }}</span>
+            }
+            @if (selectedLocation.duration) {
+              <span><i class="pi pi-stopwatch"></i><b>Duração</b> {{ selectedLocation.duration }}</span>
+            }
+            @if (selectedLocation.schedule) {
+              <span><i class="pi pi-calendar"></i><b>Saídas</b> {{ compactDetails(selectedLocation.schedule, 100) }}</span>
+            }
+            @if (selectedLocation.popularDishes) {
+              <span><i class="pi pi-thumbs-up"></i><b>Mais pedidos</b> {{ compactDetails(selectedLocation.popularDishes, 120) }}</span>
+            }
+            @if (selectedLocation.bestVisitTime) {
+              <span><i class="pi pi-sun"></i><b>Melhor momento</b> {{ compactDetails(selectedLocation.bestVisitTime, 110) }}</span>
+            }
+            @if (selectedLocation.weatherAdvice || selectedLocation.idealWeather) {
+              <span><i class="pi pi-cloud"></i><b>Clima</b> {{ compactDetails(selectedLocation.weatherAdvice || selectedLocation.idealWeather, 110) }}</span>
+            }
+            @if (selectedLocation.accessType) {
+              <span><i class="pi pi-sign-in"></i><b>Acesso</b> {{ selectedLocation.accessType }}</span>
+            }
+            @if (selectedLocation.requiresTicket) {
+              <span><i class="pi pi-ticket"></i>Ingresso necessário</span>
+            }
+            @if (selectedLocation.requiresGuide) {
+              <span><i class="pi pi-users"></i>Guia necessário</span>
+            }
+          </div>
+
+          @if (selectedLocation.contactNumber || selectedLocation.websiteUrl || selectedLocation.menuUrl) {
+            <div class="place-links">
+              @if (selectedLocation.contactNumber) {
+                <button type="button" (click)="callLocation(selectedLocation)" title="Ligar para o local">
+                  <i class="pi pi-phone"></i> {{ selectedLocation.contactNumber }}
+                </button>
+              }
+              @if (selectedLocation.websiteUrl) {
+                <button type="button" (click)="openLocationWebsite(selectedLocation)" title="Abrir site oficial">
+                  <i class="pi pi-globe"></i> Site
+                </button>
+              }
+              @if (selectedLocation.menuUrl) {
+                <button type="button" (click)="openLocationMenu(selectedLocation)" title="Abrir cardápio">
+                  <i class="pi pi-book"></i> Cardápio
+                </button>
+              }
+            </div>
           }
 
           @if (routeSummary) {
@@ -187,9 +280,12 @@
               <i class="pi pi-google"></i>
               Google
             </button>
-            <button class="icon-action" type="button" (click)="openDetails(selectedLocation)" title="Ver detalhes" aria-label="Ver detalhes">
-              <i class="pi pi-arrow-right"></i>
-            </button>
+            @if (selectedLocation.source === 'SISTUR') {
+              <button class="secondary-action" type="button" (click)="openDetails(selectedLocation)" title="Ver página completa">
+                <i class="pi pi-info-circle"></i>
+                Detalhes
+              </button>
+            }
           </div>
         </div>
       </article>

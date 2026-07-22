@@ -10,7 +10,7 @@ import {
   ViewChild,
   inject
 } from '@angular/core';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { merge, of } from 'rxjs';
@@ -36,6 +36,7 @@ import {
 type MapCategoryId = 'ALL' | 'RESTAURANT' | 'HOTEL' | 'EVENT' | 'TOUR' | 'BEACH' | 'POINT' | 'CONVENIENCE';
 type MapSource = 'SISTUR' | 'GOOGLE_PLACES' | 'CURATED';
 type LocationState = 'idle' | 'loading' | 'ready' | 'denied';
+type MapViewMode = 'STREET' | 'SATELLITE';
 
 interface MapCategory {
   id: MapCategoryId;
@@ -57,11 +58,25 @@ interface MapLocation {
   latitude?: number | null;
   longitude?: number | null;
   rating?: number | null;
+  reviewCount?: number | null;
   averagePrice?: number | null;
+  priceRange?: string;
   openingHours?: string;
   contactNumber?: string;
   websiteUrl?: string;
+  menuUrl?: string;
   googleMapsUrl?: string;
+  popularDishes?: string;
+  bestVisitTime?: string;
+  weatherAdvice?: string;
+  amenities?: string;
+  duration?: string;
+  schedule?: string;
+  meetingPoint?: string;
+  accessType?: string;
+  requiresTicket?: boolean;
+  requiresGuide?: boolean;
+  idealWeather?: string;
 }
 
 interface MapClusterPoint {
@@ -103,7 +118,7 @@ const MAP_ESTABLISHMENT_TYPES: EstablishmentType[] = [
 @Component({
   selector: 'app-map-page',
   standalone: true,
-  imports: [CommonModule, NgOptimizedImage],
+  imports: [CommonModule],
   templateUrl: './map-page.html',
   styleUrls: ['./map-page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -124,6 +139,10 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private leafletMap?: L.Map;
   private markersLayer = L.layerGroup();
   private routeLayer = L.layerGroup();
+  private leafletStreetLayer?: L.TileLayer;
+  private leafletImageryLayer?: L.TileLayer;
+  private leafletRoadsLayer?: L.TileLayer;
+  private leafletLabelsLayer?: L.TileLayer;
   private userLocationMarker?: L.CircleMarker;
   private userAccuracyCircle?: L.Circle;
 
@@ -146,11 +165,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private markerRenderFrame?: number;
   private localSearchFrame?: number;
   private googleSearchRequestId = 0;
+  private satelliteTileErrors = 0;
   private readonly clusterIndex = new Supercluster<MapClusterPoint, Record<string, never>>({
     minZoom: 0,
-    maxZoom: 16,
+    maxZoom: 15,
     minPoints: 2,
-    radius: 54,
+    radius: 48,
     nodeSize: 64
   });
   private locationById = new Map<string, MapLocation>();
@@ -166,6 +186,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   mapStatus = 'Carregando mapa...';
   currentZoom = 14;
   zoomGuide = 'Aproxime o mapa para separar os lugares.';
+  mapViewMode: MapViewMode = 'SATELLITE';
+  satelliteAvailable = true;
   googlePlacesLoading = false;
   locationState: LocationState = 'idle';
   locationMessage = 'Use sua posição para calcular rotas reais.';
@@ -429,6 +451,61 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.labelForCategory(this.activeCategory);
   }
 
+  setMapView(mode: MapViewMode) {
+    if (mode === 'SATELLITE' && !this.satelliteAvailable) return;
+    this.mapViewMode = mode;
+
+    if (this.googleMap && this.google) {
+      const mapType = mode === 'SATELLITE'
+        ? this.google.maps.MapTypeId.HYBRID
+        : this.google.maps.MapTypeId.ROADMAP;
+      this.googleMap.setMapTypeId(mapType);
+    }
+
+    if (this.leafletMap) {
+      [this.leafletStreetLayer, this.leafletImageryLayer, this.leafletRoadsLayer, this.leafletLabelsLayer]
+        .filter((layer): layer is L.TileLayer => Boolean(layer))
+        .forEach(layer => this.leafletMap?.removeLayer(layer));
+
+      if (mode === 'SATELLITE') {
+        this.leafletImageryLayer?.addTo(this.leafletMap);
+        this.leafletRoadsLayer?.addTo(this.leafletMap);
+        this.leafletLabelsLayer?.addTo(this.leafletMap);
+      } else {
+        this.leafletStreetLayer?.addTo(this.leafletMap);
+      }
+    }
+
+    this.mapStatus = mode === 'SATELLITE'
+      ? 'Satélite com ruas e pontos locais ativo'
+      : 'Mapa detalhado de ruas ativo';
+    this.cdr.markForCheck();
+  }
+
+  openLocationWebsite(location: MapLocation) {
+    if (!location.websiteUrl) return;
+    this.analytics.conversion(this.analyticsTargetType(location), 'WEBSITE_CLICK', this.analyticsTargetId(location), '/map');
+    openExternalLink(location.websiteUrl);
+  }
+
+  openLocationMenu(location: MapLocation) {
+    if (!location.menuUrl) return;
+    this.analytics.conversion(this.analyticsTargetType(location), 'MENU_CLICK', this.analyticsTargetId(location), '/map');
+    openExternalLink(location.menuUrl);
+  }
+
+  callLocation(location: MapLocation) {
+    if (!location.contactNumber) return;
+    const phone = location.contactNumber.replace(/[^\d+]/g, '');
+    openExternalLink(`tel:${phone}`);
+  }
+
+  compactDetails(value: string | undefined, maxLength = 150): string {
+    if (!value) return '';
+    const compact = value.replace(/\|/g, ' · ').replace(/\s+/g, ' ').trim();
+    return compact.length > maxLength ? `${compact.slice(0, maxLength - 3).trim()}...` : compact;
+  }
+
   private applyRoutePreset() {
     const currentPath = this.activatedRoute.snapshot.routeConfig?.path;
     if (currentPath === 'conveniencias') {
@@ -452,8 +529,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.setupGoogleMap(google);
       this.mapStatus = 'Google Maps ativo';
     } catch {
+      this.mapViewMode = 'STREET';
       this.setupLeafletMap();
-      this.mapStatus = 'Mapa detalhado de Noronha ativo';
     }
 
     this.updateMarkers();
@@ -470,7 +547,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       zoom: 14,
       minZoom: 12,
       maxZoom: 20,
-      mapTypeId: google.maps.MapTypeId.ROADMAP,
+      mapTypeId: google.maps.MapTypeId.HYBRID,
       backgroundColor: '#e8eaed',
       mapTypeControl: false,
       fullscreenControl: false,
@@ -479,7 +556,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       gestureHandling: 'greedy',
       zoomControl: true,
       zoomControlOptions: {
-        position: google.maps.ControlPosition.RIGHT_BOTTOM
+        position: google.maps.ControlPosition.RIGHT_CENTER
       },
       streetViewControlOptions: {
         position: google.maps.ControlPosition.RIGHT_BOTTOM
@@ -507,6 +584,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         strokeOpacity: 0.9
       }
     });
+    this.setMapView(this.mapViewMode);
   }
 
   private setupLeafletMap() {
@@ -515,24 +593,56 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       minZoom: 12,
       maxZoom: 20,
       preferCanvas: true,
+      fadeAnimation: false,
+      markerZoomAnimation: false,
       maxBounds: NORONHA_LEAFLET_BOUNDS,
       maxBoundsViscosity: 0.8
     }).setView([NORONHA_CENTER.lat, NORONHA_CENTER.lng], 14);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap &copy; CARTO',
+    const tileOptions: L.TileLayerOptions = {
       maxZoom: 20,
+      maxNativeZoom: 19,
       updateWhenIdle: true,
-      updateWhenZooming: false,
-      keepBuffer: 2,
-      crossOrigin: true
-    }).addTo(this.leafletMap);
+      updateWhenZooming: true,
+      updateInterval: 120,
+      keepBuffer: 3
+    };
 
-    L.control.zoom({ position: 'bottomright' }).addTo(this.leafletMap);
+    this.leafletStreetLayer = L.tileLayer(
+      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+      { ...tileOptions, className: 'street-map-tiles', attribution: '&copy; OpenStreetMap contributors' }
+    );
+    this.leafletImageryLayer = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      { ...tileOptions, className: 'satellite-map-tiles', attribution: 'Imagens &copy; Esri, Maxar, Earthstar Geographics' }
+    ).on('tileerror', () => this.handleSatelliteTileError());
+    this.leafletRoadsLayer = L.tileLayer(
+      'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}',
+      { ...tileOptions, attribution: '&copy; Esri' }
+    );
+    this.leafletLabelsLayer = L.tileLayer(
+      'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+      { ...tileOptions, attribution: '&copy; Esri' }
+    );
+
+    this.setMapView(this.mapViewMode);
+
+    L.control.zoom({ position: 'topright' }).addTo(this.leafletMap);
     this.markersLayer.addTo(this.leafletMap);
     this.routeLayer.addTo(this.leafletMap);
     this.ngZone.runOutsideAngular(() => {
       this.leafletMap?.on('moveend', this.leafletViewportHandler);
+    });
+  }
+
+  private handleSatelliteTileError() {
+    if (this.mapViewMode !== 'SATELLITE' || ++this.satelliteTileErrors < 3) return;
+
+    this.ngZone.run(() => {
+      this.satelliteAvailable = false;
+      this.setMapView('STREET');
+      this.mapStatus = 'Satélite indisponível; mapa detalhado de ruas ativo';
+      this.cdr.markForCheck();
     });
   }
 
@@ -593,7 +703,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       const searches = config.googleQueries.map(query =>
         placesLibrary.Place.searchByText({
           textQuery: query,
-          fields: ['id', 'displayName', 'formattedAddress', 'location', 'rating', 'googleMapsURI', 'businessStatus'],
+          fields: ['id', 'displayName', 'primaryTypeDisplayName', 'formattedAddress', 'location', 'rating', 'userRatingCount', 'googleMapsURI', 'businessStatus', 'nationalPhoneNumber', 'websiteURI', 'regularOpeningHours', 'priceLevel', 'photos'],
           locationRestriction: NORONHA_BOUNDS,
           language: 'pt-BR',
           region: 'br',
@@ -669,7 +779,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       const categoryLabel = this.activeCategory === 'ALL' ? '' : `${this.labelForCategory(this.activeCategory)} `;
       const response = await placesLibrary.Place.searchByText({
         textQuery: `${categoryLabel}${query} em Fernando de Noronha`,
-        fields: ['id', 'displayName', 'formattedAddress', 'location', 'rating', 'googleMapsURI', 'businessStatus'],
+        fields: ['id', 'displayName', 'primaryTypeDisplayName', 'formattedAddress', 'location', 'rating', 'userRatingCount', 'googleMapsURI', 'businessStatus', 'nationalPhoneNumber', 'websiteURI', 'regularOpeningHours', 'priceLevel', 'photos'],
         locationRestriction: NORONHA_BOUNDS,
         language: 'pt-BR',
         region: 'br',
@@ -768,7 +878,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const zoom = Math.max(0, Math.min(20, Math.floor(view.zoom)));
     const features = this.clusterIndex.getClusters(view.bounds, zoom);
-    const showLabels = view.zoom >= 17;
+    const showLabels = view.zoom >= 16;
 
     features.forEach(feature => {
       const [lng, lat] = feature.geometry.coordinates;
@@ -1157,10 +1267,17 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       latitude: this.toNumber(item.latitude),
       longitude: this.toNumber(item.longitude),
       rating: item.rating,
+      reviewCount: item.reviewCount,
       averagePrice: item.averagePrice,
+      priceRange: item.priceRange,
       openingHours: item.openingHours,
       contactNumber: item.contactNumber,
       websiteUrl: item.websiteUrl,
+      menuUrl: item.menuUrl,
+      popularDishes: item.popularDishes,
+      bestVisitTime: item.bestVisitTime,
+      weatherAdvice: item.weatherAdvice,
+      amenities: item.amenities,
       googleMapsUrl: item.googleMapsUrl
     };
   }
@@ -1194,7 +1311,15 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       photoUrl: item.photoUrl,
       latitude: this.toNumber(item.latitude),
       longitude: this.toNumber(item.longitude),
-      averagePrice: item.price
+      rating: item.rating,
+      reviewCount: item.reviewCount,
+      averagePrice: item.price,
+      contactNumber: item.contactNumber,
+      websiteUrl: item.sourceUrl || item.bookingUrl,
+      googleMapsUrl: item.googleMapsUrl,
+      duration: item.duration,
+      schedule: item.schedule,
+      meetingPoint: item.meetingPoint
     };
   }
 
@@ -1211,7 +1336,12 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       location: item.location,
       photoUrl: item.photoUrl,
       latitude: this.toNumber(item.latitude),
-      longitude: this.toNumber(item.longitude)
+      longitude: this.toNumber(item.longitude),
+      bestVisitTime: item.bestTime,
+      idealWeather: item.idealWeather,
+      accessType: item.accessType,
+      requiresTicket: item.requiresTicket,
+      requiresGuide: item.requiresGuide
     };
   }
 
@@ -1231,12 +1361,18 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       source: 'GOOGLE_PLACES',
       mapSearchType: category,
       name,
-      description: 'Resultado complementar do Google Places.',
-      category: this.labelForCategory(category),
+      description: `Informações atualizadas pelo Google para ${name}.`,
+      category: this.googleText(place.primaryTypeDisplayName) || this.labelForCategory(category),
       location: place.formattedAddress,
+      photoUrl: this.googlePhotoUrl(place.photos?.[0]),
       latitude: Number(lat),
       longitude: Number(lng),
       rating: typeof place.rating === 'number' ? place.rating : null,
+      reviewCount: typeof place.userRatingCount === 'number' ? place.userRatingCount : null,
+      priceRange: this.googlePriceRange(place.priceLevel),
+      openingHours: this.googleOpeningHours(place.regularOpeningHours),
+      contactNumber: place.nationalPhoneNumber ? String(place.nationalPhoneNumber) : undefined,
+      websiteUrl: place.websiteURI ? String(place.websiteURI) : undefined,
       googleMapsUrl: place.googleMapsURI ? String(place.googleMapsURI) : undefined
     };
   }
@@ -1251,6 +1387,32 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     return '';
+  }
+
+  private googleOpeningHours(value: any): string | undefined {
+    const descriptions = value?.weekdayDescriptions;
+    return Array.isArray(descriptions) && descriptions.length ? descriptions.join(' | ') : undefined;
+  }
+
+  private googlePhotoUrl(photo: any): string | undefined {
+    try {
+      return typeof photo?.getURI === 'function'
+        ? String(photo.getURI({ maxWidth: 720, maxHeight: 480 }))
+        : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  private googlePriceRange(value: unknown): string | undefined {
+    const levels: Record<string, string> = {
+      PRICE_LEVEL_FREE: 'Grátis',
+      PRICE_LEVEL_INEXPENSIVE: '$',
+      PRICE_LEVEL_MODERATE: '$$',
+      PRICE_LEVEL_EXPENSIVE: '$$$',
+      PRICE_LEVEL_VERY_EXPENSIVE: '$$$$'
+    };
+    return typeof value === 'string' ? levels[value] : undefined;
   }
 
   private toNumber(value: number | string | null | undefined): number | null {
@@ -1455,9 +1617,26 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       const key = `${location.mapSearchType}:${this.slug(location.name)}`;
       const existing = seen.get(key);
 
-      if (!existing || this.sourcePriority(location.source) > this.sourcePriority(existing.source)) {
+      if (!existing) {
         seen.set(key, location);
+        return;
       }
+
+      const primary = this.sourcePriority(location.source) > this.sourcePriority(existing.source)
+        ? location
+        : existing;
+      const fallback = primary === location ? existing : location;
+      const merged = { ...fallback, ...primary } as MapLocation;
+
+      (Object.keys(fallback) as Array<keyof MapLocation>).forEach(key => {
+        const value = merged[key];
+        const isMissing = value === undefined || value === null || value === '' || (Array.isArray(value) && value.length === 0);
+        if (isMissing && fallback[key] !== undefined && fallback[key] !== null) {
+          (merged as any)[key] = fallback[key];
+        }
+      });
+
+      seen.set(key, merged);
     });
 
     return [...seen.values()];

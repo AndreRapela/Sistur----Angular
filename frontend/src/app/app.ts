@@ -20,6 +20,9 @@ import { AuthService } from './services/auth.service';
     }
 
     .app-main.map-route {
+      min-height: 0;
+      height: calc(100dvh - 75px);
+      overflow: hidden;
       padding-bottom: 0;
     }
 

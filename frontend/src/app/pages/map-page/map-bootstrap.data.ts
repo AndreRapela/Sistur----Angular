@@ -13,6 +13,7 @@ export interface MapBootstrapLocation {
   description: string;
   category: string;
   location: string;
+  photoUrl?: string;
   latitude: number;
   longitude: number;
   rating?: number | null;
@@ -21,7 +22,7 @@ export interface MapBootstrapLocation {
 
 // Launch snapshot generated from the backend's real Noronha seed catalog.
 export const NORONHA_MAP_BOOTSTRAP: ReadonlyArray<MapBootstrapLocation> = [
-  {"id":"CURATED-POINT-1","mapSearchType":"BEACH","name":"Baía do Sancho","description":"Praia símbolo de Noronha, com falésias, mirantes e mar transparente para banho e snorkel.","category":"Praia","location":"Parque Nacional Marinho","latitude":-3.8547,"longitude":-32.4406},
+  {"id":"CURATED-POINT-1","mapSearchType":"BEACH","name":"Baía do Sancho","description":"Praia símbolo de Noronha, com falésias, mirantes e mar transparente para banho e snorkel.","category":"Praia","location":"Parque Nacional Marinho","photoUrl":"/assets/places/baia-do-sancho.jpg","latitude":-3.8547,"longitude":-32.4406},
   {"id":"CURATED-POINT-2","mapSearchType":"BEACH","name":"Baía dos Porcos","description":"Enseada pequena, rochosa e muito fotogênica, com vista direta para o Morro Dois Irmãos.","category":"Praia","location":"Entre Sancho e Cacimba do Padre","latitude":-3.8533,"longitude":-32.4358},
   {"id":"CURATED-POINT-3","mapSearchType":"BEACH","name":"Cacimba do Padre","description":"Praia ampla, conhecida pelo surf e pelo visual do Morro Dois Irmãos.","category":"Praia","location":"Costa oeste","latitude":-3.8508,"longitude":-32.4317},
   {"id":"CURATED-POINT-4","mapSearchType":"BEACH","name":"Praia do Bode","description":"Praia de acesso simples e clima mais tranquilo, boa para caminhar e ver o pôr do sol.","category":"Praia","location":"Costa oeste","latitude":-3.8493,"longitude":-32.4266},
@@ -59,7 +60,7 @@ export const NORONHA_MAP_BOOTSTRAP: ReadonlyArray<MapBootstrapLocation> = [
   {"id":"CURATED-RESTAURANT-36","mapSearchType":"RESTAURANT","name":"Xica da Silva","description":"Restaurante conhecido por pratos regionais, frutos do mar e ambiente acolhedor.","category":"Regional","location":"Floresta Nova","averagePrice":170,"rating":4.5,"latitude":-3.8443,"longitude":-32.414},
   {"id":"CURATED-RESTAURANT-37","mapSearchType":"RESTAURANT","name":"Varanda Noronha","description":"Cozinha brasileira com peixes, frutos do mar e atendimento voltado ao jantar.","category":"Brasileira","location":"Vila do Trinta","averagePrice":160,"rating":4.5,"latitude":-3.8446,"longitude":-32.4107},
   {"id":"CURATED-RESTAURANT-38","mapSearchType":"RESTAURANT","name":"Mergulhão","description":"Restaurante na região do Porto, famoso pelo visual e por pratos de frutos do mar.","category":"Frutos do mar","location":"Porto de Santo Antônio","averagePrice":190,"rating":4.4,"latitude":-3.833,"longitude":-32.4026},
-  {"id":"CURATED-RESTAURANT-39","mapSearchType":"RESTAURANT","name":"Cacimba Bistrô","description":"Bistrô no centro histórico, próximo à Igreja dos Remédios, com pratos autorais.","category":"Bistrô","location":"Vila dos Remédios","averagePrice":170,"rating":4.5,"latitude":-3.8407,"longitude":-32.4114},
+  {"id":"CURATED-RESTAURANT-39","mapSearchType":"RESTAURANT","name":"Cacimba Bistrô","description":"Bistrô no centro histórico, próximo à Igreja dos Remédios, com pratos autorais.","category":"Bistrô","location":"Vila dos Remédios","photoUrl":"/assets/places/cacimba-bistro.jpg","averagePrice":170,"rating":4.5,"latitude":-3.8407,"longitude":-32.4114},
   {"id":"CURATED-RESTAURANT-40","mapSearchType":"RESTAURANT","name":"Benedita Cozinha Afetiva","description":"Cozinha afetiva brasileira com proposta intimista para jantar.","category":"Brasileira","location":"Vila dos Remédios","averagePrice":180,"rating":4.5,"latitude":-3.8414,"longitude":-32.4117},
   {"id":"CURATED-RESTAURANT-41","mapSearchType":"RESTAURANT","name":"Mesa da Ana","description":"Experiência gastronômica intimista com menu autoral e reservas disputadas.","category":"Menu degustação","location":"Floresta Velha","averagePrice":260,"rating":4.6,"latitude":-3.8454,"longitude":-32.4131},
   {"id":"CURATED-RESTAURANT-42","mapSearchType":"RESTAURANT","name":"Márcio Sushi","description":"Sushi e frutos do mar com foco em peixe fresco e ambiente casual.","category":"Japonesa","location":"Vila dos Remédios","averagePrice":150,"rating":4.7,"latitude":-3.8419,"longitude":-32.4113},
