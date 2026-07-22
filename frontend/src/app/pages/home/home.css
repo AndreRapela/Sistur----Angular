@@ -80,7 +80,10 @@
 .review-copy b { overflow: hidden; font-size: 11px; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
 .review-copy small { color: #2563eb; font-size: 10px; font-weight: 850; }
 .google-external { color: #64748b; font-size: 12px; }
-.card-actions { display: flex; gap: 8px; margin-top: 16px; }
+.details-button { width: 100%; min-height: 48px; margin-top: 16px; background: #0077b6; color: #fff; }
+.details-button:hover { background: #075985; }
+.details-button:disabled { cursor: wait; opacity: .72; }
+.card-actions { display: flex; gap: 8px; margin-top: 8px; }
 .card-actions button { flex: 1; background: #f1f5f9; color: #0f172a; }
 .card-actions button:hover, .card-actions button.saved { background: #0077b6; color: #fff; }
 

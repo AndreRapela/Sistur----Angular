@@ -6,6 +6,8 @@ import { Title } from '@angular/platform-browser';
 import { AnalyticsService } from '../../services/analytics.service';
 import { ItineraryService } from '../../services/itinerary.service';
 import { ItineraryItemType } from '../../services/itinerary.service';
+import { ApiService } from '../../services/api.service';
+import { firstValueFrom } from 'rxjs';
 import {
   GooglePlaceDetails,
   GooglePlaceDetailsService
@@ -37,6 +39,9 @@ interface DiscoveryCard {
   photoUrl: string;
   photoCredit: string;
   photoCreditUrl: string;
+  detailsKind: 'POINT' | 'ESTABLISHMENT' | 'TOUR';
+  detailsName: string;
+  detailsFallbackRoute: string;
 }
 
 @Component({
@@ -53,8 +58,10 @@ export class HomeComponent implements OnInit {
   private analytics = inject(AnalyticsService);
   private title = inject(Title);
   private googlePlaces = inject(GooglePlaceDetailsService);
+  private api = inject(ApiService);
 
   readonly googleDetails = signal<Record<string, GooglePlaceDetails>>({});
+  readonly openingDetails = signal<string | null>(null);
   readonly starPositions = [1, 2, 3, 4, 5];
 
   searchQuery = '';
@@ -116,7 +123,10 @@ export class HomeComponent implements OnInit {
       fallbackReviewCount: 1409,
       photoUrl: '/assets/places/baia-do-sancho.jpg',
       photoCredit: 'dronepicr · CC BY 2.0',
-      photoCreditUrl: 'https://commons.wikimedia.org/wiki/File:Fernando_de_Noronha_Island_-_Baia_do_Sancho_-_Strand_(18908547939).jpg'
+      photoCreditUrl: 'https://commons.wikimedia.org/wiki/File:Fernando_de_Noronha_Island_-_Baia_do_Sancho_-_Strand_(18908547939).jpg',
+      detailsKind: 'POINT',
+      detailsName: 'Baía do Sancho',
+      detailsFallbackRoute: '/pontos-turisticos'
     },
     {
       id: 'cacimba-bistro',
@@ -134,7 +144,10 @@ export class HomeComponent implements OnInit {
       fallbackReviewCount: 1855,
       photoUrl: '/assets/places/cacimba-bistro.jpg',
       photoCredit: 'A Riqueza de Viajar',
-      photoCreditUrl: 'https://www.ariquezadeviajar.com/2018/10/onde-comer-em-fernando-de-noronha.html'
+      photoCreditUrl: 'https://www.ariquezadeviajar.com/2018/10/onde-comer-em-fernando-de-noronha.html',
+      detailsKind: 'ESTABLISHMENT',
+      detailsName: 'Cacimba Bistrô',
+      detailsFallbackRoute: '/restaurants'
     },
     {
       id: 'passeio-lancha-noronha',
@@ -151,7 +164,10 @@ export class HomeComponent implements OnInit {
       fallbackRating: 5,
       photoUrl: '/assets/places/bubba-noronha-hero.png',
       photoCredit: 'Passeio de Lancha Noronha',
-      photoCreditUrl: 'https://passeiodelanchanoronha.com.br/'
+      photoCreditUrl: 'https://passeiodelanchanoronha.com.br/',
+      detailsKind: 'TOUR',
+      detailsName: 'Passeio de Lancha Noronha',
+      detailsFallbackRoute: '/tours'
     }
   ];
 
@@ -185,6 +201,23 @@ export class HomeComponent implements OnInit {
 
   openMap(card: DiscoveryCard) {
     this.router.navigate([card.route], { queryParams: card.queryParams });
+  }
+
+  async openDetails(card: DiscoveryCard): Promise<void> {
+    if (this.openingDetails()) return;
+    this.openingDetails.set(card.id);
+
+    try {
+      const detailRoute = await this.resolveDetailRoute(card);
+      this.analytics.conversion(card.type, 'DETAIL_OPEN', card.id, detailRoute);
+      await this.router.navigate([detailRoute]);
+    } catch {
+      await this.router.navigate([card.detailsFallbackRoute], {
+        queryParams: { q: card.detailsName }
+      });
+    } finally {
+      this.openingDetails.set(null);
+    }
   }
 
   detailsFor(card: DiscoveryCard): GooglePlaceDetails | undefined {
@@ -255,5 +288,40 @@ export class HomeComponent implements OnInit {
         this.googleDetails.update(current => ({ ...current, [card.id]: details }));
       }
     }));
+  }
+
+  private async resolveDetailRoute(card: DiscoveryCard): Promise<string> {
+    if (card.detailsKind === 'POINT') {
+      const response = await firstValueFrom(this.api.getTouristPoints(undefined, card.detailsName));
+      const item = this.findByName(response.data?.content || [], card.detailsName);
+      if (item) return `/pontos-turisticos/${item.id}`;
+    }
+
+    if (card.detailsKind === 'ESTABLISHMENT') {
+      const response = await firstValueFrom(this.api.getEstablishments('RESTAURANT', 'Todos', card.detailsName));
+      const item = this.findByName(response.data?.content || [], card.detailsName);
+      if (item) return `/establishments/${item.id}`;
+    }
+
+    if (card.detailsKind === 'TOUR') {
+      const response = await firstValueFrom(this.api.getTours());
+      const item = this.findByName(response.data?.content || [], card.detailsName);
+      if (item) return `/tours/${item.id}`;
+    }
+
+    throw new Error(`Detalhes não encontrados para ${card.detailsName}`);
+  }
+
+  private findByName<T extends { id: number; name: string }>(items: T[], expectedName: string): T | undefined {
+    const expected = this.normalizeName(expectedName);
+    return items.find(item => this.normalizeName(item.name) === expected);
+  }
+
+  private normalizeName(value: string): string {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
   }
 }

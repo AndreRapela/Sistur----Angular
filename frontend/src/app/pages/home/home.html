@@ -149,6 +149,14 @@
               <i class="pi pi-external-link google-external"></i>
             </a>
 
+            <button type="button"
+                    class="details-button"
+                    [disabled]="openingDetails() !== null"
+                    (click)="openDetails(card)">
+              <i [class]="openingDetails() === card.id ? 'pi pi-spin pi-spinner' : 'pi pi-info-circle'"></i>
+              {{ openingDetails() === card.id ? 'Abrindo...' : 'Ver detalhes' }}
+            </button>
+
             <div class="card-actions">
               <button type="button" (click)="openMap(card)">
                 <i class="pi pi-map"></i>
