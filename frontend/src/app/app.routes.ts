@@ -4,7 +4,6 @@ import { authGuard } from './guards/auth.guard';
 import { UserRole } from './services/auth.service';
 
 const allUserRoles: UserRole[] = ['FREE_TOURIST', 'PRO_TOURIST', 'PREMIUM_TOURIST', 'USER', 'CLIENT', 'ADMIN'];
-const eventAccessRoles: UserRole[] = ['PRO_TOURIST', 'PREMIUM_TOURIST', 'CLIENT', 'ADMIN'];
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -20,7 +19,7 @@ export const routes: Routes = [
   { path: 'pontos-turisticos', loadComponent: () => import('./pages/tourist-points/tourist-points').then(m => m.TouristPointsComponent), data: { preload: true, preloadDelay: 1800 } },
   { path: 'pontos-turisticos/:id', loadComponent: () => import('./pages/tourist-point-detail/tourist-point-detail').then(m => m.TouristPointDetailComponent) },
   { path: 'contact', loadComponent: () => import('./pages/contact/contact').then(m => m.ContactComponent) },
-  { path: 'events', loadComponent: () => import('./pages/event-list/event-list').then(m => m.EventListComponent), canActivate: [roleGuard(eventAccessRoles)] },
+  { path: 'events', loadComponent: () => import('./pages/event-list/event-list').then(m => m.EventListComponent) },
   { path: 'tours', loadComponent: () => import('./pages/tour-list/tour-list').then(m => m.TourListComponent), data: { preload: true, preloadDelay: 2200 } },
   { path: 'restaurants', loadComponent: () => import('./pages/establishment-list/establishment-list').then(m => m.EstablishmentListComponent), data: { preload: true, preloadDelay: 1600 } },
   { path: 'hotels', loadComponent: () => import('./pages/establishment-list/establishment-list').then(m => m.EstablishmentListComponent) },
@@ -32,7 +31,7 @@ export const routes: Routes = [
   { path: 'roteiros', loadComponent: () => import('./pages/itinerary-feed/itinerary-feed').then(m => m.ItineraryFeedComponent), canActivate: [roleGuard(allUserRoles)] },
 
   // Páginas de Detalhes
-  { path: 'events/:id', loadComponent: () => import('./pages/event-detail/event-detail').then(m => m.EventDetailComponent), canActivate: [roleGuard(eventAccessRoles)] },
+  { path: 'events/:id', loadComponent: () => import('./pages/event-detail/event-detail').then(m => m.EventDetailComponent) },
   { path: 'tours/:id', loadComponent: () => import('./pages/tour-detail/tour-detail').then(m => m.TourDetailComponent) },
   { path: 'restaurants/:id', loadComponent: () => import('./pages/establishment-detail/establishment-detail').then(m => m.EstablishmentDetailComponent) },
   { path: 'hotels/:id', loadComponent: () => import('./pages/establishment-detail/establishment-detail').then(m => m.EstablishmentDetailComponent) },
