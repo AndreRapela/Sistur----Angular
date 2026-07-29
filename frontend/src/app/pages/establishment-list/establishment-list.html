@@ -27,15 +27,35 @@
     </div>
   </div>
 
-  <div class="mb-8 flex gap-3 overflow-x-auto pb-2 scrollbar-none">
+  <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
     @for (cat of categories(); track cat) {
-      <button [class]="selectedCategory() === cat ? 'bg-blue-600 text-white border-blue-600 shadow-lg scale-105' : 'bg-white text-slate-500 border-slate-200'"
+      <button [class]="selectedCategory() === cat ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white text-slate-500 border-slate-200'"
               (click)="filterByCategory(cat)"
               title="Filtrar por {{cat}}"
-              class="px-6 py-3 rounded-2xl border cursor-pointer font-black text-[14px] whitespace-nowrap transition-all duration-200 uppercase tracking-tighter">
+              class="min-h-11 rounded-lg border px-5 py-2.5 cursor-pointer font-black text-[13px] whitespace-nowrap transition-all duration-200">
         {{cat}}
       </button>
     }
+  </div>
+
+  <div class="mb-7 mt-3 flex flex-wrap items-center justify-between gap-3 border-y border-slate-200 py-3">
+    <p class="m-0 text-sm font-bold text-slate-500">
+      <strong class="text-slate-900">{{ establishments().length }}</strong>
+      {{ establishments().length === 1 ? 'local encontrado' : 'locais encontrados' }}
+    </p>
+    <label class="flex items-center gap-2 text-xs font-black text-slate-500" for="sort-select">
+      <i class="pi pi-sort-alt text-blue-600"></i>
+      Ordenar
+      <select id="sort-select"
+              [ngModel]="sortMode()"
+              (ngModelChange)="onSortChange($event)"
+              class="min-h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm font-black text-slate-800 outline-none focus:border-blue-500">
+        <option value="RECOMMENDED">Recomendados</option>
+        <option value="RATING">Melhor avaliados</option>
+        <option value="PRICE">Menor preço médio</option>
+        <option value="NAME">Nome A-Z</option>
+      </select>
+    </label>
   </div>
 
   @if (loading()) {
@@ -119,9 +139,20 @@
             }
 
             @if (ratingFor(est); as rating) {
-              <div class="absolute right-3 top-3 flex items-center gap-1.5 rounded-lg bg-white/95 px-3 py-1.5 shadow-lg backdrop-blur">
-                <i class="pi pi-star-fill text-yellow-400 text-sm"></i>
+              <div class="absolute right-3 top-3 grid gap-0.5 rounded-lg bg-white/95 px-3 py-1.5 shadow-lg backdrop-blur">
+                <span class="flex items-center gap-1.5">
+                  <i class="pi pi-star-fill text-yellow-400 text-sm"></i>
                 <span class="font-black text-slate-800 text-sm">{{ rating | number:'1.1-1' }}</span>
+                </span>
+                <span class="flex gap-0.5" [attr.aria-label]="(rating | number:'1.1-1') + ' de 5 estrelas'">
+                  @for (star of reviewStars; track star) {
+                    <i class="pi text-[9px]"
+                       [class.pi-star-fill]="star <= Math.round(rating)"
+                       [class.pi-star]="star > Math.round(rating)"
+                       [class.text-yellow-400]="star <= Math.round(rating)"
+                       [class.text-slate-300]="star > Math.round(rating)"></i>
+                  }
+                </span>
               </div>
             }
 
@@ -211,7 +242,8 @@
 
                 <button class="h-[56px] min-w-0 rounded-lg bg-red-50 border border-red-100 text-red-500 flex items-center justify-center transition-all duration-300 cursor-pointer hover:border-red-300 hover:text-red-600 hover:bg-white"
                         (click)="openGoogleService(est); $event.stopPropagation()"
-                        [title]="googleActionTitle()">
+                        [title]="googleActionTitle()"
+                        [attr.aria-label]="googleActionLabel() + ': ' + est.name">
                   <i class="pi pi-google text-xl"></i>
                 </button>
              </div>

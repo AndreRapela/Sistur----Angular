@@ -3,7 +3,7 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Title } from '@angular/platform-browser';
-import { finalize } from 'rxjs/operators';
+import { finalize, timeout } from 'rxjs/operators';
 import { ApiService } from '../../services/api.service';
 import { ItineraryService } from '../../services/itinerary.service';
 import { AnalyticsService } from '../../services/analytics.service';
@@ -14,6 +14,7 @@ import { GooglePlaceEnrichmentDirective } from '../../directives/google-place-en
 import { openExternalLink } from '../../utils/external-link';
 
 type EstablishmentListCategory = 'RESTAURANT' | 'HOTEL' | 'CONVENIENCE';
+type EstablishmentSort = 'RECOMMENDED' | 'RATING' | 'PRICE' | 'NAME';
 
 @Component({
   selector: 'app-establishment-list',
@@ -31,6 +32,8 @@ export class EstablishmentListComponent implements OnInit {
   private analytics = inject(AnalyticsService);
   public itinerary = inject(ItineraryService);
   protected readonly String = String;
+  protected readonly Math = Math;
+  readonly reviewStars = [1, 2, 3, 4, 5];
 
   title = '';
   subtitle = '';
@@ -40,17 +43,18 @@ export class EstablishmentListComponent implements OnInit {
   type: EstablishmentType = 'RESTAURANT';
   private establishmentTypes: EstablishmentType[] = ['RESTAURANT', 'BAR'];
   selectedCategory = signal('Todos');
+  sortMode = signal<EstablishmentSort>('RECOMMENDED');
   searchQuery = signal('');
   private allEstablishments = signal<Establishment[]>([]);
   readonly googleDetailsById = signal<Record<number, GooglePlaceDetails>>({});
   establishments = computed(() => {
-    const category = this.selectedCategory().toLowerCase();
+    const category = this.selectedCategory();
     const query = this.normalize(this.searchQuery());
     const items = this.allEstablishments();
+    const googleDetails = this.googleDetailsById();
 
-    return items.filter(establishment => {
-      const matchesCategory = category === 'todos' ||
-        (establishment.foodType || establishment.type || '').toLowerCase().includes(category);
+    const filtered = items.filter(establishment => {
+      const matchesCategory = this.matchesCategory(establishment, category);
       const haystack = this.normalize([
         establishment.name,
         establishment.description,
@@ -60,16 +64,44 @@ export class EstablishmentListComponent implements OnInit {
       ].filter(Boolean).join(' '));
       return matchesCategory && (!query || haystack.includes(query));
     });
+
+    return filtered.sort((first, second) => {
+      const firstRating = googleDetails[first.id]?.rating ?? first.rating ?? 0;
+      const secondRating = googleDetails[second.id]?.rating ?? second.rating ?? 0;
+      const firstReviews = googleDetails[first.id]?.reviewCount ?? first.reviewCount ?? 0;
+      const secondReviews = googleDetails[second.id]?.reviewCount ?? second.reviewCount ?? 0;
+
+      if (this.sortMode() === 'RATING') {
+        return secondRating - firstRating || secondReviews - firstReviews || first.name.localeCompare(second.name, 'pt-BR');
+      }
+      if (this.sortMode() === 'PRICE') {
+        const firstPrice = first.averagePrice && first.averagePrice > 0 ? first.averagePrice : Number.POSITIVE_INFINITY;
+        const secondPrice = second.averagePrice && second.averagePrice > 0 ? second.averagePrice : Number.POSITIVE_INFINITY;
+        return firstPrice - secondPrice || secondRating - firstRating;
+      }
+      if (this.sortMode() === 'NAME') {
+        return first.name.localeCompare(second.name, 'pt-BR');
+      }
+
+      return this.recommendationScore(second, secondRating, secondReviews) -
+        this.recommendationScore(first, firstRating, firstReviews) ||
+        first.name.localeCompare(second.name, 'pt-BR');
+    });
   });
   loading = signal(true);
   errorMessage = signal('');
   categories = computed(() => {
-    const values = this.allEstablishments()
-      .map(establishment => establishment.foodType || establishment.type)
-      .filter((category): category is string => Boolean(category))
-      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    if (this.mapCategory === 'HOTEL') return ['Todos', 'Hotéis', 'Pousadas', 'Resorts'];
+    if (this.mapCategory === 'CONVENIENCE') return ['Todos', 'Mercados', 'Farmácias', 'Postos', 'Feiras', 'Outros serviços'];
 
-    return ['Todos', ...Array.from(new Set(values))];
+    const cuisines = this.allEstablishments()
+      .map(establishment => establishment.foodType)
+      .filter((category): category is string => Boolean(category))
+      .filter(category => !['RESTAURANT', 'BAR', 'RESTAURANTE'].includes(category.toUpperCase()))
+      .filter((category, index, values) => values.findIndex(value => this.normalize(value) === this.normalize(category)) === index)
+      .sort((first, second) => first.localeCompare(second, 'pt-BR'))
+      .slice(0, 8);
+    return ['Todos', 'Restaurantes', 'Bares', ...cuisines];
   });
 
   ngOnInit() {
@@ -85,8 +117,8 @@ export class EstablishmentListComponent implements OnInit {
     this.cdr.markForCheck();
 
     this.errorMessage.set('');
-    this.api.getMapEstablishments(this.establishmentTypes)
-      .pipe(finalize(() => {
+    this.api.getMapEstablishments(this.establishmentTypes, true)
+      .pipe(timeout(15000), finalize(() => {
         this.loading.set(false);
         this.cdr.markForCheck();
       }))
@@ -105,6 +137,10 @@ export class EstablishmentListComponent implements OnInit {
 
   filterByCategory(cat: string) {
     this.selectedCategory.set(cat);
+  }
+
+  onSortChange(sort: EstablishmentSort) {
+    this.sortMode.set(sort);
   }
 
   viewDetails(est: Establishment) {
@@ -222,9 +258,13 @@ export class EstablishmentListComponent implements OnInit {
   }
 
   googleActionTitle(): string {
-    return this.mapCategory === 'CONVENIENCE'
-      ? 'Ver informações no Google'
-      : 'Reservar/Comprar no Google';
+    return this.googleActionLabel();
+  }
+
+  googleActionLabel(): string {
+    if (this.mapCategory === 'HOTEL') return 'Comparar e reservar no Google';
+    if (this.mapCategory === 'RESTAURANT') return 'Avaliações e reserva no Google';
+    return 'Informações atualizadas no Google';
   }
 
   convenienceIcon(type: EstablishmentType): string {
@@ -283,6 +323,40 @@ export class EstablishmentListComponent implements OnInit {
     this.title = 'Gastronomia';
     this.subtitle = 'Restaurantes e bares de Fernando de Noronha';
     this.searchPlaceholder = 'Buscar restaurante ou bar...';
+  }
+
+  private matchesCategory(establishment: Establishment, category: string): boolean {
+    const normalized = this.normalize(category);
+    if (normalized === 'todos') return true;
+
+    const typeGroups: Record<string, EstablishmentType[]> = {
+      restaurantes: ['RESTAURANT'],
+      bares: ['BAR'],
+      hoteis: ['HOTEL'],
+      pousadas: ['POUSADA'],
+      resorts: ['RESORT'],
+      mercados: ['MARKET'],
+      farmacias: ['PHARMACY'],
+      postos: ['GAS_STATION'],
+      feiras: ['FAIR'],
+      'outros servicos': ['CONVENIENCE']
+    };
+    const matchingTypes = typeGroups[normalized];
+    if (matchingTypes) return matchingTypes.includes(establishment.type);
+
+    return this.normalize(establishment.foodType || '').includes(normalized);
+  }
+
+  private recommendationScore(establishment: Establishment, rating: number, reviewCount: number): number {
+    const completeness = [
+      establishment.description,
+      establishment.photoUrl,
+      establishment.openingHours,
+      establishment.contactNumber,
+      establishment.websiteUrl,
+      establishment.googleMapsUrl
+    ].filter(Boolean).length;
+    return rating * 20 + Math.log10(reviewCount + 10) * 9 + completeness * 1.5;
   }
 
   private normalize(value: string): string {

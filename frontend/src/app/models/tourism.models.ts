@@ -57,7 +57,7 @@ export interface LocationDTO {
 
 export interface RouteRequestDTO {
   waypoints: LocationDTO[];
-  travelMode?: string;
+  travelMode?: 'WALKING' | 'DRIVING' | 'BICYCLING';
 }
 
 export interface RouteResponseDTO {
@@ -67,6 +67,9 @@ export interface RouteResponseDTO {
   difficulty: string;
   estimatedCalories: number;
   optimizedWaypoints: LocationDTO[];
+  routeSource?: 'GOOGLE_ROUTES' | 'GEODESIC_ESTIMATE';
+  estimated?: boolean;
+  travelMode?: 'WALKING' | 'DRIVING' | 'BICYCLING';
 }
 
 export interface AdminStatsDTO {

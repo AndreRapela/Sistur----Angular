@@ -48,10 +48,10 @@ export interface GooglePlaceAttribution {
 }
 
 const NORONHA_BOUNDS = {
-  north: -3.82,
-  south: -3.89,
+  north: -3.805,
+  south: -3.9,
   east: -32.385,
-  west: -32.47
+  west: -32.49
 };
 
 @Injectable({ providedIn: 'root' })
@@ -59,6 +59,9 @@ export class GooglePlaceDetailsService {
   private readonly loader = inject(GoogleMapsLoaderService);
   private readonly summaryCache = new Map<string, Promise<GooglePlaceDetails | null>>();
   private readonly detailCache = new Map<string, Promise<GooglePlaceDetails | null>>();
+  private readonly summaryQueue: Array<() => void> = [];
+  private activeSummaryRequests = 0;
+  private readonly maxConcurrentSummaries = 3;
 
   getSummary(placeLookup: GooglePlaceLookup): Promise<GooglePlaceDetails | null> {
     const cacheKey = this.cacheKey(placeLookup);
@@ -72,7 +75,8 @@ export class GooglePlaceDetailsService {
       return cached;
     }
 
-    const request = this.fetchPlace(placeLookup, this.summaryFields(), 960).catch(() => null);
+    const request = this.enqueueSummary(() => this.fetchPlace(placeLookup, this.summaryFields(), 960))
+      .catch(() => null);
     this.summaryCache.set(cacheKey, request);
     return request;
   }
@@ -92,6 +96,29 @@ export class GooglePlaceDetailsService {
 
   private cacheKey(placeLookup: GooglePlaceLookup): string {
     return placeLookup.googlePlaceId || this.normalize(placeLookup.googleQuery || placeLookup.name);
+  }
+
+  private enqueueSummary<T>(task: () => Promise<T>): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      const run = () => {
+        this.activeSummaryRequests++;
+        task()
+          .then(resolve, reject)
+          .finally(() => {
+            this.activeSummaryRequests--;
+            this.drainSummaryQueue();
+          });
+      };
+
+      this.summaryQueue.push(run);
+      this.drainSummaryQueue();
+    });
+  }
+
+  private drainSummaryQueue(): void {
+    while (this.activeSummaryRequests < this.maxConcurrentSummaries && this.summaryQueue.length) {
+      this.summaryQueue.shift()?.();
+    }
   }
 
   private async fetchPlace(

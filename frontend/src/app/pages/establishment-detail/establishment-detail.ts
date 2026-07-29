@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { finalize, timeout } from 'rxjs';
 import { ApiService } from '../../services/api.service';
 import { ItineraryService } from '../../services/itinerary.service';
@@ -15,6 +15,8 @@ import { NoronhaWeather, NoronhaWeatherService } from '../../services/noronha-we
 import { Establishment, EstablishmentType } from '../../models/tourism.models';
 import { openExternalLink } from '../../utils/external-link';
 
+type TravelMode = 'WALKING' | 'DRIVING' | 'BICYCLING';
+
 @Component({
   selector: 'app-establishment-detail',
   standalone: true,
@@ -24,6 +26,7 @@ import { openExternalLink } from '../../utils/external-link';
 })
 export class EstablishmentDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly api = inject(ApiService);
   private readonly analytics = inject(AnalyticsService);
   private readonly googlePlaces = inject(GooglePlaceDetailsService);
@@ -38,6 +41,7 @@ export class EstablishmentDetailComponent implements OnInit {
   readonly loading = signal(true);
   readonly googleLoading = signal(false);
   readonly errorMessage = signal('');
+  readonly travelMode = signal<TravelMode>('DRIVING');
   readonly reviewStars = [1, 2, 3, 4, 5];
 
   readonly isPremium = computed(() => this.authService.currentUser()?.role === 'PREMIUM_TOURIST');
@@ -75,6 +79,18 @@ export class EstablishmentDetailComponent implements OnInit {
   readonly isSaved = computed(() => {
     const establishment = this.est();
     return Boolean(establishment && this.itineraryService.isInItinerary(establishment.id, this.itineraryType(establishment.type)));
+  });
+  readonly openStatusLabel = computed(() => {
+    const isOpen = this.googleDetails()?.isOpen;
+    if (isOpen === true) return 'Aberto agora';
+    if (isOpen === false) return 'Fechado agora';
+    return this.googleDetails()?.todayOpeningHours || 'Confira o horário';
+  });
+  readonly googleActionLabel = computed(() => {
+    const type = this.est()?.type;
+    if (['HOTEL', 'POUSADA', 'RESORT'].includes(type || '')) return 'Comparar e reservar no Google';
+    if (['RESTAURANT', 'BAR'].includes(type || '')) return 'Avaliações e reserva no Google';
+    return 'Informações atualizadas no Google';
   });
 
   ngOnInit(): void {
@@ -124,7 +140,7 @@ export class EstablishmentDetailComponent implements OnInit {
     const establishment = this.est();
     if (!establishment) return;
 
-    const params = new URLSearchParams({ api: '1', travelmode: 'driving' });
+    const params = new URLSearchParams({ api: '1', travelmode: this.travelMode().toLowerCase() });
     const placeId = this.googleDetails()?.placeId || establishment.googlePlaceId;
     if (placeId) {
       params.set('destination_place_id', placeId);
@@ -138,6 +154,24 @@ export class EstablishmentDetailComponent implements OnInit {
 
     this.analytics.conversion('ESTABLISHMENT', 'DIRECTIONS_CLICK', establishment.id, this.detailPath(establishment.id));
     openExternalLink(`https://www.google.com/maps/dir/?${params.toString()}`);
+  }
+
+  openSisTurMap(): void {
+    const establishment = this.est();
+    if (!establishment) return;
+
+    this.analytics.conversion('ESTABLISHMENT', 'MAP_CLICK', establishment.id, this.detailPath(establishment.id));
+    void this.router.navigate(['/map'], {
+      queryParams: {
+        id: establishment.id,
+        type: establishment.type,
+        mode: this.travelMode()
+      }
+    });
+  }
+
+  setTravelMode(mode: TravelMode): void {
+    this.travelMode.set(mode);
   }
 
   openGooglePlace(): void {
@@ -250,8 +284,8 @@ export class EstablishmentDetailComponent implements OnInit {
 
   private loadEstablishment(id: number): void {
     this.loading.set(true);
-    this.api.getEstablishmentById(id)
-      .pipe(finalize(() => this.loading.set(false)))
+    this.api.getEstablishmentById(id, true)
+      .pipe(timeout(15000), finalize(() => this.loading.set(false)))
       .subscribe({
         next: response => {
           if (!response.data) {

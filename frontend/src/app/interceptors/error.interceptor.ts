@@ -1,9 +1,11 @@
 import { ToastService } from '../services/toast.service';
-import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
+import { HttpContextToken, HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+
+export const SILENT_HTTP_ERROR = new HttpContextToken<boolean>(() => false);
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const messageService = inject(ToastService);
@@ -13,7 +15,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (authEndpoint) {
+      if (authEndpoint || req.context.get(SILENT_HTTP_ERROR)) {
         return throwError(() => error);
       }
 

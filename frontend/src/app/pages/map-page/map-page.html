@@ -30,7 +30,9 @@
 
     <div class="status-row">
       <span><i class="pi pi-map-marker"></i> {{ mapStatus }}</span>
-      <span [class.ready]="locationState === 'ready'"><i class="pi pi-map-marker"></i> {{ locationMessage }}</span>
+      <span [class.ready]="locationState === 'ready'" [class.warning]="locationState === 'outside' || locationState === 'denied'">
+        <i class="pi pi-compass"></i> {{ locationMessage }}
+      </span>
     </div>
 
     <div class="category-strip">
@@ -96,12 +98,15 @@
                   @if (item.reviewCount) { · {{ item.reviewCount | number:'1.0-0' }} }
                 </span>
               }
-              @if (item.averagePrice && item.averagePrice > 0) {
-                <span>R$ {{ item.averagePrice | number:'1.0-0' }}</span>
-              } @else if (item.priceRange) {
-                <span>{{ item.priceRange }}</span>
-              }
-            </span>
+               @if (item.averagePrice && item.averagePrice > 0) {
+                 <span>R$ {{ item.averagePrice | number:'1.0-0' }}</span>
+               } @else if (item.priceRange) {
+                 <span>{{ item.priceRange }}</span>
+               }
+               @if (distanceLabel(item); as distance) {
+                 <span><i class="pi pi-directions"></i> {{ distance }}</span>
+               }
+             </span>
           </span>
         </button>
       } @empty {
@@ -184,8 +189,14 @@
             </div>
             @if (selectedLocation.rating) {
               <span class="rating">
-                <i class="pi pi-star-fill"></i>
-                {{ selectedLocation.rating }}
+                <span class="rating-value"><i class="pi pi-star-fill"></i> {{ selectedLocation.rating | number:'1.1-1' }}</span>
+                <span class="rating-stars" [attr.aria-label]="(selectedLocation.rating | number:'1.1-1') + ' de 5 estrelas'">
+                  @for (star of reviewStars; track star) {
+                    <i class="pi"
+                       [class.pi-star-fill]="star <= Math.round(selectedLocation.rating)"
+                       [class.pi-star]="star > Math.round(selectedLocation.rating)"></i>
+                  }
+                </span>
                 @if (selectedLocation.reviewCount) {
                   <small>{{ selectedLocation.reviewCount | number:'1.0-0' }} avaliações</small>
                 }
@@ -257,9 +268,50 @@
             </div>
           }
 
+          <div class="route-planner">
+            <div class="route-planner-heading">
+              <span>
+                <i class="pi pi-directions"></i>
+                Rota a partir da sua posição
+              </span>
+              <div class="travel-mode-switch" role="group" aria-label="Modo de deslocamento">
+                <button type="button"
+                        [class.active]="travelMode === 'WALKING'"
+                        (click)="setTravelMode('WALKING')"
+                        title="Calcular a pé"
+                        aria-label="Calcular a pé">
+                  <i class="pi pi-user"></i>
+                  <span>A pé</span>
+                </button>
+                <button type="button"
+                        [class.active]="travelMode === 'DRIVING'"
+                        (click)="setTravelMode('DRIVING')"
+                        title="Calcular de carro"
+                        aria-label="Calcular de carro">
+                  <i class="pi pi-car"></i>
+                  <span>Carro</span>
+                </button>
+                <button type="button"
+                        [class.active]="travelMode === 'BICYCLING'"
+                        (click)="setTravelMode('BICYCLING')"
+                        title="Calcular de bicicleta"
+                        aria-label="Calcular de bicicleta">
+                  <i class="pi pi-bolt"></i>
+                  <span>Bike</span>
+                </button>
+              </div>
+            </div>
+            @if (routeNotice) {
+              <p class="route-notice" [class.error]="routeState === 'error'" aria-live="polite">{{ routeNotice }}</p>
+            }
+          </div>
+
           @if (routeSummary) {
             <div class="route-summary">
-              <span><i class="pi pi-car"></i> {{ (routeSummary.distanceMeters / 1000).toFixed(1) }} km</span>
+              <strong [class.estimated]="routeState === 'estimated'">
+                {{ routeState === 'estimated' ? 'Estimativa local' : 'Rota Google' }}
+              </strong>
+              <span><i [class]="travelModeIcon()"></i> {{ (routeSummary.distanceMeters / 1000).toFixed(1) }} km</span>
               <span><i class="pi pi-clock"></i> {{ Math.max(1, Math.round(routeSummary.durationSeconds / 60)) }} min</span>
               @if (routeSummary.estimatedCalories > 0) {
                 <span><i class="pi pi-bolt"></i> {{ Math.round(routeSummary.estimatedCalories) }} kcal</span>
@@ -268,9 +320,13 @@
           }
 
           <div class="place-actions">
-            <button class="primary-action" type="button" (click)="getDirections()">
+            <button class="primary-action" type="button" (click)="getDirections()" [disabled]="routeState === 'locating' || routeState === 'routing'">
               <i class="pi pi-directions"></i>
-              Como chegar
+              {{ routeActionLabel() }}
+            </button>
+            <button class="secondary-action navigation-action" type="button" (click)="openExternalDirections(selectedLocation)" title="Abrir navegação completa">
+              <i class="pi pi-external-link"></i>
+              Navegar
             </button>
             <button class="secondary-action" type="button" (click)="togglePlan(selectedLocation)">
               <i [class]="isInPlan(selectedLocation) ? 'pi pi-calendar-times' : 'pi pi-calendar-plus'"></i>
@@ -278,12 +334,12 @@
             </button>
             <button class="secondary-action google-action" type="button" (click)="openInGoogleMaps(selectedLocation)">
               <i class="pi pi-google"></i>
-              Google
+              Ficha Google
             </button>
             @if (selectedLocation.source === 'SISTUR') {
               <button class="secondary-action" type="button" (click)="openDetails(selectedLocation)" title="Ver página completa">
                 <i class="pi pi-info-circle"></i>
-                Detalhes
+                Ver perfil
               </button>
             }
           </div>

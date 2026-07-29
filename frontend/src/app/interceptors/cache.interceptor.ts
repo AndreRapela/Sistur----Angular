@@ -85,7 +85,7 @@ export const cacheInterceptor: HttpInterceptorFn = (req, next) => {
       }
     }),
     finalize(() => pendingRequests.delete(cacheKey)),
-    shareReplay({ bufferSize: 1, refCount: false })
+    shareReplay({ bufferSize: 1, refCount: true })
   );
 
   pendingRequests.set(cacheKey, request$);
