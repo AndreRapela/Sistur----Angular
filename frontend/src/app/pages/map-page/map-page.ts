@@ -519,21 +519,21 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   resultImageUrl(location: MapLocation): string {
-    return location.photoUrl || this.satelliteTileUrl(location);
+    return location.photoUrl || '';
   }
 
   resultImageSource(location: MapLocation): string {
     if (location.photoUrl) {
       return location.photoAttributionName || (location.source === 'GOOGLE_PLACES' ? 'Google' : 'Foto');
     }
-    return 'Satélite Esri';
+    return '';
   }
 
   resultImageAttributionUrl(location: MapLocation): string {
     if (location.photoUrl) {
       return location.photoAttributionUrl || '';
     }
-    return 'https://www.esri.com/en-us/legal/terms/full-master-agreement';
+    return '';
   }
 
   resultImageFailed(location: MapLocation): boolean {
@@ -1737,19 +1737,6 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         (expectedSlug.includes(actualSlug) || actualSlug.includes(expectedSlug)));
   }
 
-  private satelliteTileUrl(location: MapLocation): string {
-    const coordinates = this.coordinatesFor(location);
-    if (!coordinates) return '';
-
-    const zoom = 17;
-    const scale = 2 ** zoom;
-    const latitude = Math.max(-85.05112878, Math.min(85.05112878, coordinates.lat));
-    const latitudeRadians = latitude * Math.PI / 180;
-    const x = Math.floor((coordinates.lng + 180) / 360 * scale);
-    const y = Math.floor((1 - Math.asinh(Math.tan(latitudeRadians)) / Math.PI) / 2 * scale);
-    return `https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${zoom}/${y}/${x}`;
-  }
-
   private applyInitialSelection(params: Params) {
     const id = params['id'];
     const type = this.normalizeCategory(params['type']);
@@ -2109,7 +2096,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     const label = showLabel
       ? `<span class="marker-label">${this.escapeHtml(this.compactLabel(location.name))}</span>`
       : '';
-    const imageUrl = this.currentZoom >= 15 ? this.resultImageUrl(location) : '';
+    const imageUrl = this.currentZoom >= 15 && !this.resultImageFailed(location)
+      ? location.photoUrl || ''
+      : '';
     const markerImage = imageUrl
       ? `<img src="${this.escapeHtml(imageUrl)}" alt="" loading="lazy" decoding="async">`
       : '';

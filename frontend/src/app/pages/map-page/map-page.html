@@ -81,20 +81,19 @@
                 (click)="selectLocation(item)"
                 [attr.aria-label]="'Selecionar ' + item.name"
                 title="Selecionar {{ item.name }}">
-          <span class="result-thumbnail pin-{{ item.mapSearchType.toLowerCase() }}">
-            <span class="thumbnail-fallback"><i [class]="getCategoryIcon(item.mapSearchType)"></i></span>
-            @if (itemIndex < resultImageLimit && !resultImageFailed(item)) {
+          @if (item.photoUrl && itemIndex < resultImageLimit && !resultImageFailed(item)) {
+            <span class="result-thumbnail pin-{{ item.mapSearchType.toLowerCase() }}">
               <img [src]="resultImageUrl(item)"
                    width="72"
                    height="72"
                    loading="lazy"
                    decoding="async"
-                   [alt]="item.photoUrl ? item.name : 'Vista aérea de ' + item.name"
+                   [alt]="item.name"
                    (error)="onResultImageError(item)">
-            }
-            <span class="thumbnail-category"><i [class]="getCategoryIcon(item.mapSearchType)"></i></span>
-            <span class="thumbnail-source">{{ resultImageSource(item) }}</span>
-          </span>
+              <span class="thumbnail-category"><i [class]="getCategoryIcon(item.mapSearchType)"></i></span>
+              <span class="thumbnail-source">{{ resultImageSource(item) }}</span>
+            </span>
+          }
           <span class="result-copy">
             <strong>{{ item.name }}</strong>
             <small>{{ item.location || item.category || 'Fernando de Noronha' }}</small>
@@ -174,19 +173,20 @@
     </div>
 
     @if (selectedLocation) {
-      <article class="place-card">
+      <article class="place-card"
+               [class.no-media]="!selectedLocation.photoUrl || resultImageFailed(selectedLocation)">
         <button class="close-btn" type="button" (click)="closeLocation()" title="Fechar detalhes" aria-label="Fechar detalhes">
           <i class="pi pi-times"></i>
         </button>
 
-        <div class="place-media">
-          @if (!resultImageFailed(selectedLocation)) {
+        @if (selectedLocation.photoUrl && !resultImageFailed(selectedLocation)) {
+          <div class="place-media">
             <img [src]="resultImageUrl(selectedLocation)"
                  width="112"
                  height="112"
                  loading="lazy"
                  decoding="async"
-                 [alt]="selectedLocation.photoUrl ? selectedLocation.name : 'Vista aérea de ' + selectedLocation.name"
+                 [alt]="selectedLocation.name"
                  title="{{ selectedLocation.name }}"
                  (error)="onResultImageError(selectedLocation)">
             @if (resultImageAttributionUrl(selectedLocation); as attributionUrl) {
@@ -198,12 +198,8 @@
                 {{ resultImageSource(selectedLocation) }}
               </a>
             }
-          } @else {
-            <div class="media-fallback pin-{{ selectedLocation.mapSearchType.toLowerCase() }}">
-              <i [class]="getCategoryIcon(selectedLocation.mapSearchType)"></i>
-            </div>
-          }
-        </div>
+          </div>
+        }
 
         <div class="place-content">
           <div class="place-title-row">
