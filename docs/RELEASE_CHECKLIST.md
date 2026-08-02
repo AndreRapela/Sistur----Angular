@@ -59,7 +59,7 @@ O lançamento é “go” somente quando todos os bloqueadores comerciais possue
 ## Validação local em 02/08/2026
 
 - [x] Backend em JDK 21: 11 testes, sem falhas.
-- [x] Frontend Angular: 13 testes, sem falhas.
+- [x] Frontend Angular: 14 testes, sem falhas.
 - [x] Build de produção dentro dos budgets; mapa permanece em chunk lazy.
 - [x] `npm audit --omit=dev`: nenhuma vulnerabilidade de produção conhecida.
 - [x] `npm audit`: nenhuma vulnerabilidade conhecida, incluindo ferramentas de desenvolvimento.

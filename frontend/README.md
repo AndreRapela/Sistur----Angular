@@ -24,6 +24,8 @@ SISTUR_SUPPORT_WHATSAPP=<pais-ddd-numero-somente-digitos>
 
 Restrinja a chave no Google Cloud aos dominios publicados do SisTur e a `http://localhost:4200/*` durante o desenvolvimento.
 
+Em desenvolvimento, o painel climático consulta o Open-Meteo diretamente se a API local estiver desligada. Em produção, a previsão passa exclusivamente pelo backend e a PWA pode reutilizar a última resposta por até 30 minutos; configure no backend a licença comercial do Open-Meteo ou uma instância própria antes do lançamento.
+
 ## Execucao local
 
 ```bash
@@ -52,7 +54,7 @@ npm run build
 ## Observacoes de lancamento
 
 - Configure a mesma origem do frontend em `CORS_ALLOWED_ORIGINS` no backend.
-- O build de produção gera uma PWA. O roteiro local e o shell continuam disponíveis offline; dados ao vivo exigem conexão.
+- O build de produção gera uma PWA. O roteiro local, o shell e a última previsão climática válida continuam disponíveis por tempo limitado; demais dados ao vivo exigem conexão.
 - Orçamento, despesas e códigos de reserva ficam somente no dispositivo e não são publicados na API social. O usuário pode exportar compromissos em `.ics`.
 - O cadastro publico cria usuarios Free; upgrades Pro/Premium devem passar pelo fluxo comercial/admin.
-- As fotos exibidas pelo app devem ser reais/licenciadas. O app mostra estado de foto pendente quando nao ha imagem confiavel.
+- As fotos exibidas pelo app devem ser reais/licenciadas. No mapa, locais sem foto confiável recebem uma vista aérea identificada da coordenada, nunca uma foto genérica apresentada como se fosse do estabelecimento.

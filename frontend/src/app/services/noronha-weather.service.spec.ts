@@ -125,4 +125,60 @@ describe('NoronhaWeatherService', () => {
     expect(overview.marine).toBeNull();
     expect(overview.current.condition).toBe('Poucas nuvens');
   });
+
+  it('uses the direct development forecast when the local backend is offline', async () => {
+    const overviewPromise = firstValueFrom(service.overview());
+    const gatewayRequest = http.expectOne(`${environment.apiUrl}/weather/noronha`);
+    gatewayRequest.flush('offline', { status: 503, statusText: 'Service Unavailable' });
+
+    const forecastRequest = http.expectOne(request =>
+      request.url === 'https://api.open-meteo.com/v1/forecast' &&
+      request.params.get('timezone') === 'America/Noronha'
+    );
+    const marineRequest = http.expectOne(request =>
+      request.url === 'https://marine-api.open-meteo.com/v1/marine' &&
+      request.params.get('cell_selection') === 'sea'
+    );
+
+    forecastRequest.flush({
+      current: {
+        time: '2026-08-02T10:00',
+        temperature_2m: 27,
+        apparent_temperature: 29,
+        weather_code: 1,
+        wind_speed_10m: 18,
+        wind_gusts_10m: 24
+      },
+      hourly: {
+        time: ['2026-08-02T10:00'],
+        temperature_2m: [27],
+        precipitation_probability: [10],
+        weather_code: [1],
+        wind_gusts_10m: [24]
+      },
+      daily: {
+        temperature_2m_max: [29],
+        temperature_2m_min: [24],
+        apparent_temperature_max: [31],
+        uv_index_max: [7],
+        precipitation_probability_max: [10],
+        precipitation_sum: [0],
+        wind_gusts_10m_max: [24]
+      }
+    });
+    marineRequest.flush({
+      current: {
+        wave_height: 1.1,
+        wave_period: 8,
+        swell_wave_height: 0.9,
+        sea_surface_temperature: 27
+      },
+      daily: { wave_height_max: [1.3] }
+    });
+
+    const overview = await overviewPromise;
+    expect(overview.delivery).toBe('direct-development');
+    expect(overview.current.temperature).toBe(27);
+    expect(overview.marine?.maximumWaveHeight).toBe(1.3);
+  });
 });

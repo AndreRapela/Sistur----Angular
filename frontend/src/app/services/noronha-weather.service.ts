@@ -1,6 +1,6 @@
-import { HttpClient, HttpContext } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, map, shareReplay } from 'rxjs';
+import { Observable, catchError, forkJoin, map, of, shareReplay, throwError, timeout } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ApiResponse } from '../models/tourism.models';
 import { SILENT_HTTP_ERROR } from '../interceptors/error.interceptor';
@@ -68,6 +68,7 @@ export interface NoronhaWeatherOverview {
   summary: string;
   fetchedAt: string;
   stale: boolean;
+  delivery: 'gateway' | 'direct-development';
 }
 
 interface WeatherGatewayData {
@@ -108,7 +109,11 @@ export class NoronhaWeatherService {
           context: new HttpContext().set(SILENT_HTTP_ERROR, true)
         })
         .pipe(
-          map(response => this.toOverview(response.data || {})),
+          timeout(environment.production ? 4500 : 1500),
+          map(response => this.toOverview(response.data || {}, 'gateway')),
+          catchError(error => environment.production
+            ? throwError(() => error)
+            : this.directDevelopmentOverview()),
           shareReplay({ bufferSize: 1, refCount: false })
         );
     }
@@ -116,7 +121,45 @@ export class NoronhaWeatherService {
     return this.overviewRequest$;
   }
 
-  private toOverview(gateway: WeatherGatewayData): NoronhaWeatherOverview {
+  private directDevelopmentOverview(): Observable<NoronhaWeatherOverview> {
+    const context = new HttpContext().set(SILENT_HTTP_ERROR, true);
+    const locationParams = new HttpParams()
+      .set('latitude', '-3.8415')
+      .set('longitude', '-32.4116')
+      .set('timezone', 'America/Noronha')
+      .set('forecast_days', '3');
+    const forecastParams = locationParams
+      .set('current', 'temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,rain,weather_code,cloud_cover,wind_speed_10m,wind_gusts_10m')
+      .set('hourly', 'temperature_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,wind_gusts_10m,uv_index')
+      .set('daily', 'weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,uv_index_max,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max');
+    const marineParams = locationParams
+      .set('cell_selection', 'sea')
+      .set('current', 'wave_height,wave_period,swell_wave_height,sea_surface_temperature')
+      .set('daily', 'wave_height_max,swell_wave_height_max');
+
+    return forkJoin({
+      forecast: this.http.get<OpenMeteoResponse>('https://api.open-meteo.com/v1/forecast', {
+        context,
+        params: forecastParams
+      }).pipe(timeout(5000)),
+      marine: this.http.get<OpenMeteoMarineResponse>('https://marine-api.open-meteo.com/v1/marine', {
+        context,
+        params: marineParams
+      }).pipe(timeout(5000), catchError(() => of(null)))
+    }).pipe(
+      map(({ forecast, marine }) => this.toOverview({
+        forecast,
+        marine,
+        fetchedAt: new Date().toISOString(),
+        stale: false
+      }, 'direct-development'))
+    );
+  }
+
+  private toOverview(
+    gateway: WeatherGatewayData,
+    delivery: NoronhaWeatherOverview['delivery']
+  ): NoronhaWeatherOverview {
     const forecast = gateway.forecast || {};
     const current = forecast.current || {};
     const hourly = forecast.hourly || {};
@@ -170,7 +213,8 @@ export class NoronhaWeatherService {
       headline: primaryAlert?.title || 'Condições sem alerta relevante',
       summary: primaryAlert?.message || 'Ainda assim, confirme a sinalização local antes de entrar no mar ou iniciar trilhas.',
       fetchedAt: gateway.fetchedAt || new Date().toISOString(),
-      stale: Boolean(gateway.stale)
+      stale: Boolean(gateway.stale),
+      delivery
     };
   }
 

@@ -92,7 +92,11 @@
       </div>
 
       <div class="compact-attribution">
-        <span>Orientação automática com dados Open-Meteo / DWD; não substitui sinalização nem decisão oficial.</span>
+        <span>
+          Orientação automática com dados Open-Meteo / DWD
+          @if (weather.delivery === 'direct-development') { · acesso direto para desenvolvimento local }
+          · não substitui sinalização nem decisão oficial.
+        </span>
         <a href="https://alertas2.inmet.gov.br/" target="_blank" rel="noopener noreferrer">Confirmar no INMET <i class="pi pi-external-link"></i></a>
       </div>
 

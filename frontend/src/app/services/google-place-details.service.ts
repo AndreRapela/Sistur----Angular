@@ -11,6 +11,8 @@ export interface GooglePlaceDetails {
   placeId: string;
   name: string;
   formattedAddress?: string;
+  latitude?: number;
+  longitude?: number;
   rating?: number;
   reviewCount?: number;
   googleMapsUrl?: string;
@@ -206,6 +208,8 @@ export class GooglePlaceDetailsService {
       placeId: String(place.id),
       name,
       formattedAddress: place.formattedAddress ? String(place.formattedAddress) : undefined,
+      latitude: this.coordinate(place.location, 'lat'),
+      longitude: this.coordinate(place.location, 'lng'),
       rating: typeof place.rating === 'number' ? place.rating : undefined,
       reviewCount: typeof place.userRatingCount === 'number' ? place.userRatingCount : undefined,
       googleMapsUrl: place.googleMapsURI ? String(place.googleMapsURI) : undefined,
@@ -231,6 +235,13 @@ export class GooglePlaceDetailsService {
       reviews: this.mapReviews(place.reviews),
       providerAttributions: this.mapAttributions(place.attributions)
     };
+  }
+
+  private coordinate(location: any, axis: 'lat' | 'lng'): number | undefined {
+    const value = typeof location?.[axis] === 'function'
+      ? location[axis]()
+      : location?.[axis];
+    return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
   }
 
   private mapReviews(reviews: any): GooglePlaceReview[] | undefined {

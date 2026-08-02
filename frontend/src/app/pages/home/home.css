@@ -1,5 +1,5 @@
-.home-page { background: #f8fafc; color: #0f172a; min-height: 100vh; }
-.hero { position: relative; min-height: 500px; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 28px; align-items: end; padding: 46px max(32px, calc((100% - 1180px) / 2)); overflow: hidden; }
+.home-page { --home-content-max: 1480px; background: #f8fafc; color: #0f172a; min-height: 100vh; }
+.hero { position: relative; min-height: 500px; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 32px; align-items: end; padding: 46px max(24px, calc((100% - var(--home-content-max)) / 2)); overflow: hidden; }
 .hero-bg { position: absolute; inset: 0; background: url('/assets/places/baia-do-sancho.jpg') center 46% / cover no-repeat; transform: scale(1.01); }
 .hero-shade { position: absolute; inset: 0; background: rgba(3, 20, 34, .72); }
 .hero-content, .trip-widget { position: relative; z-index: 1; }
@@ -27,7 +27,7 @@
 .trip-widget p { margin: 0; color: #475569; font-weight: 700; line-height: 1.45; }
 .trip-widget a { width: 100%; margin-top: 16px; background: #0f172a; color: #fff; }
 .trip-widget a:hover { background: #0077b6; }
-.quick-grid, .planner-band, .discovery-section { width: min(1180px, calc(100% - 32px)); margin-inline: auto; }
+.quick-grid, .planner-band, .discovery-section { width: min(var(--home-content-max), calc(100% - 48px)); margin-inline: auto; }
 .quick-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: -34px; position: relative; z-index: 2; }
 .quick-card { min-height: 154px; padding: 18px; display: grid; align-content: start; gap: 9px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; box-shadow: 0 14px 38px rgba(15,23,42,.08); transition: .18s ease; }
 .quick-card:hover { transform: translateY(-3px); border-color: #bfdbfe; box-shadow: 0 18px 48px rgba(15,23,42,.12); }
@@ -44,7 +44,7 @@
 .planner-links a { padding: 0 13px; color: #fff; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.16); }
 .planner-links a:hover { background: rgba(255,255,255,.2); }
 .island-guide-band { margin-top: 48px; padding: 42px 0; background: #eaf4f1; border-top: 1px solid #cfe3dc; border-bottom: 1px solid #cfe3dc; }
-.island-guide-inner { width: min(1180px, calc(100% - 32px)); margin-inline: auto; display: grid; grid-template-columns: minmax(260px, .72fr) minmax(0, 1.28fr); gap: 44px; align-items: center; }
+.island-guide-inner { width: min(var(--home-content-max), calc(100% - 48px)); margin-inline: auto; display: grid; grid-template-columns: minmax(260px, .72fr) minmax(0, 1.28fr); gap: 44px; align-items: center; }
 .island-guide-copy .eyebrow { color: #2d6a4f; }
 .island-guide-copy h2 { margin: 0; max-width: 520px; color: #0f172a; font-size: 34px; line-height: 1.08; font-weight: 950; letter-spacing: 0; }
 .island-guide-copy > p:last-child { margin: 14px 0 0; max-width: 520px; color: #526477; font-size: 14px; line-height: 1.55; font-weight: 700; }
@@ -100,7 +100,7 @@
 .card-actions button:hover, .card-actions button.saved { background: #0077b6; color: #fff; }
 
 @media (max-width: 960px) {
-  .hero { grid-template-columns: 1fr; min-height: auto; padding: 38px 16px 70px; }
+  .hero { grid-template-columns: 1fr; min-height: auto; padding: 38px 24px 70px; }
   .hero-shade { background: rgba(3, 20, 34, .7); }
   .trip-widget { max-width: 480px; }
   .quick-grid, .discovery-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -110,13 +110,36 @@
 }
 
 @media (max-width: 640px) {
+  .quick-grid, .planner-band, .discovery-section, .island-guide-inner { width: calc(100% - 24px); }
   .hero h1 { font-size: 38px; }
   .planner-band h2, .section-heading h2, .island-guide-copy h2 { font-size: 27px; }
   .hero-search { grid-template-columns: 22px 1fr; }
   .hero-search button { grid-column: 1 / -1; width: 100%; }
-  .quick-grid, .discovery-grid { grid-template-columns: 1fr; }
-  .quick-card { min-height: auto; }
+  .quick-grid, .discovery-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .quick-card { min-height: 106px; grid-template-columns: 38px minmax(0, 1fr); grid-template-rows: auto 1fr; align-content: center; padding: 12px; gap: 3px 9px; }
+  .quick-icon { grid-row: 1 / 3; width: 38px; height: 38px; }
+  .quick-card strong { align-self: end; font-size: 15px; line-height: 1.15; }
+  .quick-card small { align-self: start; overflow: hidden; display: -webkit-box; font-size: 10px; line-height: 1.3; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+  .planner-band { margin-top: 34px; padding: 20px; }
+  .discovery-section { padding: 38px 0 72px; }
+  .discovery-card { min-width: 0; }
   .island-guide-band { padding: 34px 0; }
-  .discovery-media { aspect-ratio: 16 / 9; }
+  .discovery-media { aspect-ratio: 4 / 3; }
+  .photo-credit { padding-inline: 7px; font-size: 7px; }
+  .card-content { padding: 14px; }
+  .card-content h3 { font-size: 19px; }
+  .card-content p { font-size: 12px; }
   .card-content .location, .card-content .card-note { min-height: 0; }
+  .card-content .card-note { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+  .google-summary { grid-template-columns: auto minmax(0, 1fr) auto; gap: 5px; }
+  .google-summary .rating-stars { display: none; }
+  .details-button { min-height: 44px; }
+  .card-actions button { min-width: 0; padding-inline: 6px; font-size: 11px; }
+}
+
+@media (max-width: 440px) {
+  .hero { padding-inline: 16px; }
+  .discovery-grid { width: 100%; margin-left: 0; grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: min(82vw, 320px); overflow-x: auto; overscroll-behavior-inline: contain; padding: 0 12px 12px 0; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .discovery-grid::-webkit-scrollbar { display: none; }
+  .discovery-card { scroll-snap-align: start; }
 }

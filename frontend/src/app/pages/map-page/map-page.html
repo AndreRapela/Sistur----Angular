@@ -73,16 +73,27 @@
     </div>
     </div>
 
-    <div class="result-list">
-      @for (item of filteredData; track item.id) {
+    <div #resultList class="result-list" (scroll)="onResultListScroll($event)">
+      @for (item of filteredData; track item.id; let itemIndex = $index) {
         <button type="button"
                 class="result-item"
                 [class.selected]="selectedLocation?.id === item.id"
                 (click)="selectLocation(item)"
                 [attr.aria-label]="'Selecionar ' + item.name"
                 title="Selecionar {{ item.name }}">
-          <span class="result-icon pin-{{ item.mapSearchType.toLowerCase() }}">
-            <i [class]="getCategoryIcon(item.mapSearchType)"></i>
+          <span class="result-thumbnail pin-{{ item.mapSearchType.toLowerCase() }}">
+            <span class="thumbnail-fallback"><i [class]="getCategoryIcon(item.mapSearchType)"></i></span>
+            @if (itemIndex < resultImageLimit && !resultImageFailed(item)) {
+              <img [src]="resultImageUrl(item)"
+                   width="72"
+                   height="72"
+                   loading="lazy"
+                   decoding="async"
+                   [alt]="item.photoUrl ? item.name : 'Vista aérea de ' + item.name"
+                   (error)="onResultImageError(item)">
+            }
+            <span class="thumbnail-category"><i [class]="getCategoryIcon(item.mapSearchType)"></i></span>
+            <span class="thumbnail-source">{{ resultImageSource(item) }}</span>
           </span>
           <span class="result-copy">
             <strong>{{ item.name }}</strong>
@@ -105,6 +116,9 @@
                }
                @if (distanceLabel(item); as distance) {
                  <span><i class="pi pi-directions"></i> {{ distance }}</span>
+               }
+               @if (item.openingHours) {
+                 <span [title]="item.openingHours"><i class="pi pi-clock"></i> {{ compactDetails(item.openingHours, 34) }}</span>
                }
              </span>
           </span>
@@ -166,14 +180,24 @@
         </button>
 
         <div class="place-media">
-          @if (selectedLocation.photoUrl) {
-            <img [src]="selectedLocation.photoUrl"
+          @if (!resultImageFailed(selectedLocation)) {
+            <img [src]="resultImageUrl(selectedLocation)"
                  width="112"
                  height="112"
                  loading="lazy"
                  decoding="async"
-                 [alt]="selectedLocation.name"
-                 title="{{ selectedLocation.name }}">
+                 [alt]="selectedLocation.photoUrl ? selectedLocation.name : 'Vista aérea de ' + selectedLocation.name"
+                 title="{{ selectedLocation.name }}"
+                 (error)="onResultImageError(selectedLocation)">
+            @if (resultImageAttributionUrl(selectedLocation); as attributionUrl) {
+              <a class="place-media-source"
+                 [href]="attributionUrl"
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 [title]="'Origem: ' + resultImageSource(selectedLocation)">
+                {{ resultImageSource(selectedLocation) }}
+              </a>
+            }
           } @else {
             <div class="media-fallback pin-{{ selectedLocation.mapSearchType.toLowerCase() }}">
               <i [class]="getCategoryIcon(selectedLocation.mapSearchType)"></i>

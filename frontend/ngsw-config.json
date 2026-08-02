@@ -27,5 +27,20 @@
         ]
       }
     }
+  ],
+  "dataGroups": [
+    {
+      "name": "weather-api",
+      "urls": [
+        "https://**/api/weather/noronha"
+      ],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "maxSize": 2,
+        "maxAge": "30m",
+        "timeout": "4s",
+        "refreshAhead": "5m"
+      }
+    }
   ]
 }

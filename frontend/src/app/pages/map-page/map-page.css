@@ -33,17 +33,23 @@
 .google-category-card button { min-height: 36px; border: 0; border-radius: 8px; background: #fff; color: #1a73e8; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; font-size: 12px; font-weight: 950; cursor: pointer; white-space: nowrap; box-shadow: 0 8px 18px rgba(26,115,232,.10); }
 .google-category-card button:hover { background: #1a73e8; color: #fff; }
 .result-list { min-height: 0; overflow-y: auto; display: grid; align-content: start; gap: 8px; padding: 10px 12px 18px; overscroll-behavior: contain; }
-.result-item { width: 100%; border: 1px solid transparent; border-radius: 8px; background: #fff; padding: 10px; display: flex; align-items: flex-start; gap: 11px; text-align: left; cursor: pointer; transition: .18s ease; content-visibility: auto; contain-intrinsic-size: 72px; }
+.result-item { width: 100%; border: 1px solid transparent; border-radius: 8px; background: #fff; padding: 9px; display: flex; align-items: flex-start; gap: 12px; text-align: left; cursor: pointer; transition: .18s ease; content-visibility: auto; contain-intrinsic-size: 90px; }
 .result-item:hover, .result-item.selected { border-color: #bfdbfe; background: #f8fbff; box-shadow: 0 10px 20px rgba(15,23,42,.06); }
-.result-icon, .media-fallback, .marker-pin { display: grid; place-items: center; color: #fff; background: #1a73e8; }
-.result-icon { width: 36px; height: 36px; border-radius: 50%; flex: 0 0 auto; box-shadow: 0 6px 16px rgba(15,23,42,.18); }
+.thumbnail-fallback, .media-fallback, .marker-pin { display: grid; place-items: center; color: #fff; background: #1a73e8; }
+.result-thumbnail { position: relative; width: 72px; height: 72px; flex: 0 0 auto; overflow: hidden; display: block; border: 1px solid #dbe3ef; border-radius: 8px; background: #1a73e8; box-shadow: 0 6px 16px rgba(15,23,42,.14); }
+.result-thumbnail > img, .thumbnail-fallback { position: absolute; inset: 0; width: 100%; height: 100%; }
+.result-thumbnail > img { z-index: 1; display: block; object-fit: cover; }
+.thumbnail-fallback { font-size: 20px; }
+.thumbnail-category { position: absolute; z-index: 2; top: 5px; left: 5px; width: 24px; height: 24px; display: grid; place-items: center; border: 2px solid #fff; border-radius: 50%; background: #1a73e8; color: #fff; box-shadow: 0 3px 8px rgba(15,23,42,.3); font-size: 10px; }
+.thumbnail-source { position: absolute; z-index: 2; right: 4px; bottom: 4px; max-width: calc(100% - 8px); overflow: hidden; padding: 2px 4px; border-radius: 4px; background: rgba(15,23,42,.78); color: #fff; font-size: 7px; font-weight: 900; line-height: 1.1; text-overflow: ellipsis; white-space: nowrap; }
 .result-copy { min-width: 0; display: grid; gap: 3px; }
 .result-copy strong { color: #0f172a; font-size: 14px; line-height: 1.25; }
 .result-copy small { color: #64748b; font-size: 12px; line-height: 1.25; }
 .result-description { display: -webkit-box; overflow: hidden; color: #475569; font-size: 11px; font-weight: 650; line-height: 1.35; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .meta { display: flex; flex-wrap: wrap; gap: 6px; color: #64748b; font-size: 11px; font-weight: 900; }
 .meta span { border-radius: 999px; background: #f1f5f9; padding: 3px 7px; }
-.meta i, .rating i { color: #fbbc04; }
+.meta i { color: #1a73e8; }
+.meta .pi-star-fill, .rating i { color: #fbbc04; }
 .empty-state { display: grid; place-items: center; gap: 8px; padding: 36px 14px; color: #64748b; text-align: center; }
 .empty-state i { font-size: 28px; color: #94a3b8; }
 .empty-state strong { color: #0f172a; }
@@ -62,7 +68,10 @@
 .map-type-switch button:disabled { cursor: not-allowed; opacity: .48; }
 .place-card { position: absolute; left: 18px; bottom: 18px; z-index: 4; width: min(680px, calc(100% - 96px)); max-height: calc(100% - 92px); overflow-y: auto; display: grid; grid-template-columns: 116px minmax(0, 1fr); gap: 14px; padding: 14px; background: rgba(255,255,255,.98); border: 1px solid rgba(226,232,240,.98); border-radius: 8px; box-shadow: 0 24px 60px rgba(15,23,42,.22); backdrop-filter: blur(12px); scrollbar-width: thin; }
 .close-btn { position: absolute; top: 10px; right: 10px; width: 34px; height: 34px; border-radius: 10px; }
+.place-media { position: relative; width: 116px; height: 116px; overflow: hidden; border-radius: 8px; }
 .place-media img, .media-fallback { width: 116px; height: 116px; border-radius: 8px; object-fit: cover; }
+.place-media-source { position: absolute; z-index: 1; right: 5px; bottom: 5px; max-width: calc(100% - 10px); overflow: hidden; padding: 3px 5px; border-radius: 4px; background: rgba(15,23,42,.8); color: #fff; font-size: 8px; font-weight: 850; line-height: 1.1; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+.place-media-source:hover { text-decoration: underline; }
 .media-fallback i { font-size: 30px; }
 .place-content { min-width: 0; padding-right: 34px; }
 .place-title-row { display: flex; justify-content: space-between; gap: 12px; }
@@ -120,13 +129,18 @@
 .marker-pin i { transform: rotate(45deg); font-size: 14px; }
 
 :host ::ng-deep .custom-div-icon, :host ::ng-deep .map-cluster-icon { border: 0; background: transparent; overflow: visible; }
-:host ::ng-deep .map-marker-shell { position: relative; width: 36px; height: 36px; transition: transform .16s ease; }
+:host ::ng-deep .map-marker-shell { position: relative; width: 46px; height: 46px; transition: transform .16s ease; }
 :host ::ng-deep .map-marker-shell:hover, :host ::ng-deep .map-marker-shell.is-selected { transform: translateY(-3px) scale(1.08); z-index: 3; }
+:host ::ng-deep .map-marker-shell .marker-photo { position: relative; width: 44px; height: 44px; overflow: visible; display: grid; place-items: center; border: 3px solid #fff; border-radius: 50%; background: #1a73e8; color: #fff; box-shadow: 0 8px 18px rgba(15,23,42,.3); }
+:host ::ng-deep .map-marker-shell .marker-photo > i:first-child { font-size: 15px; }
+:host ::ng-deep .map-marker-shell .marker-photo > img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; border-radius: 50%; object-fit: cover; }
+:host ::ng-deep .map-marker-shell .marker-category { position: absolute; right: -5px; bottom: -5px; width: 22px; height: 22px; display: grid; place-items: center; border: 2px solid #fff; border-radius: 50%; background: #1a73e8; color: #fff; box-shadow: 0 3px 8px rgba(15,23,42,.26); font-size: 9px; }
 :host ::ng-deep .map-marker-shell .marker-pin { width: 34px; height: 34px; display: grid; place-items: center; border: 3px solid #fff; border-radius: 50% 50% 50% 8px; background: #1a73e8; color: #fff; box-shadow: 0 8px 18px rgba(15,23,42,.28); transform: rotate(-45deg); }
 :host ::ng-deep .map-marker-shell .marker-pin i { font-size: 14px; transform: rotate(45deg); }
-:host ::ng-deep .map-marker-shell .marker-label { position: absolute; left: 41px; top: 4px; min-height: 27px; max-width: 210px; display: flex; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 9px; border: 1px solid #dfe3e7; border-radius: 6px; background: rgba(255,255,255,.97); color: #202124; box-shadow: 0 2px 7px rgba(60,64,67,.22); font-size: 12px; font-weight: 750; line-height: 1; }
-:host ::ng-deep .map-marker-shell.label-left .marker-label { right: 41px; left: auto; }
+:host ::ng-deep .map-marker-shell .marker-label { position: absolute; left: 52px; top: 8px; min-height: 27px; max-width: 210px; display: flex; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 9px; border: 1px solid #dfe3e7; border-radius: 6px; background: rgba(255,255,255,.97); color: #202124; box-shadow: 0 2px 7px rgba(60,64,67,.22); font-size: 12px; font-weight: 750; line-height: 1; }
+:host ::ng-deep .map-marker-shell.label-left .marker-label { right: 52px; left: auto; }
 :host ::ng-deep .map-marker-shell.is-selected .marker-label { border-color: #1a73e8; box-shadow: 0 3px 10px rgba(26,115,232,.28); }
+:host ::ng-deep .map-marker-shell.is-selected .marker-photo { border-color: #1a73e8; box-shadow: 0 8px 22px rgba(26,115,232,.4); }
 :host ::ng-deep .map-cluster { width: var(--cluster-size); height: var(--cluster-size); display: grid; place-items: center; border: 3px solid #fff; border-radius: 50%; background: #1a73e8; color: #fff; box-shadow: 0 4px 14px rgba(26,115,232,.38); font-size: 12px; font-weight: 900; }
 :host ::ng-deep .sistur-google-place-label { width: max-content; max-width: 210px; overflow: hidden; text-overflow: ellipsis; padding: 6px 9px !important; border: 1px solid #dfe3e7; border-radius: 6px; background: rgba(255,255,255,.97); box-shadow: 0 2px 7px rgba(60,64,67,.22); }
 :host ::ng-deep .map-marker-shell .pin-restaurant { background: #ea4335; }
@@ -136,6 +150,12 @@
 :host ::ng-deep .map-marker-shell .pin-beach { background: #06b6d4; }
 :host ::ng-deep .map-marker-shell .pin-point, :host ::ng-deep .map-marker-shell .pin-all { background: #1a73e8; }
 :host ::ng-deep .map-marker-shell .pin-convenience { background: #f97316; }
+:host ::ng-deep .map-marker-shell .pin-restaurant .marker-category { background: #ea4335; }
+:host ::ng-deep .map-marker-shell .pin-hotel .marker-category { background: #34a853; }
+:host ::ng-deep .map-marker-shell .pin-event .marker-category { background: #a142f4; }
+:host ::ng-deep .map-marker-shell .pin-tour .marker-category { background: #fbbc04; color: #3b2600; }
+:host ::ng-deep .map-marker-shell .pin-beach .marker-category { background: #06b6d4; }
+:host ::ng-deep .map-marker-shell .pin-convenience .marker-category { background: #f97316; }
 :host ::ng-deep .leaflet-top.leaflet-right { top: 106px; right: 8px; }
 :host ::ng-deep .leaflet-control-zoom { overflow: hidden; border: 1px solid #dbe3ef; border-radius: 8px; box-shadow: 0 4px 16px rgba(15,23,42,.16); }
 :host ::ng-deep .leaflet-control-zoom a { color: #334155; }
@@ -158,7 +178,7 @@
   .result-list { grid-auto-flow: column; grid-auto-columns: minmax(260px, 82vw); overflow-x: auto; overflow-y: hidden; padding: 7px 10px 9px; }
   .result-list { scrollbar-width: none; }
   .result-list::-webkit-scrollbar { display: none; }
-  .result-item { min-height: 76px; }
+  .result-item { min-height: 90px; }
   .map-stage { min-height: 0; }
   .map-toolbar { left: 10px; right: 64px; top: 10px; align-items: flex-start; flex-direction: column; gap: 7px; }
   .zoom-status { max-width: 100%; min-height: 36px; }

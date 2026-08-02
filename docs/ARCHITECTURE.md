@@ -18,7 +18,7 @@ flowchart LR
 - Rotas de negócio são carregadas sob demanda; mapa, roteiro e dashboards não entram no bundle inicial.
 - Signals e `OnPush` são usados nas telas de maior volume.
 - `runtime-config.js` injeta URL da API, chave do mapa e canais comerciais no deploy sem recompilar o código fonte.
-- O service worker armazena apenas shell e arquivos estáticos. Preços, clima e respostas da API não são congelados.
+- O service worker armazena shell, arquivos estáticos e a última previsão climática por até 30 minutos. Catálogo, preços e demais respostas da API não são congelados.
 - O roteiro em `localStorage` continua acessível offline; sincronização em nuvem exige autenticação e conexão.
 - Orçamento, despesas e códigos de reserva ficam em um workspace local separado e não são enviados ao roteiro público.
 - O exportador `.ics` reúne apenas paradas agendadas e reservas inseridas pelo usuário, sem depender de acesso ao Google Calendar.
@@ -39,7 +39,7 @@ flowchart LR
 ## Integrações
 
 - Google Maps JavaScript API e Places: mapa detalhado, rotas, fotos, avaliações e horários.
-- Open-Meteo: previsão terrestre e marítima com cache no backend.
+- Open-Meteo: previsão terrestre e marítima com cache no backend; desenvolvimento local possui fallback direto, enquanto produção exige o gateway ativo e licença comercial ou instância própria.
 - Links Google e parceiros: saída para compra ou reserva com evento de clique.
 - Supabase: PostgreSQL gerenciado. O backend usa sua própria autenticação JWT neste momento.
 
