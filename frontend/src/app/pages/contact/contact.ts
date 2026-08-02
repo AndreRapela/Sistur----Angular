@@ -1,29 +1,41 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Title } from '@angular/platform-browser';
+import { RouterLink } from '@angular/router';
+import { RuntimeConfigService } from '../../services/runtime-config.service';
 
 @Component({
   selector: 'app-contact',
   standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './contact.html',
-  styles: []
+  imports: [FormsModule, RouterLink],
+  templateUrl: './contact.html'
 })
 export class ContactComponent {
+  readonly runtime = inject(RuntimeConfigService);
+  private readonly title = inject(Title);
+
   name = '';
   email = '';
   message = '';
 
-  submitContact(event: Event) {
-    event.preventDefault();
+  constructor() {
+    this.title.setTitle('Contato e ajuda | SisTur Noronha');
+  }
 
-    const subject = encodeURIComponent(`Contato SisTur - ${this.name || 'Visitante'}`);
-    const body = encodeURIComponent(
-      `Nome: ${this.name || 'Não informado'}\n` +
-      `E-mail: ${this.email || 'Não informado'}\n\n` +
-      `${this.message || 'Olá, gostaria de saber mais sobre os planos e benefícios.'}`
+  get phoneHref(): string {
+    return `tel:${this.runtime.supportPhone.replace(/[^+\d]/g, '')}`;
+  }
+
+  get whatsappHref(): string {
+    return this.runtime.whatsapp('Olá! Preciso de ajuda com o SisTur.') || '#';
+  }
+
+  submitContact(): void {
+    const mailto = this.runtime.mailto(
+      `Contato SisTur - ${this.name.trim() || 'Visitante'}`,
+      `Nome: ${this.name.trim()}\nE-mail para retorno: ${this.email.trim()}\n\n${this.message.trim()}`
     );
 
-    window.location.href = `mailto:ajuda@sistur.gov.br?subject=${subject}&body=${body}`;
+    if (mailto) window.location.href = mailto;
   }
 }

@@ -1,4 +1,10 @@
-<div class="min-h-screen bg-slate-50">
+<div class="min-h-screen bg-slate-50" [class.is-offline]="!connectivity.online()">
+  @if (!connectivity.online()) {
+    <div class="offline-banner" role="status">
+      <i class="pi pi-wifi"></i>
+      Você está sem internet. O roteiro salvo neste dispositivo continua disponível; mapa e dados ao vivo podem ficar limitados.
+    </div>
+  }
   @if (showNavbar()) {
     <app-navbar></app-navbar>
   }
@@ -34,7 +40,7 @@
             </div>
             <div>
               <h3 class="text-xl font-black text-slate-800 m-0 tracking-tight">Sabat</h3>
-              <p class="text-slate-500 font-bold text-[10px] uppercase tracking-widest m-0">Guia local inteligente</p>
+              <p class="text-slate-500 font-bold text-[10px] uppercase tracking-widest m-0">Dicas práticas da ilha</p>
             </div>
           </div>
           <button (click)="toggleSabat()" title="Fechar Sabat" class="w-10 h-10 rounded-full bg-slate-50 border-none flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors cursor-pointer">
@@ -55,7 +61,7 @@
                 <p class="text-slate-700 font-medium leading-relaxed italic m-0">"{{ sabatMessage() }}"</p>
               }
             </div>
-            <p class="text-[11px] text-slate-400 px-2 font-medium">Sabat cruza contexto local, clima e seu roteiro para sugerir próximos passos em Noronha.</p>
+            <p class="text-[11px] text-slate-400 px-2 font-medium">Sugestões gerais para organizar melhor o dia. Confirme clima e regras antes de sair.</p>
           </div>
 
           <div class="mt-auto space-y-3 pb-4">

@@ -23,31 +23,26 @@ export class ProfilePageComponent {
   private http = inject(HttpClient);
 
   editMode = false;
+  imageProcessing = signal(false);
   tempUser: any = {};
   itineraries = signal<any[]>([]);
   badges = signal<any[]>([]);
   currentTab = signal<'roteiros' | 'conquistas'>('roteiros');
 
-  userTierLabel = signal('Free');
-  userTierDescription = signal('Explore o app com o plano gratuito.');
+  userTierLabel = signal('Viajante');
+  userTierDescription = signal('Planeje Noronha com mapa, clima e roteiro em uma conta gratuita.');
   planCards = [
     {
-      name: 'Free',
-      price: 'Gratis',
-      description: 'Para turistas que querem explorar Noronha com mapa, roteiros e categorias essenciais.',
-      features: ['Mapa e pontos principais', 'Roteiro local', 'Restaurantes e hospedagens']
+      name: 'Viajante',
+      price: 'Gratuito',
+      description: 'Para descobrir a ilha e organizar a viagem antes e durante a estadia.',
+      features: ['Mapa e geolocalização', 'Clima e cuidados', 'Roteiro local e na nuvem']
     },
     {
-      name: 'Pro',
-      price: 'Sob consulta',
-      description: 'Para quem quer planejar melhor a viagem com eventos, agenda e conteudo dinamico.',
-      features: ['Eventos em tempo real', 'Roteiros mais completos', 'Alertas e recomendacoes']
-    },
-    {
-      name: 'Premium',
-      price: 'Sob consulta',
-      description: 'Para viajantes que querem ofertas, beneficios de parceiros e experiencia assistida.',
-      features: ['Ofertas exclusivas', 'Beneficios de parceiros', 'Atendimento comercial']
+      name: 'Parceiro',
+      price: 'Comercial',
+      description: 'Para negócios de Noronha gerenciarem presença, ofertas e resultados no SisTur.',
+      features: ['Perfil comercial editável', 'Métricas de procura e saída', 'Ofertas e links de conversão']
     }
   ];
 
@@ -59,20 +54,20 @@ export class ProfilePageComponent {
 
   private updateTierCopy() {
     const role = this.auth.currentUser()?.role;
-    if (role === 'PREMIUM_TOURIST') {
-      this.userTierLabel.set('Premium');
-      this.userTierDescription.set('Eventos em tempo real e ofertas exclusivas em estabelecimentos parceiros.');
+    if (role === 'CLIENT') {
+      this.userTierLabel.set('Parceiro');
+      this.userTierDescription.set('Gerencie seu estabelecimento e acompanhe o interesse dos viajantes.');
       return;
     }
 
-    if (role === 'PRO_TOURIST') {
-      this.userTierLabel.set('Pro');
-      this.userTierDescription.set('Eventos em tempo real e acesso ampliado ao conteúdo da ilha.');
+    if (role === 'ADMIN') {
+      this.userTierLabel.set('Operação');
+      this.userTierDescription.set('Acesso administrativo à operação e aos indicadores do SisTur.');
       return;
     }
 
-    this.userTierLabel.set('Free');
-    this.userTierDescription.set('Explore roteiros, restaurantes, hotéis e mapas com o plano gratuito.');
+    this.userTierLabel.set('Viajante');
+    this.userTierDescription.set('Planeje Noronha com mapa, clima e roteiro em uma conta gratuita.');
   }
 
   loadMyBadges() {
@@ -88,21 +83,29 @@ export class ProfilePageComponent {
     });
   }
 
-  onFileSelected(event: any) {
-    const file = event.target.files[0];
+  async onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
     if (!file) {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.tempUser.photoUrl = String(reader.result || '');
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 8 * 1024 * 1024) {
+      this.toastService.add({ severity: 'warn', summary: 'Foto inválida', detail: 'Use JPG, PNG ou WebP com até 8 MB.' });
+      input.value = '';
+      return;
+    }
+
+    this.imageProcessing.set(true);
+    try {
+      this.tempUser.photoUrl = await this.prepareProfilePhoto(file);
       this.toastService.add({ severity: 'success', summary: 'Foto pronta', detail: 'Clique em Salvar para atualizar seu perfil.' });
-    };
-    reader.onerror = () => {
-      this.toastService.add({ severity: 'error', summary: 'Erro', detail: 'Nao foi possivel carregar a imagem.' });
-    };
-    reader.readAsDataURL(file);
+    } catch {
+      this.toastService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível preparar a imagem.' });
+    } finally {
+      this.imageProcessing.set(false);
+      input.value = '';
+    }
   }
 
   toggleEdit() {
@@ -126,6 +129,7 @@ export class ProfilePageComponent {
   }
 
   saveProfile() {
+    if (this.imageProcessing()) return;
     this.auth.updateProfile(this.tempUser).subscribe({
       next: () => {
         this.toastService.add({ severity: 'success', summary: 'Sucesso', detail: 'Perfil atualizado com sucesso!' });
@@ -135,5 +139,34 @@ export class ProfilePageComponent {
         this.toastService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao atualizar perfil' });
       }
     });
+  }
+
+  private async prepareProfilePhoto(file: File): Promise<string> {
+    const bitmap = await createImageBitmap(file);
+    const maxSide = 384;
+    const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+    const width = Math.max(1, Math.round(bitmap.width * scale));
+    const height = Math.max(1, Math.round(bitmap.height * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext('2d');
+    if (!context) {
+      bitmap.close();
+      throw new Error('Canvas indisponível');
+    }
+
+    context.fillStyle = '#ffffff';
+    context.fillRect(0, 0, width, height);
+    context.drawImage(bitmap, 0, 0, width, height);
+    bitmap.close();
+
+    for (const quality of [0.84, 0.72, 0.6]) {
+      const result = canvas.toDataURL('image/jpeg', quality);
+      if (result.length <= 190_000) return result;
+    }
+
+    throw new Error('Imagem acima do limite');
   }
 }

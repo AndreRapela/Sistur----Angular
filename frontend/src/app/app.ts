@@ -7,6 +7,7 @@ import { BottomNavComponent } from './components/bottom-nav/bottom-nav';
 import { NavbarComponent } from './components/navbar/navbar';
 import { ToastComponent } from './components/toast/toast';
 import { AuthService } from './services/auth.service';
+import { ConnectivityService } from './services/connectivity.service';
 
 @Component({
   selector: 'app-root',
@@ -26,6 +27,25 @@ import { AuthService } from './services/auth.service';
       padding-bottom: 0;
     }
 
+    .offline-banner {
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: #fff7ed;
+      border-bottom: 1px solid #fdba74;
+      color: #9a3412;
+      font-size: 13px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .is-offline .app-main.map-route {
+      height: calc(100dvh - 115px);
+    }
+
     @media (min-width: 768px) {
       .app-main {
         padding-bottom: 0;
@@ -37,6 +57,7 @@ export class AppComponent {
   title = 'SisTur';
 
   auth = inject(AuthService);
+  connectivity = inject(ConnectivityService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
 

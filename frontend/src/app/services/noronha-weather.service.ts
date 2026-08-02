@@ -1,8 +1,9 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map, shareReplay } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ApiResponse } from '../models/tourism.models';
+import { SILENT_HTTP_ERROR } from '../interceptors/error.interceptor';
 
 export type WeatherSafetyLevel = 'safe' | 'attention' | 'warning' | 'danger';
 
@@ -103,7 +104,9 @@ export class NoronhaWeatherService {
 
     if (!this.overviewRequest$) {
       this.overviewRequest$ = this.http
-        .get<ApiResponse<WeatherGatewayData>>(`${environment.apiUrl}/weather/noronha`)
+        .get<ApiResponse<WeatherGatewayData>>(`${environment.apiUrl}/weather/noronha`, {
+          context: new HttpContext().set(SILENT_HTTP_ERROR, true)
+        })
         .pipe(
           map(response => this.toOverview(response.data || {})),
           shareReplay({ bufferSize: 1, refCount: false })

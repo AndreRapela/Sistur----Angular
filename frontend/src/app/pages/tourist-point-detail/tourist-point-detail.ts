@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Title } from '@angular/platform-browser';
 import { finalize } from 'rxjs';
 import { ApiService } from '../../services/api.service';
 import { ItineraryService } from '../../services/itinerary.service';
@@ -27,6 +28,7 @@ export class TouristPointDetailComponent implements OnInit {
   private api = inject(ApiService);
   private cdr = inject(ChangeDetectorRef);
   private analytics = inject(AnalyticsService);
+  private title = inject(Title);
   public itinerary = inject(ItineraryService);
 
   gallery = computed(() => {
@@ -61,10 +63,12 @@ export class TouristPointDetailComponent implements OnInit {
           }
 
           const extra = touristPointDetails[id] || touristPointDetails[15];
-          this.point.set({
+          const point = {
             ...base,
             ...extra
-          });
+          };
+          this.point.set(point);
+          this.title.setTitle(`${point.name} | SisTur Noronha`);
         },
         error: () => this.router.navigate(['/pontos-turisticos'])
       });

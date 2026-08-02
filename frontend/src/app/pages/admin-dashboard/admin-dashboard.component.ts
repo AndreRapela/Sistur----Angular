@@ -165,9 +165,9 @@ export class AdminDashboardComponent implements OnInit {
         bg: 'bg-red-50'
       },
       {
-        label: 'Conversões',
+        label: 'Ações comerciais',
         value: this.formatNumber(data.conversionsLast30Days),
-        helper: `${this.formatPercent(data.conversionRate)} nos últimos 30 dias`,
+        helper: `${this.formatPercent(data.conversionRate)} das interações`,
         icon: 'pi-bolt',
         tone: 'text-amber-600',
         bg: 'bg-amber-50'
@@ -202,12 +202,12 @@ export class AdminDashboardComponent implements OnInit {
       { label: 'Usuários cadastrados', value: this.formatNumber(data.totalUsers), helper: 'base total', icon: 'pi-users', tone: 'text-blue-600', bg: 'bg-blue-50' },
       { label: 'Ativos 30 dias', value: this.formatNumber(data.activeUsersLast30Days), helper: 'usuários com atividade', icon: 'pi-clock', tone: 'text-emerald-600', bg: 'bg-emerald-50' },
       { label: 'Requisições', value: this.formatNumber(data.totalRequests), helper: 'eventos registrados', icon: 'pi-chart-line', tone: 'text-slate-600', bg: 'bg-slate-100' },
-      { label: 'Conversões', value: this.formatNumber(data.totalConversions), helper: this.formatPercent(this.conversionRate), icon: 'pi-bolt', tone: 'text-amber-600', bg: 'bg-amber-50' }
+      { label: 'Ações comerciais', value: this.formatNumber(data.totalConversions), helper: this.formatPercent(this.conversionRate), icon: 'pi-bolt', tone: 'text-amber-600', bg: 'bg-amber-50' }
     ];
 
     this.funnel = [
       { label: 'Visualizações', value: data.totalRequests, icon: 'pi-eye', tone: 'text-slate-600' },
-      { label: 'Conversões', value: data.totalConversions, icon: 'pi-bolt', tone: 'text-amber-600' }
+      { label: 'Ações comerciais', value: data.totalConversions, icon: 'pi-bolt', tone: 'text-amber-600' }
     ];
   }
 

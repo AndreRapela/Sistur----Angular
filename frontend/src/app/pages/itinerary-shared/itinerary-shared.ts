@@ -1,9 +1,10 @@
 ﻿import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
-import { ItineraryService } from '../../services/itinerary.service';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { ItineraryService, SharedItinerary } from '../../services/itinerary.service';
 import { Title } from '@angular/platform-browser';
 import { ToastService } from '../../services/toast.service';
+import { TripWorkspaceService } from '../../services/trip-workspace.service';
 
 @Component({
   selector: 'app-itinerary-shared',
@@ -16,18 +17,20 @@ export class ItinerarySharedComponent implements OnInit {
   itineraryService = inject(ItineraryService);
   titleService = inject(Title);
   toastService = inject(ToastService);
+  router = inject(Router);
+  workspace = inject(TripWorkspaceService);
 
   loading = signal(true);
   error = signal(false);
   errorMessage = signal('Não foi possível carregar este roteiro compartilhado.');
-  itinerary = signal<any>(null);
+  itinerary = signal<SharedItinerary | null>(null);
 
   ngOnInit() {
     const token = this.route.snapshot.paramMap.get('token');
     if (token) {
       this.itineraryService.getSharedItinerary(token).subscribe({
-        next: (response: any) => {
-          const data = response?.data ?? response;
+        next: response => {
+          const data = response.data;
 
           if (!data) {
             this.fail('O roteiro compartilhado retornou vazio.');
@@ -38,7 +41,7 @@ export class ItinerarySharedComponent implements OnInit {
           this.titleService.setTitle(data.name + ' | SisTur Roteiros');
           this.loading.set(false);
         },
-        error: (err: any) => {
+        error: err => {
           this.fail(this.extractErrorMessage(err));
         }
       });
@@ -63,18 +66,25 @@ export class ItinerarySharedComponent implements OnInit {
     const data = this.itinerary();
     if (data && data.items) {
       this.itineraryService.clear();
-      data.items.forEach((item: any) => {
+      this.workspace.reset(2);
+      data.items.forEach(item => {
          this.itineraryService.toggleItem({
             id: item.referenceId,
             type: item.type,
             name: item.name,
             image: item.image,
             location: item.location,
-            day: item.day || 0
+            category: item.category,
+            latitude: item.latitude,
+            longitude: item.longitude,
+            day: item.day || 0,
+            time: item.time,
+            notes: item.notes
          });
       });
-      // Navegar para planejador
-      window.location.href = '/itinerary';
+      localStorage.setItem('sistur_active_itinerary_name', `${data.name} (cópia)`);
+      this.toastService.add({ severity: 'success', summary: 'Roteiro copiado', detail: 'Agora você pode ajustar dias, reservas e orçamento.' });
+      this.router.navigate(['/itinerary']);
     }
   }
 }

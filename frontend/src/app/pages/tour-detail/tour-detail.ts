@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule, Router } from '@angular/router';
+import { Title } from '@angular/platform-browser';
 import { ApiService } from '../../services/api.service';
 import { ItineraryService } from '../../services/itinerary.service';
 import { MapComponent } from '../../components/map/map';
@@ -36,6 +37,7 @@ export class TourDetailComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private analytics = inject(AnalyticsService);
   private googlePlaces = inject(GooglePlaceDetailsService);
+  private title = inject(Title);
   public itineraryService = inject(ItineraryService);
 
   ngOnInit() {
@@ -51,6 +53,7 @@ export class TourDetailComponent implements OnInit {
           if (res.data) {
             const tour = res.data as Tour;
             this.tour.set(tour);
+            this.title.setTitle(`${tour.name} | SisTur Noronha`);
             void this.loadGoogleDetails(tour);
           } else {
             this.router.navigate(['/tours']);

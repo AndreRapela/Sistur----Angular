@@ -35,8 +35,8 @@ export class RegisterComponent implements OnInit {
 
   onSubmit(event: Event) {
     event.preventDefault();
-    if (!this.name || !this.email || !this.password) {
-      this.toastService.add({ severity: 'warn', summary: 'Atenção', detail: 'Preencha todos os campos' });
+    if (this.name.trim().length < 2 || !this.email.trim() || this.password.length < 8) {
+      this.toastService.add({ severity: 'warn', summary: 'Revise o cadastro', detail: 'Informe nome, e-mail e uma senha com pelo menos 8 caracteres.' });
       return;
     }
 

@@ -38,6 +38,10 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       } else {
         // Server-side error
         errorMessage = error.error?.message || `Código do erro: ${error.status}`;
+        const requestId = error.error?.requestId || error.headers?.get('X-Request-ID');
+        if (error.status >= 500 && requestId) {
+          errorMessage += ` Referência: ${requestId}`;
+        }
       }
 
       messageService.add({

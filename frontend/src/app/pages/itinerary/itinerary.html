@@ -18,14 +18,14 @@
             <div class="flex items-start justify-between gap-4">
               <div class="min-w-0">
                 <h2 class="text-2xl font-black text-slate-800 truncate">{{ saved.name }}</h2>
-                <p class="text-sm font-bold text-slate-400 mt-1">{{ saved.items?.length || 0 }} itens salvos</p>
+                <p class="text-sm font-bold text-slate-400 mt-1">{{ saved.items.length }} itens salvos</p>
               </div>
               <button type="button" (click)="deleteSavedItinerary(saved, $event)" title="Excluir roteiro salvo" class="w-10 h-10 rounded-xl bg-red-50 text-red-500 border border-red-100 hover:bg-red-100 transition-colors">
                 <i class="pi pi-trash"></i>
               </button>
             </div>
             <div class="mt-5 flex flex-wrap gap-2">
-              @for (item of (saved.items || []).slice(0, 4); track item.type + '-' + item.id) {
+              @for (item of saved.items.slice(0, 4); track item.type + '-' + item.id) {
                 <span class="px-3 py-1.5 rounded-full bg-slate-50 border border-slate-100 text-xs font-black text-slate-500">{{ item.name }}</span>
               }
             </div>
@@ -106,7 +106,7 @@
             <label class="block text-xs font-black uppercase text-slate-400 mb-2 tracking-widest">Dê um nome para a viagem</label>
             <div class="relative">
               <i class="pi pi-sparkles absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
-              <input type="text" [(ngModel)]="itineraryName" placeholder="Ex: Férias de Verão, Trip dos Sonhos..."
+              <input type="text" maxlength="80" [(ngModel)]="itineraryName" placeholder="Ex: Férias de Verão, Trip dos Sonhos..."
                      class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 pl-14 pr-4 text-lg font-bold outline-none focus:bg-white focus:border-primary focus:ring-4 ring-primary/10 transition-all placeholder:font-medium placeholder:text-slate-400">
             </div>
           </div>
@@ -158,17 +158,17 @@
   <!-- WIZARD STEP 2: PLANNING -->
   @defer (when step === 'PLANNING') {
     @if (step === 'PLANNING') {
-      <header class="mb-12 flex flex-col md:flex-row justify-between md:items-end gap-4 max-w-5xl mx-auto animate-fade-in hide-on-print">
-        <div>
+      <header class="mb-8 flex flex-col md:flex-row justify-between md:items-start gap-5 max-w-5xl mx-auto animate-fade-in hide-on-print">
+        <div class="shrink-0">
           <span class="text-primary font-black uppercase tracking-widest text-[10px]">{{ itineraryName }}</span>
-          <div class="flex items-center gap-4">
-            <h1 class="text-4xl md:text-6xl font-black text-slate-800 mt-1 tracking-tight">Seu Plano</h1>
-            <div class="bg-primary/10 text-primary px-4 py-2 rounded-full font-black text-xl mt-2 flex items-center justify-center shadow-inner">
+          <div class="flex items-center gap-3">
+            <h1 class="text-3xl md:text-4xl font-black text-slate-800 mt-1 tracking-tight">Seu Plano</h1>
+            <div class="bg-primary/10 text-primary px-3 py-1.5 rounded-full font-black text-base mt-2 flex items-center justify-center shadow-inner">
               R$ {{ itinerary.totalCost() }}
             </div>
           </div>
         </div>
-        <div class="flex flex-wrap gap-2">
+        <div class="flex flex-wrap gap-2 md:max-w-[640px] md:justify-end">
           <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-bold shadow-lg flex items-center gap-2"
                   (click)="generateAISuggestions()" [disabled]="isGeneratingAI()">
             <i class="pi" [ngClass]="isGeneratingAI() ? 'pi-spin pi-spinner' : 'pi-sparkles'"></i>
@@ -177,8 +177,11 @@
           <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 font-bold" (click)="clearItinerary()">
             <i class="pi pi-trash mr-2"></i> Limpar
           </button>
-          <button class="bg-slate-700 text-white px-4 py-2 rounded hover:bg-slate-800 font-bold" (click)="printItinerary()">
-            <i class="pi pi-print mr-2"></i> Exportar
+          <button type="button" class="bg-slate-700 text-white px-4 py-2 rounded hover:bg-slate-800 font-bold" (click)="printItinerary()">
+            <i class="pi pi-print mr-2"></i> Imprimir
+          </button>
+          <button type="button" class="bg-white text-slate-700 border border-slate-200 px-4 py-2 rounded hover:bg-slate-50 font-bold" (click)="exportCalendar()">
+            <i class="pi pi-calendar-plus mr-2"></i> Calendário
           </button>
           <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 font-bold shadow-lg" (click)="saveItinerary()">
             <i class="pi pi-check mr-2"></i> Salvar
@@ -186,6 +189,30 @@
         </div>
       </header>
 
+      <nav class="max-w-5xl mx-auto mb-8 hide-on-print" aria-label="Área de planejamento da viagem">
+        <div class="inline-flex w-full md:w-auto rounded-lg border border-slate-200 bg-slate-100 p-1" role="tablist">
+          <button type="button" role="tab" [attr.aria-selected]="activeWorkspaceTab() === 'PLAN'" (click)="activeWorkspaceTab.set('PLAN')"
+                  class="flex-1 md:flex-none px-4 py-2.5 rounded-md font-black text-sm transition-colors"
+                  [class.bg-white]="activeWorkspaceTab() === 'PLAN'" [class.text-slate-900]="activeWorkspaceTab() === 'PLAN'" [class.shadow-sm]="activeWorkspaceTab() === 'PLAN'" [class.text-slate-500]="activeWorkspaceTab() !== 'PLAN'">
+            <i class="pi pi-map mr-2"></i>Plano
+          </button>
+          <button type="button" role="tab" [attr.aria-selected]="activeWorkspaceTab() === 'RESERVATIONS'" (click)="activeWorkspaceTab.set('RESERVATIONS')"
+                  class="flex-1 md:flex-none px-4 py-2.5 rounded-md font-black text-sm transition-colors"
+                  [class.bg-white]="activeWorkspaceTab() === 'RESERVATIONS'" [class.text-slate-900]="activeWorkspaceTab() === 'RESERVATIONS'" [class.shadow-sm]="activeWorkspaceTab() === 'RESERVATIONS'" [class.text-slate-500]="activeWorkspaceTab() !== 'RESERVATIONS'">
+            <i class="pi pi-ticket mr-2"></i>Reservas
+            @if (workspace.workspace().reservations.length) {
+              <span class="ml-1 text-xs">{{ workspace.workspace().reservations.length }}</span>
+            }
+          </button>
+          <button type="button" role="tab" [attr.aria-selected]="activeWorkspaceTab() === 'BUDGET'" (click)="activeWorkspaceTab.set('BUDGET')"
+                  class="flex-1 md:flex-none px-4 py-2.5 rounded-md font-black text-sm transition-colors"
+                  [class.bg-white]="activeWorkspaceTab() === 'BUDGET'" [class.text-slate-900]="activeWorkspaceTab() === 'BUDGET'" [class.shadow-sm]="activeWorkspaceTab() === 'BUDGET'" [class.text-slate-500]="activeWorkspaceTab() !== 'BUDGET'">
+            <i class="pi pi-wallet mr-2"></i>Orçamento
+          </button>
+        </div>
+      </nav>
+
+      @if (activeWorkspaceTab() === 'PLAN') {
       <section class="mb-8 max-w-5xl mx-auto bg-white rounded-[28px] border border-slate-100 shadow-sm p-6 hide-on-print">
         <div class="flex items-center gap-3 mb-4">
           <i class="pi pi-sun text-amber-500 text-xl"></i>
@@ -225,6 +252,18 @@
       </div>
 
       <div class="max-w-5xl mx-auto animate-slide-up">
+
+        <div class="mb-6 flex items-center justify-between gap-4 hide-on-print">
+          <div>
+            <p class="font-black text-slate-800">Visualização do roteiro</p>
+            <p class="text-xs text-slate-500">Use o modo compacto para conferir mais paradas de uma vez.</p>
+          </div>
+          <button type="button" (click)="compactView.set(!compactView())" [attr.aria-pressed]="compactView()"
+                  class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-700 hover:border-primary/40">
+            <i class="pi" [ngClass]="compactView() ? 'pi-list' : 'pi-th-large'"></i>
+            {{ compactView() ? 'Compacto' : 'Detalhado' }}
+          </button>
+        </div>
 
         <!-- Bloco de Sugestão de IA (Solo aparece após solicitação) -->
         @if (aiRecommendation(); as recommendation) {
@@ -300,17 +339,19 @@
                 </h2>
               </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[100px] p-2 -mx-2 rounded-2xl transition-all"
+              <div class="grid grid-cols-1 gap-4 min-h-[100px] p-2 -mx-2 rounded-2xl transition-all"
+                   [ngClass]="{ 'md:grid-cols-2': !compactView() }"
                    cdkDropList
                    [cdkDropListData]="itinerary.itemsByDay()[dayGroup]"
                    (cdkDropListDropped)="drop($event, dayGroup)">
-                @for (item of itinerary.itemsByDay()[dayGroup]; track item.id) {
-                  <div cdkDrag class="bg-white rounded-3xl shadow-sm border border-slate-100 p-4 flex flex-col hover:shadow-md transition-all cursor-move active:scale-[0.98] relative group z-10">
+                @for (item of itinerary.itemsByDay()[dayGroup]; track item.type + ':' + item.id) {
+                  <div cdkDrag class="bg-white rounded-lg shadow-sm border border-slate-100 p-4 flex flex-col hover:shadow-md transition-all cursor-move active:scale-[0.98] relative group z-10">
 
                     <div *cdkDragPlaceholder class="bg-primary/5 border-2 border-primary/20 border-dashed rounded-3xl opacity-50 min-h-[120px]"></div>
 
                     <div class="flex gap-4">
-                      <div class="w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden shrink-0">
+                      @if (!compactView()) {
+                      <div class="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden shrink-0">
                         <img [ngSrc]="item.image || 'assets/icons/icon.svg'"
                              width="80"
                              height="80"
@@ -321,6 +362,7 @@
                              title="{{item.name}}"
                              class="w-full h-full object-cover">
                       </div>
+                      }
                       <div class="flex-1 min-w-0">
                         <h3 class="font-bold text-slate-800 truncate">{{item.name}}</h3>
                         <div class="flex flex-wrap items-center gap-2 mt-2">
@@ -348,6 +390,7 @@
                         </div>
                       </div>
                     </div>
+                    @if (!compactView()) {
                     <div class="mt-3 pt-3 border-t border-slate-50 relative">
                        <i class="pi pi-align-left absolute left-2 top-4 text-slate-300 text-xs"></i>
                        <input type="text"
@@ -356,6 +399,7 @@
                               placeholder="Notas ou Lembretes (ex: Trazer protetor, Reservar às 14h...)"
                               class="w-full text-xs p-2 pl-7 bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-transparent focus:border-primary/20 rounded-xl outline-none text-slate-600 transition-all print:border-none print:p-0 print:text-black print:pl-0">
                     </div>
+                    }
                   </div>
                 }
               </div>
@@ -364,6 +408,273 @@
           </div>
         }
       </div>
+      } @else if (activeWorkspaceTab() === 'RESERVATIONS') {
+        <section class="max-w-5xl mx-auto animate-slide-up">
+          <div class="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <span class="text-primary font-black uppercase tracking-widest text-[10px]">Organizador da viagem</span>
+              <h2 class="text-3xl font-black text-slate-800 mt-1">Reservas em um só lugar</h2>
+              <p class="text-slate-500 mt-2">Reúna voos, hospedagem, passeios, restaurantes e transportes.</p>
+            </div>
+            <div class="flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">
+              <i class="pi pi-lock"></i>
+              Privado neste dispositivo
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 gap-8 lg:grid-cols-[360px_minmax(0,1fr)]">
+            <div class="self-start border border-slate-200 bg-white p-5 rounded-lg lg:sticky lg:top-24">
+              <h3 class="font-black text-slate-800">Adicionar reserva</h3>
+              <p class="text-xs text-slate-500 mt-1 mb-5">Códigos de confirmação não entram no roteiro público.</p>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="reservation-type" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Tipo</label>
+                  <select id="reservation-type" [(ngModel)]="reservationDraft.type" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-700">
+                    @for (option of reservationTypes; track option.value) {
+                      <option [value]="option.value">{{ option.label }}</option>
+                    }
+                  </select>
+                </div>
+                <div>
+                  <label for="reservation-date" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Data</label>
+                  <input id="reservation-date" type="date" [(ngModel)]="reservationDraft.date" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-bold text-slate-700">
+                </div>
+              </div>
+
+              <div class="mt-3">
+                <label for="reservation-title" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Reserva</label>
+                <input id="reservation-title" type="text" maxlength="140" [(ngModel)]="reservationDraft.title" placeholder="Ex.: Voo Recife - Noronha" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-bold text-slate-700">
+              </div>
+
+              <div class="grid grid-cols-2 gap-3 mt-3">
+                <div>
+                  <label for="reservation-provider" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Fornecedor</label>
+                  <input id="reservation-provider" type="text" maxlength="100" [(ngModel)]="reservationDraft.provider" placeholder="Companhia ou agência" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-700">
+                </div>
+                <div>
+                  <label for="reservation-time" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Horário</label>
+                  <input id="reservation-time" type="time" [(ngModel)]="reservationDraft.time" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-700">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3 mt-3">
+                <div>
+                  <label for="reservation-code" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Confirmação</label>
+                  <input id="reservation-code" type="text" maxlength="100" autocomplete="off" [(ngModel)]="reservationDraft.confirmationCode" placeholder="Código ou localizador" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-700">
+                </div>
+                <div>
+                  <label for="reservation-cost" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Valor</label>
+                  <div class="flex rounded-lg border border-slate-200 focus-within:border-primary">
+                    <span class="px-3 py-2.5 text-sm font-bold text-slate-400">R$</span>
+                    <input id="reservation-cost" type="number" min="0" max="1000000" step="0.01" [(ngModel)]="reservationDraft.cost" class="min-w-0 flex-1 rounded-r-lg border-0 px-1 py-2.5 text-sm font-bold text-slate-700 outline-none">
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-3">
+                <label for="reservation-location" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Local</label>
+                <input id="reservation-location" type="text" maxlength="180" [(ngModel)]="reservationDraft.location" placeholder="Aeroporto, pousada ou ponto de encontro" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-700">
+              </div>
+
+              <div class="mt-3">
+                <label for="reservation-url" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Link da reserva</label>
+                <input id="reservation-url" type="url" maxlength="1000" inputmode="url" [(ngModel)]="reservationDraft.bookingUrl" placeholder="https://..." class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-700">
+              </div>
+
+              <div class="mt-3">
+                <label for="reservation-notes" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Observações</label>
+                <textarea id="reservation-notes" rows="2" maxlength="500" [(ngModel)]="reservationDraft.notes" placeholder="Bagagem, horário de chegada ou instruções" class="w-full resize-y rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-700"></textarea>
+              </div>
+
+              <button type="button" (click)="addReservation()" class="mt-4 w-full rounded-lg bg-slate-900 px-4 py-3 font-black text-white hover:bg-primary">
+                <i class="pi pi-plus mr-2"></i>Adicionar reserva
+              </button>
+            </div>
+
+            <div class="min-w-0">
+              @for (reservation of workspace.workspace().reservations; track reservation.id) {
+                <article class="mb-3 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                  <div class="flex items-start justify-between gap-4">
+                    <div class="flex min-w-0 gap-3">
+                      <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <i class="pi" [ngClass]="reservationTypeIcon(reservation.type)"></i>
+                      </span>
+                      <div class="min-w-0">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">{{ reservationTypeLabel(reservation.type) }}</span>
+                        <h3 class="truncate text-lg font-black text-slate-800">{{ reservation.title }}</h3>
+                        @if (reservation.provider) {
+                          <p class="text-sm text-slate-500">{{ reservation.provider }}</p>
+                        }
+                      </div>
+                    </div>
+                    <button type="button" title="Excluir reserva" (click)="workspace.removeReservation(reservation.id)" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500">
+                      <i class="pi pi-trash"></i>
+                    </button>
+                  </div>
+
+                  <div class="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4 text-sm md:grid-cols-3">
+                    <div>
+                      <span class="block text-[10px] font-black uppercase tracking-widest text-slate-400">Quando</span>
+                      <strong class="text-slate-700">{{ reservation.date | date:'dd/MM/yyyy':'UTC' }} {{ reservation.time }}</strong>
+                    </div>
+                    @if (reservation.confirmationCode) {
+                      <div>
+                        <span class="block text-[10px] font-black uppercase tracking-widest text-slate-400">Confirmação</span>
+                        <strong class="break-all text-slate-700">{{ reservation.confirmationCode }}</strong>
+                      </div>
+                    }
+                    @if (reservation.cost > 0) {
+                      <div>
+                        <span class="block text-[10px] font-black uppercase tracking-widest text-slate-400">Valor</span>
+                        <strong class="text-slate-700">R$ {{ reservation.cost | number:'1.2-2' }}</strong>
+                      </div>
+                    }
+                  </div>
+
+                  @if (reservation.location || reservation.notes) {
+                    <div class="mt-4 space-y-2 text-sm text-slate-600">
+                      @if (reservation.location) { <p><i class="pi pi-map-marker mr-2 text-primary"></i>{{ reservation.location }}</p> }
+                      @if (reservation.notes) { <p><i class="pi pi-align-left mr-2 text-slate-400"></i>{{ reservation.notes }}</p> }
+                    </div>
+                  }
+
+                  @if (reservation.bookingUrl) {
+                    <button type="button" (click)="openReservation(reservation.bookingUrl)" class="mt-4 inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-black text-slate-700 hover:border-primary hover:text-primary">
+                      <i class="pi pi-external-link"></i>Abrir reserva
+                    </button>
+                  }
+                </article>
+              } @empty {
+                <div class="flex min-h-72 flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 px-6 text-center">
+                  <i class="pi pi-ticket mb-4 text-4xl text-slate-300"></i>
+                  <h3 class="text-xl font-black text-slate-800">Nenhuma reserva adicionada</h3>
+                  <p class="mt-2 max-w-sm text-sm text-slate-500">Inclua os comprovantes essenciais da viagem e exporte os horários para o seu calendário.</p>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+      } @else {
+        <section class="max-w-5xl mx-auto animate-slide-up">
+          <div class="mb-6">
+            <span class="text-primary font-black uppercase tracking-widest text-[10px]">Controle da viagem</span>
+            <h2 class="text-3xl font-black text-slate-800 mt-1">Orçamento e divisão</h2>
+            <p class="text-slate-500 mt-2">Planeje o limite, acompanhe reservas e registre o que o grupo já gastou.</p>
+          </div>
+
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div class="rounded-lg border border-slate-200 bg-white p-4">
+              <label for="trip-budget" class="block text-[10px] font-black uppercase tracking-widest text-slate-400">Orçamento total</label>
+              <div class="mt-2 flex items-center">
+                <span class="mr-2 font-black text-slate-400">R$</span>
+                <input id="trip-budget" type="number" min="0" max="1000000" step="50" [ngModel]="workspace.workspace().budget" (ngModelChange)="workspace.setBudget($event)" class="min-w-0 w-full border-0 bg-transparent text-2xl font-black text-slate-800 outline-none">
+              </div>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-white p-4">
+              <label for="trip-travelers" class="block text-[10px] font-black uppercase tracking-widest text-slate-400">Viajantes</label>
+              <div class="mt-2 flex items-center gap-3">
+                <i class="pi pi-users text-primary"></i>
+                <input id="trip-travelers" type="number" min="1" max="50" [ngModel]="workspace.workspace().travelerCount" (ngModelChange)="workspace.setTravelerCount($event)" class="min-w-0 w-full border-0 bg-transparent text-2xl font-black text-slate-800 outline-none">
+              </div>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-white p-4">
+              <span class="block text-[10px] font-black uppercase tracking-widest text-slate-400">Comprometido</span>
+              <strong class="mt-2 block text-2xl font-black text-slate-800">R$ {{ workspace.committedTotal() | number:'1.2-2' }}</strong>
+              <span class="text-xs text-slate-500">reservas + despesas</span>
+            </div>
+            <div class="rounded-lg border p-4" [class.border-emerald-200]="workspace.remainingBudget() >= 0" [class.bg-emerald-50]="workspace.remainingBudget() >= 0" [class.border-red-200]="workspace.remainingBudget() < 0" [class.bg-red-50]="workspace.remainingBudget() < 0">
+              <span class="block text-[10px] font-black uppercase tracking-widest" [class.text-emerald-700]="workspace.remainingBudget() >= 0" [class.text-red-700]="workspace.remainingBudget() < 0">{{ workspace.remainingBudget() >= 0 ? 'Disponível' : 'Acima do limite' }}</span>
+              <strong class="mt-2 block text-2xl font-black" [class.text-emerald-800]="workspace.remainingBudget() >= 0" [class.text-red-800]="workspace.remainingBudget() < 0">R$ {{ (workspace.remainingBudget() < 0 ? -workspace.remainingBudget() : workspace.remainingBudget()) | number:'1.2-2' }}</strong>
+              <span class="text-xs" [class.text-emerald-700]="workspace.remainingBudget() >= 0" [class.text-red-700]="workspace.remainingBudget() < 0">R$ {{ workspace.perPerson() | number:'1.2-2' }} por pessoa</span>
+            </div>
+          </div>
+
+          @if (workspace.workspace().budget > 0) {
+            <div class="mt-4" aria-label="Uso do orçamento">
+              <div class="mb-1 flex justify-between text-xs font-bold text-slate-500">
+                <span>{{ workspace.budgetProgress() }}% do orçamento</span>
+                <span>Estimativa do roteiro: R$ {{ itinerary.totalCost() | number:'1.2-2' }}</span>
+              </div>
+              <div class="h-2 overflow-hidden rounded-full bg-slate-200">
+                <div class="h-full rounded-full transition-all" [class.bg-emerald-500]="workspace.remainingBudget() >= 0" [class.bg-red-500]="workspace.remainingBudget() < 0" [style.width.%]="workspace.budgetProgress()"></div>
+              </div>
+            </div>
+          }
+
+          <div class="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[360px_minmax(0,1fr)]">
+            <div class="self-start rounded-lg border border-slate-200 bg-white p-5 lg:sticky lg:top-24">
+              <h3 class="font-black text-slate-800">Registrar despesa</h3>
+              <div class="mt-4">
+                <label for="expense-description" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Descrição</label>
+                <input id="expense-description" type="text" maxlength="120" [(ngModel)]="expenseDraft.description" placeholder="Ex.: Jantar na Vila" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-bold text-slate-700">
+              </div>
+              <div class="mt-3 grid grid-cols-2 gap-3">
+                <div>
+                  <label for="expense-category" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Categoria</label>
+                  <select id="expense-category" [(ngModel)]="expenseDraft.category" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-700">
+                    @for (option of expenseCategories; track option.value) {
+                      <option [value]="option.value">{{ option.label }}</option>
+                    }
+                  </select>
+                </div>
+                <div>
+                  <label for="expense-amount" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Valor</label>
+                  <input id="expense-amount" type="number" min="0" max="1000000" step="0.01" [(ngModel)]="expenseDraft.amount" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-bold text-slate-700">
+                </div>
+              </div>
+              <div class="mt-3 grid grid-cols-2 gap-3">
+                <div>
+                  <label for="expense-date" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Data</label>
+                  <input id="expense-date" type="date" [(ngModel)]="expenseDraft.date" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-700">
+                </div>
+                <div>
+                  <label for="expense-split" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Dividir entre</label>
+                  <input id="expense-split" type="number" min="1" max="50" [(ngModel)]="expenseDraft.splitBetween" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-700">
+                </div>
+              </div>
+              <div class="mt-3">
+                <label for="expense-payer" class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Pago por</label>
+                <input id="expense-payer" type="text" maxlength="80" [(ngModel)]="expenseDraft.paidBy" placeholder="Nome ou grupo" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-700">
+              </div>
+              <button type="button" (click)="addExpense()" class="mt-4 w-full rounded-lg bg-slate-900 px-4 py-3 font-black text-white hover:bg-primary">
+                <i class="pi pi-plus mr-2"></i>Registrar despesa
+              </button>
+            </div>
+
+            <div class="min-w-0">
+              <div class="mb-3 flex items-end justify-between gap-4">
+                <div>
+                  <h3 class="text-xl font-black text-slate-800">Despesas da viagem</h3>
+                  <p class="text-sm text-slate-500">R$ {{ workspace.expenseTotal() | number:'1.2-2' }} pagos e R$ {{ workspace.reservationTotal() | number:'1.2-2' }} reservados.</p>
+                </div>
+              </div>
+              @for (expense of workspace.workspace().expenses; track expense.id) {
+                <article class="mb-3 flex items-center gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                  <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+                    <i class="pi" [ngClass]="expenseCategoryIcon(expense.category)"></i>
+                  </span>
+                  <div class="min-w-0 flex-1">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">{{ expenseCategoryLabel(expense.category) }}</span>
+                    <h4 class="truncate font-black text-slate-800">{{ expense.description }}</h4>
+                    <p class="text-xs text-slate-500">{{ expense.date | date:'dd/MM/yyyy':'UTC' }} · Pago por {{ expense.paidBy }} · R$ {{ (expense.amount / expense.splitBetween) | number:'1.2-2' }} para cada</p>
+                  </div>
+                  <strong class="shrink-0 text-slate-800">R$ {{ expense.amount | number:'1.2-2' }}</strong>
+                  <button type="button" title="Excluir despesa" (click)="workspace.removeExpense(expense.id)" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500">
+                    <i class="pi pi-trash"></i>
+                  </button>
+                </article>
+              } @empty {
+                <div class="flex min-h-64 flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 px-6 text-center">
+                  <i class="pi pi-wallet mb-4 text-4xl text-slate-300"></i>
+                  <h3 class="text-xl font-black text-slate-800">Comece pelo orçamento</h3>
+                  <p class="mt-2 max-w-sm text-sm text-slate-500">Defina um limite e registre as despesas para saber quanto cada viajante precisa reservar.</p>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+      }
     }
   }
 </div>

@@ -6,7 +6,12 @@ declare global {
     google?: any;
     sisTurGoogleMapsLoaded?: () => void;
     SISTUR_CONFIG?: {
+      apiUrl?: string;
       googleMapsApiKey?: string;
+      supportEmail?: string;
+      supportPhone?: string;
+      supportWhatsapp?: string;
+      publicAppUrl?: string;
     };
   }
 }

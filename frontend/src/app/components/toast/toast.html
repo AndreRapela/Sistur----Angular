@@ -1,6 +1,6 @@
-<div class="fixed top-4 right-4 z-[9999] flex flex-col gap-2">
+<div class="fixed bottom-24 right-3 z-[9999] flex max-w-[calc(100vw-24px)] flex-col gap-2 md:bottom-6 md:right-6">
   @for (msg of toastService.messages(); track msg.id) {
-    <div class="min-w-[300px] p-4 rounded-xl shadow-xl flex items-start gap-3 transform transition-all animate-in slide-in-from-right duration-300"
+    <div class="w-[360px] max-w-full p-4 rounded-lg shadow-xl flex items-start gap-3 transform transition-all animate-in slide-in-from-right duration-300"
          [ngClass]="{
            'bg-white border-l-4 border-green-500': msg.severity === 'success',
            'bg-white border-l-4 border-red-500': msg.severity === 'error',

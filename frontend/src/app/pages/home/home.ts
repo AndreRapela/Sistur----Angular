@@ -177,7 +177,7 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void {
     if (typeof window !== 'undefined') {
-      window.setTimeout(() => void this.enrichDiscoveryCards(), 250);
+      window.setTimeout(() => void this.enrichDiscoveryCards(), 1200);
     }
   }
 

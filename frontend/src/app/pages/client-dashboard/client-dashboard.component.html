@@ -131,10 +131,10 @@
            </div>
         </div>
         <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
-           <span class="text-slate-400 font-black text-[10px] uppercase tracking-widest">Conversão e Acessos</span>
+           <span class="text-slate-400 font-black text-[10px] uppercase tracking-widest">Ações e acessos</span>
            <p class="text-4xl font-black text-slate-800 mt-2">{{establishmentStats?.views || 0}}</p>
            <p class="text-xs font-black text-slate-500 uppercase tracking-widest mt-2">
-             {{ establishmentStats?.conversions || 0 }} conversões • {{ establishmentStats?.conversionRate || 0 }}% taxa
+             {{ establishmentStats?.conversions || 0 }} ações comerciais • {{ establishmentStats?.conversionRate || 0 }}% sobre visualizações
            </p>
            <div class="w-full bg-slate-100 h-2 rounded-full mt-4 overflow-hidden">
              <div class="bg-blue-600 h-full" [style.width.%]="establishmentStats?.conversionRate || 0"></div>

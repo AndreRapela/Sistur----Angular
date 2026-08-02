@@ -1,2 +1,4 @@
 # Maven build output
 /backend/target/
+/.codex-remote-attachments/
+/outputs/

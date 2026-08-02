@@ -4,7 +4,7 @@ import { AuthService } from './auth.service';
 import { ToastService } from './toast.service';
 import { environment } from '../../environments/environment';
 
-export type ItineraryItemType = 'RESTAURANT' | 'HOTEL' | 'EVENT' | 'TOUR' | 'HIGHLIGHT';
+export type ItineraryItemType = 'RESTAURANT' | 'HOTEL' | 'EVENT' | 'TOUR' | 'HIGHLIGHT' | 'POINT' | 'BEACH' | 'CONVENIENCE';
 
 export interface ItineraryItem {
   id: number | string;
@@ -23,6 +23,17 @@ export interface ItineraryItem {
   time?: string;
   notes?: string;
   estimatedCost?: number;
+}
+
+export interface SharedItinerary {
+  id: number;
+  name: string;
+  isPublic: boolean;
+  shareToken: string;
+  createdAt: string;
+  viewCount: number;
+  user?: { id: number; name: string; photoUrl?: string | null };
+  items: Array<Omit<ItineraryItem, 'id' | 'addedAt'> & { referenceId: string }>;
 }
 
 @Injectable({
@@ -151,7 +162,7 @@ export class ItineraryService {
   }
 
   getSharedItinerary(token: string) {
-    return this.http.get<any>(`${environment.apiUrl}/itineraries/share/${token}`);
+    return this.http.get<{ data: SharedItinerary }>(`${environment.apiUrl}/itineraries/share/${encodeURIComponent(token)}`);
   }
 
   private loadItems(): ItineraryItem[] {

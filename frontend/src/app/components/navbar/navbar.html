@@ -27,9 +27,7 @@
         <a routerLink="/pontos-turisticos" class="block p-3 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors no-underline font-bold text-[15px]"><i class="pi pi-compass w-5"></i> Pontos turísticos</a>
         <a routerLink="/tours" class="block p-3 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors no-underline font-bold text-[15px]"><i class="pi pi-camera w-5"></i> Passeios</a>
         <a routerLink="/conveniencias" class="block p-3 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors no-underline font-bold text-[15px]"><i class="pi pi-shopping-bag w-5"></i> Conveniências</a>
-        @if (!auth.isFreeTier()) {
-          <a routerLink="/events" class="block p-3 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors no-underline font-bold text-[15px]"><i class="pi pi-calendar-plus w-5"></i> Eventos</a>
-        }
+        <a routerLink="/events" class="block p-3 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors no-underline font-bold text-[15px]"><i class="pi pi-calendar-plus w-5"></i> Eventos</a>
       </div>
     </div>
 
@@ -38,6 +36,7 @@
       <div class="absolute top-[100%] right-0 bg-white min-w-[250px] shadow-2xl rounded-xl p-2 hidden opacity-0 transition-all group-hover:block group-hover:opacity-100 group-focus-within:block group-focus-within:opacity-100">
         <a routerLink="/culture" class="block p-3 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors no-underline font-bold text-[15px]"><i class="pi pi-palette w-5"></i> Cultura e história</a>
         <a routerLink="/environmental" class="block p-3 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors no-underline font-bold text-[15px]"><i class="pi pi-globe w-5"></i> Ambiental</a>
+        <a routerLink="/essenciais" class="block p-3 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors no-underline font-bold text-[15px]"><i class="pi pi-check-circle w-5"></i> Antes de viajar</a>
         <a routerLink="/home" fragment="clima-seguranca" class="block p-3 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-primary transition-colors no-underline font-bold text-[15px]"><i class="pi pi-sun w-5"></i> Clima e segurança</a>
       </div>
     </div>
@@ -46,18 +45,18 @@
   <div class="flex items-center gap-4">
     @if (auth.isAuthenticated()) {
       <div class="relative group">
-        <div class="w-[42px] h-[42px] bg-primary text-white rounded-xl flex items-center justify-center font-extrabold cursor-pointer hover:scale-105 transition-transform shadow-sm">
+        <button type="button" aria-label="Abrir menu do perfil" class="w-[42px] h-[42px] border-0 bg-primary text-white rounded-xl flex items-center justify-center font-extrabold cursor-pointer hover:scale-105 transition-transform shadow-sm">
           {{ auth.currentUser()?.name?.charAt(0) }}
-        </div>
+        </button>
 
-        <div class="absolute right-0 top-[100%] min-w-[220px] bg-white rounded-2xl hidden p-1 z-50 shadow-2xl group-hover:block transition-all pt-2 before:content-[''] before:absolute before:-top-4 before:left-0 before:right-0 before:h-4">
+        <div class="absolute right-0 top-[100%] min-w-[220px] bg-white rounded-2xl hidden p-1 z-50 shadow-2xl group-hover:block group-focus-within:block transition-all pt-2 before:content-[''] before:absolute before:-top-4 before:left-0 before:right-0 before:h-4">
           <div class="p-3 text-sm border-b border-slate-100 mb-1">
             <div class="font-bold text-slate-800">{{ auth.currentUser()?.name }}</div>
             <div class="text-primary text-xs font-black mt-1">{{ auth.currentUser()?.role }}</div>
           </div>
 
           @if (auth.isFreeTier()) {
-            <a routerLink="/profile" class="block p-2 text-slate-700 text-sm no-underline font-bold rounded-lg hover:bg-amber-50 transition-colors"><i class="pi pi-star mr-2 text-amber-500"></i> Fazer upgrade</a>
+            <a routerLink="/profile" class="block p-2 text-slate-700 text-sm no-underline font-bold rounded-lg hover:bg-amber-50 transition-colors"><i class="pi pi-briefcase mr-2 text-amber-500"></i> Para parceiros</a>
           }
           @if (auth.hasRole('ADMIN')) {
             <a routerLink="/admin/dashboard" class="block p-2 text-slate-700 text-sm no-underline font-bold rounded-lg hover:bg-slate-50 transition-colors"><i class="pi pi-shield mr-2"></i> Painel admin</a>
@@ -67,13 +66,13 @@
           }
           <a routerLink="/profile" class="block p-2 text-slate-700 text-sm no-underline font-bold rounded-lg hover:bg-slate-50 transition-colors"><i class="pi pi-user mr-2"></i> Meu perfil</a>
 
-          <button (click)="auth.logout()" class="block w-full text-left p-2 mt-1 text-red-500 font-bold border-none bg-transparent cursor-pointer rounded-lg hover:bg-red-50 transition-colors">
+          <button type="button" (click)="auth.logout()" class="block w-full text-left p-2 mt-1 text-red-500 font-bold border-none bg-transparent cursor-pointer rounded-lg hover:bg-red-50 transition-colors">
             <i class="pi pi-sign-out mr-2"></i> Sair
           </button>
         </div>
       </div>
     } @else {
-      <button routerLink="/login" class="bg-primary text-white font-bold px-4 py-2 rounded-xl hover:bg-primary/90 transition-colors shadow-sm border-none cursor-pointer">Entrar</button>
+      <button type="button" routerLink="/login" class="bg-primary text-white font-bold px-4 py-2 rounded-xl hover:bg-primary/90 transition-colors shadow-sm border-none cursor-pointer">Entrar</button>
     }
   </div>
 </nav>

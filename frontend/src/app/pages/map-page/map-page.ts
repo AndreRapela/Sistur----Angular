@@ -118,6 +118,7 @@ const MAP_ESTABLISHMENT_TYPES: EstablishmentType[] = [
   'FAIR',
   'PHARMACY'
 ];
+const GOOGLE_MAP_STARTUP_BUDGET_MS = 1200;
 
 @Component({
   selector: 'app-map-page',
@@ -214,6 +215,8 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   allData: MapLocation[] = NORONHA_MAP_BOOTSTRAP.map(location => ({
     ...location,
+    rating: null,
+    averagePrice: location.mapSearchType === 'TOUR' ? location.averagePrice : null,
     source: 'CURATED' as const
   }));
   filteredData: MapLocation[] = [];
@@ -582,7 +585,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private async initMap() {
     try {
-      const google = await this.googleLoader.load();
+      const google = await this.withStartupBudget(this.googleLoader.load());
       this.setupGoogleMap(google);
       this.mapStatus = 'Google Maps ativo';
     } catch {
@@ -594,6 +597,26 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     void this.ensureGooglePlacesForCategory(this.activeCategory);
     void this.ensureGooglePlacesForSearch();
     this.cdr.markForCheck();
+  }
+
+  private withStartupBudget<T>(request: Promise<T>): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      const timeoutId = window.setTimeout(
+        () => reject(new Error('Google Maps excedeu o tempo de inicializacao.')),
+        GOOGLE_MAP_STARTUP_BUDGET_MS
+      );
+
+      request.then(
+        value => {
+          window.clearTimeout(timeoutId);
+          resolve(value);
+        },
+        error => {
+          window.clearTimeout(timeoutId);
+          reject(error);
+        }
+      );
+    });
   }
 
   private setupGoogleMap(google: any) {

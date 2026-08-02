@@ -135,7 +135,7 @@
 
 .weather-title-row h2 {
   margin: 0;
-  font-size: clamp(18px, 2.2vw, 25px);
+  font-size: 23px;
   line-height: 1.15;
   letter-spacing: 0;
 }

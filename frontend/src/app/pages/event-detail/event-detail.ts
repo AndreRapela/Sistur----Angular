@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
+import { Title } from '@angular/platform-browser';
 import { ApiService } from '../../services/api.service';
 import { ItineraryService } from '../../services/itinerary.service';
 import { MapComponent } from '../../components/map/map';
@@ -16,18 +17,34 @@ import { openExternalLink } from '../../utils/external-link';
 })
 export class EventDetailComponent implements OnInit {
   event: any;
+  loading = true;
+  errorMessage = '';
   private route = inject(ActivatedRoute);
   private api = inject(ApiService);
   private cdr = inject(ChangeDetectorRef);
   private analytics = inject(AnalyticsService);
+  private title = inject(Title);
   itineraryService = inject(ItineraryService);
 
   ngOnInit() {
     const id = this.route.snapshot.params['id'];
     this.analytics.pageView(`/events/${id}`, 'EVENT', id);
-    this.api.getEventById(Number(id)).subscribe((res: any) => {
-      this.event = res.data;
-      this.cdr.markForCheck();
+    this.api.getEventById(Number(id)).subscribe({
+      next: (res: any) => {
+        this.event = res.data;
+        this.loading = false;
+        if (this.event?.title) {
+          this.title.setTitle(`${this.event.title} | SisTur Noronha`);
+        } else {
+          this.errorMessage = 'Este evento não foi encontrado.';
+        }
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.loading = false;
+        this.errorMessage = 'Não foi possível carregar este evento.';
+        this.cdr.markForCheck();
+      }
     });
   }
 

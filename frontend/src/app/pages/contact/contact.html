@@ -1,64 +1,100 @@
-<div class="p-4 md:p-8 max-w-7xl mx-auto min-h-screen">
-  <header class="mb-8 md:mb-12 text-center md:text-left">
-    <h1 class="font-black text-[32px] md:text-5xl text-slate-800 tracking-tight m-0">Fale Conosco</h1>
-    <p class="text-slate-500 mt-3 md:mt-4 text-[16px] md:text-lg">Estamos aqui para tornar sua estadia inesquecível</p>
+<main class="min-h-screen bg-white">
+  <header class="border-b border-slate-200 bg-slate-50">
+    <div class="mx-auto max-w-6xl px-5 py-10 md:px-8 md:py-14">
+      <p class="m-0 text-xs font-black uppercase tracking-widest text-primary">Ajuda e contato</p>
+      <h1 class="mt-3 max-w-3xl text-3xl font-black text-slate-900 md:text-5xl">Fale com a equipe SisTur</h1>
+      <p class="mt-4 max-w-2xl text-base leading-7 text-slate-600">
+        Suporte sobre conta, roteiro, estabelecimentos parceiros e uso da plataforma.
+      </p>
+    </div>
   </header>
 
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
-    <div class="lg:col-span-5 flex flex-col gap-4">
-      <a href="tel:+558136190888" class="bg-white rounded-[20px] p-5 flex items-center transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_15px_30px_rgba(0,0,0,0.06)] shadow-sm border border-slate-100 cursor-pointer no-underline text-inherit">
-        <div class="w-[60px] h-[60px] shrink-0 rounded-2xl bg-blue-50 flex items-center justify-center mr-5">
-          <i class="pi pi-phone text-primary text-2xl"></i>
-        </div>
-        <div class="flex-1">
-          <span class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Telefone Central</span>
-          <strong class="text-xl md:text-2xl text-slate-800 font-extrabold">(81) 3619-0888</strong>
-        </div>
-      </a>
+  <section class="mx-auto grid max-w-6xl gap-10 px-5 py-10 md:px-8 lg:grid-cols-[0.85fr_1.15fr] lg:py-14">
+    <div>
+      <h2 class="text-xl font-black text-slate-900">Canais do SisTur</h2>
 
-      <a href="https://wa.me/558136190888?text=Olá!%20Quero%20saber%20mais%20sobre%20os%20planos%20Free,%20Pro%20e%20Premium%20do%20SisTur." target="_blank" rel="noopener noreferrer" class="bg-gradient-to-br from-green-500 to-green-700 rounded-[20px] p-5 flex items-center transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_15px_30px_rgba(34,197,94,0.2)] shadow-sm cursor-pointer text-white no-underline">
-        <div class="w-[60px] h-[60px] shrink-0 rounded-2xl bg-white/20 flex items-center justify-center mr-5">
-          <i class="pi pi-whatsapp text-2xl"></i>
+      @if (runtime.hasSupportChannel) {
+        <div class="mt-5 divide-y divide-slate-200 border-y border-slate-200">
+          @if (runtime.supportWhatsapp) {
+            <a [href]="whatsappHref" target="_blank" rel="noopener noreferrer"
+               class="flex items-center gap-4 py-5 text-slate-800 no-underline hover:text-primary">
+              <i class="pi pi-whatsapp text-xl text-emerald-600"></i>
+              <span><small class="block text-xs font-bold uppercase text-slate-500">WhatsApp</small><strong>Iniciar conversa</strong></span>
+              <i class="pi pi-external-link ml-auto text-sm"></i>
+            </a>
+          }
+          @if (runtime.supportEmail) {
+            <a [href]="'mailto:' + runtime.supportEmail"
+               class="flex items-center gap-4 py-5 text-slate-800 no-underline hover:text-primary">
+              <i class="pi pi-envelope text-xl text-primary"></i>
+              <span class="min-w-0"><small class="block text-xs font-bold uppercase text-slate-500">E-mail</small><strong class="break-all">{{ runtime.supportEmail }}</strong></span>
+            </a>
+          }
+          @if (runtime.supportPhone) {
+            <a [href]="phoneHref" class="flex items-center gap-4 py-5 text-slate-800 no-underline hover:text-primary">
+              <i class="pi pi-phone text-xl text-primary"></i>
+              <span><small class="block text-xs font-bold uppercase text-slate-500">Telefone</small><strong>{{ runtime.supportPhone }}</strong></span>
+            </a>
+          }
         </div>
-        <div class="flex-1">
-          <span class="block text-xs font-bold text-white/80 uppercase tracking-widest mb-1">WhatsApp</span>
-          <strong class="text-xl md:text-2xl font-extrabold">Iniciar Conversa</strong>
+      } @else {
+        <div class="mt-5 border-l-4 border-amber-400 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
+          Os canais comerciais do SisTur ainda não foram configurados neste ambiente.
         </div>
-        <i class="pi pi-arrow-right ml-auto opacity-50 text-xl"></i>
-      </a>
+      }
 
-      <a href="mailto:ajuda@sistur.gov.br" class="bg-white rounded-[20px] p-5 flex items-center transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_15px_30px_rgba(0,0,0,0.06)] shadow-sm border border-slate-100 cursor-pointer no-underline text-inherit">
-         <div class="w-[60px] h-[60px] shrink-0 rounded-2xl bg-red-50 flex items-center justify-center mr-5">
-           <i class="pi pi-envelope text-red-500 text-2xl"></i>
-         </div>
-         <div class="flex-1">
-           <span class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">E-mail Suporte</span>
-           <strong class="text-xl md:text-2xl text-slate-800 font-extrabold">ajuda@sistur.gov.br</strong>
-         </div>
-      </a>
+      <div class="mt-10">
+        <h2 class="text-xl font-black text-slate-900">Serviços oficiais da ilha</h2>
+        <p class="mt-2 text-sm leading-6 text-slate-600">Taxas, regras ambientais e ingressos são tratados pelos órgãos responsáveis.</p>
+        <div class="mt-4 flex flex-col gap-3">
+          <a href="https://www.noronha.pe.gov.br/catalogo-de-servicos-old2/taxa-de-preservacao-ambiental-tpa/"
+             target="_blank" rel="noopener noreferrer" class="flex items-center justify-between border border-slate-200 p-4 font-bold text-slate-700 no-underline hover:border-primary hover:text-primary">
+            Taxa de Preservação Ambiental <i class="pi pi-external-link"></i>
+          </a>
+          <a href="https://www.parnanoronha.com.br/visitante" target="_blank" rel="noopener noreferrer"
+             class="flex items-center justify-between border border-slate-200 p-4 font-bold text-slate-700 no-underline hover:border-primary hover:text-primary">
+            Parque Nacional Marinho <i class="pi pi-external-link"></i>
+          </a>
+        </div>
+      </div>
     </div>
 
-    <div class="lg:col-span-7">
-      <form class="bg-white rounded-[32px] p-6 md:p-10 shadow-xl border border-slate-100" (ngSubmit)="submitContact($event)">
-        <h3 class="font-extrabold text-[24px] md:text-3xl text-slate-800 mb-6 md:mb-8">Envie uma mensagem</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="flex flex-col gap-2">
-            <label class="text-[13px] font-bold text-slate-500 uppercase tracking-wider">Seu Nome</label>
-            <input type="text" name="name" [(ngModel)]="name" placeholder="Como podemos te chamar?" class="w-full px-4 py-3.5 rounded-2xl border-2 border-slate-100 bg-slate-50 outline-none transition-all duration-200 font-medium text-slate-700 focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(0,119,182,0.1)] placeholder:text-slate-400">
-          </div>
-          <div class="flex flex-col gap-2">
-            <label class="text-[13px] font-bold text-slate-500 uppercase tracking-wider">Seu E-mail</label>
-            <input type="email" name="email" [(ngModel)]="email" placeholder="Para respondermos você" class="w-full px-4 py-3.5 rounded-2xl border-2 border-slate-100 bg-slate-50 outline-none transition-all duration-200 font-medium text-slate-700 focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(0,119,182,0.1)] placeholder:text-slate-400">
-          </div>
-          <div class="col-span-full flex flex-col gap-2">
-            <label class="text-[13px] font-bold text-slate-500 uppercase tracking-wider">Mensagem</label>
-            <textarea name="message" [(ngModel)]="message" placeholder="No que podemos ajudar hoje?" rows="5" class="w-full px-4 py-3.5 rounded-2xl border-2 border-slate-100 bg-slate-50 outline-none transition-all duration-200 font-medium text-slate-700 focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(0,119,182,0.1)] placeholder:text-slate-400 resize-none"></textarea>
-          </div>
-          <div class="col-span-full mt-2">
-            <button type="submit" class="w-full bg-primary text-white border-none py-4 rounded-2xl font-black text-[16px] md:text-lg shadow-lg hover:shadow-xl hover:brightness-110 transition-all duration-300 cursor-pointer">Enviar Mensagem</button>
-          </div>
+    @if (runtime.supportEmail) {
+      <form class="border border-slate-200 bg-slate-50 p-6 md:p-8" (ngSubmit)="submitContact()" #contactForm="ngForm">
+        <h2 class="m-0 text-2xl font-black text-slate-900">Enviar mensagem</h2>
+        <p class="mt-2 text-sm text-slate-600">Seu aplicativo de e-mail será aberto com a mensagem preenchida.</p>
+
+        <div class="mt-7 grid gap-5 md:grid-cols-2">
+          <label class="grid gap-2 text-sm font-bold text-slate-700">
+            Nome
+            <input name="name" [(ngModel)]="name" required maxlength="100" autocomplete="name"
+                   class="h-12 border border-slate-300 bg-white px-3 font-normal outline-none focus:border-primary focus:ring-2 focus:ring-primary/15">
+          </label>
+          <label class="grid gap-2 text-sm font-bold text-slate-700">
+            E-mail para retorno
+            <input type="email" name="email" [(ngModel)]="email" required maxlength="254" autocomplete="email"
+                   class="h-12 border border-slate-300 bg-white px-3 font-normal outline-none focus:border-primary focus:ring-2 focus:ring-primary/15">
+          </label>
+          <label class="grid gap-2 text-sm font-bold text-slate-700 md:col-span-2">
+            Como podemos ajudar?
+            <textarea name="message" [(ngModel)]="message" required maxlength="2000" rows="7"
+                      class="resize-y border border-slate-300 bg-white p-3 font-normal outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"></textarea>
+          </label>
         </div>
+
+        <button type="submit" [disabled]="contactForm.invalid"
+                class="mt-6 inline-flex h-12 items-center gap-2 bg-primary px-6 font-black text-white disabled:cursor-not-allowed disabled:opacity-50">
+          <i class="pi pi-send"></i> Preparar e-mail
+        </button>
       </form>
-    </div>
-  </div>
-</div>
+    } @else {
+      <div class="border border-slate-200 bg-slate-50 p-6 md:p-8">
+        <h2 class="m-0 text-2xl font-black text-slate-900">Precisa planejar a viagem?</h2>
+        <p class="mt-3 max-w-xl leading-7 text-slate-600">Consulte taxas, ingresso do parque, trilhas e documentos antes de fechar o roteiro.</p>
+        <a routerLink="/essenciais" class="mt-6 inline-flex h-12 items-center gap-2 bg-primary px-6 font-black text-white no-underline">
+          <i class="pi pi-check-circle"></i> Ver informações essenciais
+        </a>
+      </div>
+    }
+  </section>
+</main>

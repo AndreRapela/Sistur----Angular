@@ -18,6 +18,8 @@ export interface LoginResponse {
   expiresAt?: number;
 }
 
+export type UserProfile = Omit<LoginResponse, 'token' | 'expiresAt'>;
+
 interface StoredAuth extends LoginResponse {
   expiresAt?: number;
 }
@@ -70,8 +72,8 @@ export class AuthService {
     );
   }
 
-  updateProfile(profileData: { name: string, bio: string, photoUrl: string, ownedEstablishmentId?: number | null }): Observable<ApiResponse<LoginResponse>> {
-    return this.http.put<ApiResponse<LoginResponse>>(`${environment.apiUrl}/users/profile`, profileData).pipe(
+  updateProfile(profileData: { name: string, bio: string, photoUrl: string, ownedEstablishmentId?: number | null }): Observable<ApiResponse<UserProfile>> {
+    return this.http.put<ApiResponse<UserProfile>>(`${environment.apiUrl}/users/profile`, profileData).pipe(
       tap(res => {
         if (res.data) {
           const current = this.currentUser();

@@ -1,6 +1,10 @@
+const runtimeApiUrl = typeof window !== 'undefined'
+  ? window.SISTUR_CONFIG?.apiUrl?.trim()
+  : '';
+
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8080/api',
+  apiUrl: runtimeApiUrl || 'http://localhost:8080/api',
   supabaseUrl: '',
   supabaseKey: '',
   googleClientId: '',

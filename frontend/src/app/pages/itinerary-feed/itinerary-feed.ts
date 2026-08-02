@@ -55,7 +55,11 @@ export class ItineraryFeedComponent implements OnInit {
   }
 
   viewDetails(itin: any) {
-    this.router.navigate(['/itinerary-shared', itin.shareToken || itin.id]);
+    if (!itin.shareToken) {
+      this.toastService.add({ severity: 'warn', summary: 'Roteiro indisponível', detail: 'Este roteiro ainda não possui um link público válido.' });
+      return;
+    }
+    this.router.navigate(['/itinerary-shared', itin.shareToken]);
   }
 
   @HostListener('window:scroll', [])

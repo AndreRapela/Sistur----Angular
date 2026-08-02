@@ -6,6 +6,7 @@ import { mergeMap } from 'rxjs/operators';
 interface NetworkInformation {
   saveData?: boolean;
   effectiveType?: string;
+  downlink?: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -25,6 +26,10 @@ export class SelectivePreloadingStrategy implements PreloadingStrategy {
     }
 
     const connection = (navigator as Navigator & { connection?: NetworkInformation }).connection;
-    return Boolean(connection?.saveData || ['slow-2g', '2g'].includes(connection?.effectiveType || ''));
+    return Boolean(
+      connection?.saveData
+      || ['slow-2g', '2g', '3g'].includes(connection?.effectiveType || '')
+      || (typeof connection?.downlink === 'number' && connection.downlink < 2)
+    );
   }
 }

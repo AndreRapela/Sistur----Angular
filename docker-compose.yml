@@ -2,30 +2,40 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: sistur-db
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: sistur
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ${LOCAL_DB_NAME:-sistur}
+      POSTGRES_USER: ${LOCAL_DB_USER:-sistur}
+      POSTGRES_PASSWORD: ${LOCAL_DB_PASSWORD:-sistur_local_only}
     ports:
-      - "5432:5432"
+      - "${LOCAL_DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${LOCAL_DB_USER:-sistur} -d ${LOCAL_DB_NAME:-sistur}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
 
-  redis:
-    image: redis:7-alpine
-    container_name: sistur-cache
-    ports:
-      - "6379:6379"
-
-  rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: sistur-mq
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+  backend:
+    build:
+      context: ./backend
+    container_name: sistur-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${LOCAL_DB_NAME:-sistur}
+      SPRING_DATASOURCE_USERNAME: ${LOCAL_DB_USER:-sistur}
+      SPRING_DATASOURCE_PASSWORD: ${LOCAL_DB_PASSWORD:-sistur_local_only}
+      JWT_SECRET: ${JWT_SECRET:-local-development-secret-change-before-deploy-2026}
+      ANALYTICS_PRIVACY_SALT: ${ANALYTICS_PRIVACY_SALT:-local-analytics-salt-change-before-deploy-2026}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200}
+      SISTUR_SEED_ENABLED: ${SISTUR_SEED_ENABLED:-true}
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-true}
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
 
 volumes:
   postgres_data:

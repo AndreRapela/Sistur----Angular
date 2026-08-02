@@ -1,0 +1,121 @@
+<main class="essentials-page">
+  <header class="essentials-hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <p>Antes de viajar</p>
+      <h1>Noronha sem surpresa no desembarque</h1>
+      <span>Taxas, ingresso do parque, agendamentos e cuidados reunidos em um só lugar.</span>
+    </div>
+  </header>
+
+  <section class="calculator-band" aria-labelledby="cost-title">
+    <div class="section-heading">
+      <p>Estimativa oficial 2026</p>
+      <h2 id="cost-title">Calcule os custos ambientais obrigatórios</h2>
+      <span>Valores por pessoa. Confirme novamente nos sites oficiais antes do pagamento.</span>
+    </div>
+
+    <div class="calculator-layout">
+      <div class="calculator-tool">
+        <div class="field-group">
+          <span class="field-label">Permanência na ilha</span>
+          <div class="stepper" aria-label="Quantidade de dias">
+            <button type="button" (click)="changeDays(-1)" [disabled]="days() === 1" title="Diminuir um dia" aria-label="Diminuir um dia">
+              <i class="pi pi-minus"></i>
+            </button>
+            <label>
+              <input type="number" min="1" max="30" [value]="days()" (change)="setDays($any($event.target).value)">
+              <small>{{ days() === 1 ? 'dia' : 'dias' }}</small>
+            </label>
+            <button type="button" (click)="changeDays(1)" [disabled]="days() === 30" title="Adicionar um dia" aria-label="Adicionar um dia">
+              <i class="pi pi-plus"></i>
+            </button>
+          </div>
+        </div>
+
+        <label class="switch-row">
+          <span><strong>Ingresso do Parque Nacional</strong><small>Necessário para Sancho, Sueste, Leão e outros atrativos do parque.</small></span>
+          <input type="checkbox" [checked]="includePark()" (change)="includePark.set($any($event.target).checked)">
+        </label>
+
+        @if (includePark()) {
+          <div class="field-group">
+            <span class="field-label">Tipo de visitante do parque</span>
+            <div class="segmented" role="group" aria-label="Tipo de visitante">
+              <button type="button" [class.active]="parkVisitor() === 'BRAZIL'" (click)="setParkVisitor('BRAZIL')">Brasileiro</button>
+              <button type="button" [class.active]="parkVisitor() === 'GENERAL'" (click)="setParkVisitor('GENERAL')">Público geral</button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <aside class="cost-summary" aria-live="polite">
+        <p>Estimativa por pessoa</p>
+        <strong>{{ formatCurrency(estimatedTotal()) }}</strong>
+        <dl>
+          <div><dt>TPA, {{ days() }} {{ days() === 1 ? 'dia' : 'dias' }}</dt><dd>{{ formatCurrency(tpaTotal()) }}</dd></div>
+          @if (includePark()) {
+            <div><dt>Parque, validade de 10 dias</dt><dd>{{ formatCurrency(parkPrice()) }}</dd></div>
+          }
+        </dl>
+        <a href="https://sin-web.noronha.pe.gov.br/" target="_blank" rel="noopener noreferrer">
+          Pagar TPA no site oficial <i class="pi pi-external-link"></i>
+        </a>
+        @if (includePark()) {
+          <a class="secondary" href="https://tickets.parnanoronha.com.br/" target="_blank" rel="noopener noreferrer">
+            Comprar ingresso do parque <i class="pi pi-external-link"></i>
+          </a>
+        }
+      </aside>
+    </div>
+
+    <div class="source-note">
+      <i class="pi pi-verified"></i>
+      <span>Conferido em {{ verifiedAt }} nas páginas da Administração de Noronha e do Parque Nacional Marinho.</span>
+    </div>
+  </section>
+
+  <section class="rules-band" aria-labelledby="rules-title">
+    <div class="section-heading compact">
+      <p>Organize antes</p>
+      <h2 id="rules-title">O que precisa entrar no seu planejamento</h2>
+    </div>
+
+    <div class="rules-grid">
+      <article>
+        <span>01</span>
+        <div><h3>TPA</h3><p>A taxa é individual e varia conforme os dias de permanência. Pagar antes do embarque agiliza a entrada.</p></div>
+      </article>
+      <article>
+        <span>02</span>
+        <div><h3>Ingresso do parque</h3><p>O ingresso vale 10 dias. Em 2026, custa R$ 192 para brasileiros e R$ 384 para o público geral.</p></div>
+      </article>
+      <article>
+        <span>03</span>
+        <div><h3>Trilhas com vaga</h3><p>Atalaia, Abreu, Capim Açu, Pontinha Caieira e Morro São José exigem agendamento e dependem da maré.</p></div>
+      </article>
+      <article>
+        <span>04</span>
+        <div><h3>Clima e mar</h3><p>Revise chuva, vento, ondas e alertas no dia. Passeios marítimos e trilhas podem mudar por segurança.</p></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="official-band">
+    <div>
+      <p>Informação primária</p>
+      <h2>Consulte sempre a fonte responsável</h2>
+    </div>
+    <div class="official-links">
+      <a href="https://www.noronha.pe.gov.br/catalogo-de-servicos-old2/taxa-de-preservacao-ambiental-tpa/" target="_blank" rel="noopener noreferrer">
+        <i class="pi pi-receipt"></i><span><strong>Tabela oficial da TPA</strong><small>Administração de Fernando de Noronha</small></span><i class="pi pi-external-link"></i>
+      </a>
+      <a href="https://www.parnanoronha.com.br/visitante" target="_blank" rel="noopener noreferrer">
+        <i class="pi pi-compass"></i><span><strong>Visitação e agendamento</strong><small>Parque Nacional Marinho</small></span><i class="pi pi-external-link"></i>
+      </a>
+      <a routerLink="/map">
+        <i class="pi pi-map"></i><span><strong>Ver atrativos no mapa</strong><small>Planeje deslocamentos no SisTur</small></span><i class="pi pi-arrow-right"></i>
+      </a>
+    </div>
+  </section>
+</main>

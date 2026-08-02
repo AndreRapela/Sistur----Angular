@@ -12,7 +12,7 @@
         Voltar para Início
       </button>
     </div>
-  } @else if (itinerary()) {
+  } @else if (itinerary(); as itineraryData) {
     <div class="max-w-4xl mx-auto py-10">
       <div class="bg-white rounded-[40px] shadow-sm border border-slate-100 p-8 md:p-12 mb-8 relative overflow-hidden">
         <!-- decorative bg -->
@@ -24,11 +24,11 @@
                 Roteiro Compartilhado
              </span>
              <h1 class="text-3xl md:text-5xl font-black text-slate-800 tracking-tight leading-none mb-2">
-                {{ itinerary().name }}
+                {{ itineraryData.name }}
              </h1>
              <p class="text-slate-500 font-medium">
-               Criado por <span class="text-slate-800 font-bold">{{ itinerary().user?.name || 'Viajante' }}</span> •
-               {{ itinerary().viewCount }} visualizações
+               Criado por <span class="text-slate-800 font-bold">{{ itineraryData.user?.name || 'Viajante' }}</span> •
+               {{ itineraryData.viewCount }} visualizações
              </p>
            </div>
 
@@ -37,7 +37,7 @@
 
         <!-- List of items -->
         <div class="space-y-6 relative z-10">
-           @for (item of itinerary().items; track item.id) {
+           @for (item of itineraryData.items; track item.type + ':' + item.referenceId) {
              <div class="flex bg-slate-50 rounded-3xl p-4 items-center gap-4 border border-slate-100">
                 <div class="w-20 h-20 rounded-2xl overflow-hidden shrink-0">
                   <img [ngSrc]="item.image || 'assets/icons/icon.svg'"

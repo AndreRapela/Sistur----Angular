@@ -1,6 +1,10 @@
+const runtimeApiUrl = typeof window !== 'undefined'
+  ? window.SISTUR_CONFIG?.apiUrl?.trim()
+  : '';
+
 export const environment = {
   production: true,
-  apiUrl: 'https://sistur-springboot.onrender.com/api',
+  apiUrl: runtimeApiUrl || 'https://sistur-springboot.onrender.com/api',
   supabaseUrl: '',
   supabaseKey: '',
   googleClientId: '',

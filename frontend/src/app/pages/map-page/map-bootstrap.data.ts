@@ -20,7 +20,8 @@ export interface MapBootstrapLocation {
   averagePrice?: number | null;
 }
 
-// Launch snapshot generated from the backend's real Noronha seed catalog.
+// Fast offline identity/coordinate snapshot. Live ratings and commercial prices
+// are supplied by the API or Google and are intentionally ignored by the map.
 export const NORONHA_MAP_BOOTSTRAP: ReadonlyArray<MapBootstrapLocation> = [
   {"id":"CURATED-POINT-1","mapSearchType":"BEACH","name":"Baía do Sancho","description":"Praia símbolo de Noronha, com falésias, mirantes e mar transparente para banho e snorkel.","category":"Praia","location":"Parque Nacional Marinho","photoUrl":"/assets/places/baia-do-sancho.jpg","latitude":-3.8547,"longitude":-32.4406},
   {"id":"CURATED-POINT-2","mapSearchType":"BEACH","name":"Baía dos Porcos","description":"Enseada pequena, rochosa e muito fotogênica, com vista direta para o Morro Dois Irmãos.","category":"Praia","location":"Entre Sancho e Cacimba do Padre","latitude":-3.8533,"longitude":-32.4358},

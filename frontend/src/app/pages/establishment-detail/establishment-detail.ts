@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Title } from '@angular/platform-browser';
 import { finalize, timeout } from 'rxjs';
 import { ApiService } from '../../services/api.service';
 import { ItineraryService } from '../../services/itinerary.service';
@@ -31,6 +32,7 @@ export class EstablishmentDetailComponent implements OnInit {
   private readonly analytics = inject(AnalyticsService);
   private readonly googlePlaces = inject(GooglePlaceDetailsService);
   private readonly weatherService = inject(NoronhaWeatherService);
+  private readonly title = inject(Title);
 
   readonly authService = inject(AuthService);
   readonly itineraryService = inject(ItineraryService);
@@ -293,6 +295,7 @@ export class EstablishmentDetailComponent implements OnInit {
             return;
           }
           this.est.set(response.data);
+          this.title.setTitle(`${response.data.name} | SisTur Noronha`);
           void this.loadGoogleDetails(response.data);
         },
         error: () => this.errorMessage.set('Não foi possível carregar as informações deste local.')

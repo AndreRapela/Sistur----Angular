@@ -3,6 +3,8 @@ export interface ApiResponse<T> {
   message: string;
   data: T;
   timestamp: string;
+  code?: string | null;
+  requestId?: string | null;
 }
 
 export interface TrackEventRequest {

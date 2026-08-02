@@ -1,0 +1,74 @@
+:host { display: block; }
+
+.essentials-page { background: #fff; color: #0f172a; }
+.essentials-hero { min-height: 360px; position: relative; display: flex; align-items: end; background: url('/assets/places/baia-do-sancho.jpg') center 45% / cover no-repeat; }
+.hero-overlay { position: absolute; inset: 0; background: rgba(3, 15, 34, .66); }
+.hero-content { position: relative; z-index: 1; width: min(1180px, 100%); margin: 0 auto; padding: 54px 24px; color: #fff; }
+.hero-content p, .section-heading > p, .official-band > div > p { margin: 0; color: #67e8f9; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+.hero-content h1 { max-width: 760px; margin: 10px 0 12px; font-size: 48px; line-height: 1.06; font-weight: 950; letter-spacing: 0; }
+.hero-content span { display: block; max-width: 680px; color: #e2e8f0; font-size: 18px; line-height: 1.6; }
+
+.calculator-band, .rules-band, .official-band { padding: 64px max(24px, calc((100% - 1180px) / 2)); }
+.section-heading { max-width: 760px; }
+.section-heading > p, .official-band > div > p { color: #0077b6; }
+.section-heading h2, .official-band h2 { margin: 10px 0; font-size: 34px; line-height: 1.2; font-weight: 950; letter-spacing: 0; }
+.section-heading > span { color: #64748b; line-height: 1.65; }
+.calculator-layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(300px, .75fr); gap: 28px; margin-top: 34px; align-items: stretch; }
+.calculator-tool { border: 1px solid #cbd5e1; padding: 28px; display: grid; gap: 28px; }
+.field-group { display: grid; gap: 12px; }
+.field-label { color: #334155; font-size: 13px; font-weight: 900; text-transform: uppercase; }
+.stepper { width: min(100%, 360px); height: 64px; display: grid; grid-template-columns: 60px 1fr 60px; border: 1px solid #94a3b8; }
+.stepper button { border: 0; background: #f1f5f9; color: #0f172a; cursor: pointer; font-size: 17px; }
+.stepper button:disabled { opacity: .4; cursor: not-allowed; }
+.stepper label { display: flex; align-items: center; justify-content: center; gap: 8px; border-inline: 1px solid #cbd5e1; }
+.stepper input { width: 48px; border: 0; outline: 0; background: transparent; text-align: right; font-size: 22px; font-weight: 900; }
+.stepper small { color: #64748b; }
+.switch-row { display: flex; justify-content: space-between; gap: 18px; align-items: center; border-block: 1px solid #e2e8f0; padding: 22px 0; cursor: pointer; }
+.switch-row span { display: grid; gap: 5px; }
+.switch-row small { max-width: 560px; color: #64748b; line-height: 1.5; }
+.switch-row input { width: 44px; height: 24px; accent-color: #0077b6; flex: 0 0 auto; }
+.segmented { width: min(100%, 460px); display: grid; grid-template-columns: 1fr 1fr; background: #f1f5f9; padding: 4px; }
+.segmented button { min-height: 44px; border: 0; background: transparent; color: #475569; font-weight: 800; cursor: pointer; }
+.segmented button.active { background: #fff; color: #005b8c; box-shadow: 0 1px 4px rgba(15, 23, 42, .12); }
+.cost-summary { background: #071426; color: #fff; padding: 30px; display: flex; flex-direction: column; }
+.cost-summary > p { margin: 0; color: #94a3b8; font-size: 12px; font-weight: 900; text-transform: uppercase; }
+.cost-summary > strong { margin-top: 8px; color: #67e8f9; font-size: 38px; line-height: 1.2; }
+.cost-summary dl { margin: 28px 0; border-block: 1px solid #334155; }
+.cost-summary dl div { display: flex; justify-content: space-between; gap: 20px; padding: 15px 0; color: #cbd5e1; }
+.cost-summary dd { margin: 0; color: #fff; font-weight: 800; white-space: nowrap; }
+.cost-summary a { min-height: 48px; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: auto; background: #06b6d4; color: #062033; font-weight: 900; text-decoration: none; text-align: center; }
+.cost-summary a.secondary { margin-top: 10px; border: 1px solid #475569; background: transparent; color: #fff; }
+.source-note { display: flex; align-items: center; gap: 10px; margin-top: 18px; color: #475569; font-size: 13px; }
+.source-note i { color: #059669; }
+
+.rules-band { background: #f8fafc; border-block: 1px solid #e2e8f0; }
+.section-heading.compact { max-width: 820px; }
+.rules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 40px; margin-top: 34px; }
+.rules-grid article { display: grid; grid-template-columns: 46px 1fr; gap: 16px; padding: 24px 0; border-top: 1px solid #cbd5e1; }
+.rules-grid article > span { color: #0077b6; font-size: 13px; font-weight: 950; }
+.rules-grid h3 { margin: 0 0 8px; font-size: 19px; }
+.rules-grid p { margin: 0; color: #64748b; line-height: 1.65; }
+.official-band { display: grid; grid-template-columns: .7fr 1.3fr; gap: 56px; align-items: start; }
+.official-links { border-top: 1px solid #cbd5e1; }
+.official-links a { min-height: 82px; display: grid; grid-template-columns: 30px 1fr 20px; gap: 16px; align-items: center; border-bottom: 1px solid #cbd5e1; color: #1e293b; text-decoration: none; }
+.official-links a:hover { color: #0077b6; }
+.official-links span { display: grid; gap: 4px; }
+.official-links small { color: #64748b; }
+
+@media (max-width: 800px) {
+  .hero-content h1 { font-size: 36px; }
+  .calculator-band, .rules-band, .official-band { padding: 46px 20px; }
+  .calculator-layout, .official-band { grid-template-columns: 1fr; }
+  .section-heading h2, .official-band h2 { font-size: 28px; }
+  .rules-grid { grid-template-columns: 1fr; }
+  .cost-summary > strong { font-size: 32px; }
+}
+
+@media (max-width: 430px) {
+  .essentials-hero { min-height: 400px; }
+  .hero-content { padding: 44px 20px; }
+  .hero-content h1 { font-size: 32px; }
+  .calculator-tool, .cost-summary { padding: 22px 18px; }
+  .segmented { grid-template-columns: 1fr; }
+  .switch-row { align-items: start; }
+}
