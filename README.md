@@ -19,7 +19,7 @@ O backend é um repositório Git separado referenciado por este repositório pri
 - Catálogo real de praias, pontos, restaurantes, hospedagens, passeios e conveniências.
 - Páginas próprias para cards e estabelecimentos.
 - Roteiro local, modo compacto, reservas privadas, orçamento dividido, calendário `.ics`, salvamento em nuvem, compartilhamento por token e otimização contextual.
-- Clima terrestre e marítimo com cache, alertas e recomendações de segurança.
+- Clima terrestre e marítimo com cache, alertas e recomendações de segurança, incluindo filtro preventivo no mapa para atividades expostas.
 - Calculadora da TPA 2026 e informações do Parque Nacional com fontes oficiais.
 - Painéis de procura, funil e cliques de conversão para administração e parceiros.
 - Instalação PWA e disponibilidade do roteiro local sem conexão.

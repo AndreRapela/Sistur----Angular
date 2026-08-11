@@ -26,7 +26,7 @@ Revisão atualizada em 02/08/2026. As referências servem para identificar padr�
 | Roteiro por dia e horário | Implementado | Essencial | Melhorar edição por arrastar no mobile |
 | Visualização compacta | Implementada | Comum em planners maduros | Medir preferência e densidade em aparelhos reais |
 | Otimização de rota | Implementada por contexto e distância | Diferencial esperado | Explicar fonte e limitações ao usuário |
-| Clima e alertas | Implementados | Diferencial local forte | Adicionar alertas oficiais quando houver fonte pública confiável |
+| Clima e alertas | Implementados, com lente preventiva no mapa e acesso ao INMET | Diferencial local forte | Integrar alerta oficial somente quando houver fonte pública estável e verificável |
 | Offline | Shell e roteiro local implementados | Forte em viagem | Baixar mapa e detalhes selecionados com consentimento e limites de licença |
 | Colaboração simultânea | Não implementada | Presente no Wanderlog | Fase 2 com convite, permissões e histórico |
 | Reservas organizadas | Implementadas manualmente e privadas no dispositivo | Presente em planners maduros | Sincronização criptografada e importação de e-mail somente após revisão LGPD |

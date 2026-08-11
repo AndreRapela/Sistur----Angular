@@ -57,4 +57,5 @@ npm run build
 - O build de produção gera uma PWA. O roteiro local, o shell e a última previsão climática válida continuam disponíveis por tempo limitado; demais dados ao vivo exigem conexão.
 - Orçamento, despesas e códigos de reserva ficam somente no dispositivo e não são publicados na API social. O usuário pode exportar compromissos em `.ics`.
 - O cadastro publico cria usuarios Free; upgrades Pro/Premium devem passar pelo fluxo comercial/admin.
-- As fotos exibidas pelo app devem ser reais/licenciadas. No mapa, locais sem foto confiável recebem uma vista aérea identificada da coordenada, nunca uma foto genérica apresentada como se fosse do estabelecimento.
+- As fotos exibidas pelo app devem ser reais/licenciadas. Locais sem foto confiável permanecem sem foto; o app nunca usa imagem de satélite ou foto genérica como se fosse do estabelecimento.
+- Em condição meteorológica de atenção, o mapa mostra um resumo preventivo e permite filtrar praias, mar e atividades expostas. A recomendação orienta o planejamento, mas o aviso oficial deve ser confirmado no INMET.

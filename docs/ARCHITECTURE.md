@@ -23,7 +23,8 @@ flowchart LR
 - Orçamento, despesas e códigos de reserva ficam em um workspace local separado e não são enviados ao roteiro público.
 - O exportador `.ics` reúne apenas paradas agendadas e reservas inseridas pelo usuário, sem depender de acesso ao Google Calendar.
 - Google Maps é a camada preferencial quando configurada. Leaflet funciona como fallback operacional.
-- O carregamento inicial do Google possui orçamento de 1,2 segundo; conexões lentas recebem o mapa satélite Leaflet sem esperar o timeout completo do provedor.
+- O carregamento inicial do Google possui orçamento de 1,2 segundo; conexões lentas recebem o mapa de ruas Leaflet sem esperar o timeout completo do provedor. A visão satélite continua disponível sob ação do usuário.
+- A tela de mapa consome o resumo meteorológico e apresenta uma lente preventiva em condições de atenção. O usuário pode filtrar opções expostas ao mar, trilhas e praias sem ocultar dados automaticamente; avisos oficiais continuam sendo confirmados no INMET.
 
 ## Backend
 

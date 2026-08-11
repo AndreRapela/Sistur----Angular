@@ -22,6 +22,11 @@ import { AnalyticsService } from '../../services/analytics.service';
 import { GoogleMapsLoaderService } from '../../services/google-maps-loader.service';
 import { GooglePlaceDetailsService } from '../../services/google-place-details.service';
 import { ItineraryService } from '../../services/itinerary.service';
+import {
+  NoronhaWeatherOverview,
+  NoronhaWeatherService,
+  WeatherSafetyAlert
+} from '../../services/noronha-weather.service';
 import { openExternalLink } from '../../utils/external-link';
 import { NORONHA_MAP_BOOTSTRAP } from './map-bootstrap.data';
 import {
@@ -142,6 +147,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private ngZone = inject(NgZone);
   private googleLoader = inject(GoogleMapsLoaderService);
   private googlePlaceDetails = inject(GooglePlaceDetailsService);
+  private weather = inject(NoronhaWeatherService);
   private analytics = inject(AnalyticsService);
   public itinerary = inject(ItineraryService);
 
@@ -202,13 +208,15 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   mapStatus = 'Carregando mapa...';
   currentZoom = 13;
   zoomGuide = 'Aproxime o mapa para separar os lugares.';
-  mapViewMode: MapViewMode = 'SATELLITE';
+  mapViewMode: MapViewMode = 'STREET';
   satelliteAvailable = true;
   googlePlacesLoading = false;
   locationState: LocationState = 'idle';
   locationMessage = 'Use sua posição para calcular rotas reais.';
   userLocation?: LocationDTO;
   resultImageLimit = 12;
+  weatherOverview: NoronhaWeatherOverview | null = null;
+  weatherSafeMode = false;
 
   categories: MapCategory[] = [
     { id: 'ALL', label: 'Tudo', icon: 'pi pi-map' },
@@ -243,6 +251,7 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.pendingInitialParams = this.activatedRoute.snapshot.queryParams;
     this.applyRoutePreset();
     this.loadAllData();
+    this.loadWeatherLens();
   }
 
   ngAfterViewInit() {
@@ -321,6 +330,33 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.googleTextSearchLocations = [];
     this.updateMarkers();
     this.cdr.markForCheck();
+  }
+
+  toggleWeatherSafeMode(): void {
+    if (!this.weatherNeedsCaution()) return;
+
+    this.weatherSafeMode = !this.weatherSafeMode;
+    this.selectedLocation = null;
+    this.routeSummary = null;
+    this.routeState = 'idle';
+    this.routeNotice = '';
+    this.clearRoute();
+    this.updateMarkers();
+    this.focusFilteredLocations();
+    this.cdr.markForCheck();
+  }
+
+  weatherNeedsCaution(): boolean {
+    return Boolean(this.weatherOverview && this.weatherOverview.level !== 'safe');
+  }
+
+  weatherLensAlert(): WeatherSafetyAlert | null {
+    return this.weatherOverview?.alerts.find(alert => alert.level !== 'safe') || null;
+  }
+
+  weatherExposureWarning(location: MapLocation): WeatherSafetyAlert | null {
+    if (!this.weatherSafeMode && !this.weatherNeedsCaution()) return null;
+    return this.isLocationWeatherExposed(location) ? this.weatherLensAlert() : null;
   }
 
   selectLocation(location: MapLocation) {
@@ -684,7 +720,9 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       zoom: 13,
       minZoom: 12,
       maxZoom: 20,
-      mapTypeId: google.maps.MapTypeId.HYBRID,
+      mapTypeId: this.mapViewMode === 'SATELLITE'
+        ? google.maps.MapTypeId.HYBRID
+        : google.maps.MapTypeId.ROADMAP,
       backgroundColor: '#e8eaed',
       mapTypeControl: false,
       fullscreenControl: false,
@@ -838,6 +876,19 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
         .filter(location => this.isLocationInsideNoronha(location));
       this.updateMarkers();
       this.applyInitialSelection(this.pendingInitialParams);
+      this.cdr.markForCheck();
+    });
+  }
+
+  private loadWeatherLens(): void {
+    this.weather.overview().pipe(
+      catchError(() => of(null))
+    ).subscribe(overview => {
+      this.weatherOverview = overview;
+      if (!this.weatherNeedsCaution()) {
+        this.weatherSafeMode = false;
+      }
+      this.updateMarkers();
       this.cdr.markForCheck();
     });
   }
@@ -1294,7 +1345,11 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
       return haystack.includes(query);
     }) : [...data];
 
-    return filtered.sort((first, second) => {
+    const safetyFiltered = this.weatherSafeMode && this.weatherNeedsCaution()
+      ? filtered.filter(item => !this.isLocationWeatherExposed(item))
+      : filtered;
+
+    return safetyFiltered.sort((first, second) => {
       if (this.userLocation) {
         const firstCoordinates = this.coordinatesFor(first);
         const secondCoordinates = this.coordinatesFor(second);
@@ -1315,6 +1370,27 @@ export class MapPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private getDataForCategory(category: MapCategoryId): MapLocation[] {
     return this.locationsByCategory.get(category) || [];
+  }
+
+  private isLocationWeatherExposed(location: MapLocation): boolean {
+    if (location.mapSearchType === 'BEACH') {
+      return true;
+    }
+
+    const subject = this.normalizeSearch([
+      location.name,
+      location.description,
+      location.category,
+      location.location,
+      location.weatherAdvice,
+      location.idealWeather
+    ].filter(Boolean).join(' '));
+    const exposedTerms = [
+      'barco', 'lancha', 'mergulho', 'snorkel', 'trilha', 'pico', 'mirante',
+      'costao', 'canoa', 'surf', 'mar aberto', 'naufragio', 'baia'
+    ];
+
+    return exposedTerms.some(term => subject.includes(term));
   }
 
   private clearMarkers() {

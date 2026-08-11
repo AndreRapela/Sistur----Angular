@@ -35,6 +35,27 @@
       </span>
     </div>
 
+    @if (weatherLensAlert(); as weatherAlert) {
+      <section class="map-weather-brief" [attr.data-level]="weatherAlert.level" aria-label="Alerta climático para o mapa">
+        <span class="map-weather-icon"><i [class]="weatherAlert.icon"></i></span>
+        <div>
+          <small>Condições de hoje</small>
+          <strong>{{ weatherAlert.title }}</strong>
+          <p>{{ weatherAlert.message }}</p>
+          @if (weatherSafeMode) {
+            <em>Mostrando opções menos expostas ao clima.</em>
+          }
+        </div>
+        <button type="button" (click)="toggleWeatherSafeMode()">
+          <i [class]="weatherSafeMode ? 'pi pi-times' : 'pi pi-shield'"></i>
+          {{ weatherSafeMode ? 'Mostrar todos' : 'Ver opções mais seguras' }}
+        </button>
+        <a href="https://avisos.inmet.gov.br/" target="_blank" rel="noopener noreferrer">
+          Avisos oficiais INMET <i class="pi pi-external-link"></i>
+        </a>
+      </section>
+    }
+
     <div class="category-strip">
       @for (cat of categories; track cat.id) {
         <button type="button"
@@ -267,6 +288,13 @@
               <span><i class="pi pi-users"></i>Guia necessário</span>
             }
           </div>
+
+          @if (weatherExposureWarning(selectedLocation); as weatherAlert) {
+            <div class="place-weather-notice" [attr.data-level]="weatherAlert.level">
+              <i [class]="weatherAlert.icon"></i>
+              <span><strong>{{ weatherAlert.title }}.</strong> {{ weatherAlert.places }}</span>
+            </div>
+          }
 
           @if (selectedLocation.contactNumber || selectedLocation.websiteUrl || selectedLocation.menuUrl) {
             <div class="place-links">

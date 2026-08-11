@@ -67,3 +67,12 @@ O lançamento é “go” somente quando todos os bloqueadores comerciais possue
 - [x] CI e atualização automatizada de dependências adicionadas aos dois repositórios.
 
 Ainda exigem evidência externa: migração em cópia do Supabase, restauração, aparelhos reais, Core Web Vitals em rede móvel, licenças de imagens e validação comercial dos dados.
+
+## Revalidacao local em 11/08/2026
+
+- [x] Frontend Angular: 14 testes, sem falhas.
+- [x] Build de producao concluido; o mapa continua em chunk lazy.
+- [x] `npm audit --omit=dev`: nenhuma vulnerabilidade de producao conhecida.
+- [!] `npm audit`: 2 vulnerabilidades apenas de desenvolvimento, transitivas de `@angular/build` 21 via `undici`. A correcao automatica exige migracao breaking para Angular 22; tratar em ciclo de atualizacao dedicado.
+- [!] Backend nao foi reexecutado nesta maquina: o Maven Enforcer exige JDK 21 e os runtimes locais disponiveis sao Java 25/26. Docker Desktop tambem nao estava disponivel para usar a imagem de build.
+- [x] Mapa revisado em 390x844 e 1440x900: abertura imediata em ruas, sem overflow horizontal e sem imagem de satelite apresentada como foto de estabelecimento.
